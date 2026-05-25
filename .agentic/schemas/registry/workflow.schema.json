@@ -3,37 +3,61 @@
   "$id": "workflow.schema.json",
   "title": "Workflow Registry Entry",
   "type": "object",
-  "required": ["name", "description", "states", "terminalStates"],
+  "required": ["name", "description", "version", "startState", "states", "terminalStates", "defaultFailureRoute", "failClosed"],
   "properties": {
     "name": {
       "type": "string",
       "minLength": 1
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
-    "initialState": {
-      "type": "string"
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startState": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultFailureRoute": {
+      "type": "string",
+      "minLength": 1
+    },
+    "failClosed": {
+      "type": "boolean"
     },
     "states": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "gate": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
     "terminalStates": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "string",
         "minLength": 1
       },
       "uniqueItems": true
-    },
-    "transitions": {
-      "type": "array"
-    },
-    "gates": {
-      "type": "array"
     }
   }
 }
