@@ -133,6 +133,17 @@ def break_generated_output(worktree: Path) -> None:
     path.unlink()
 
 
+def break_output_manifest_hash(worktree: Path) -> None:
+    path = worktree / ".github" / "copilot-instructions.md"
+    if not path.is_file():
+        raise RuntimeError(f"Expected generated file not found before mutation: {path}")
+
+    path.write_text(
+        path.read_text(encoding="utf-8") + "\n<!-- negative manifest drift test -->\n",
+        encoding="utf-8",
+    )
+
+
 def break_resolution_output(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -184,6 +195,12 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_output,
             "missing generated file",
+        ),
+        (
+            "output manifest validation fails when generated file content drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_hash,
+            "sha256 mismatch",
         ),
         (
             "resolution validation fails when missingCapabilities is non-empty",
