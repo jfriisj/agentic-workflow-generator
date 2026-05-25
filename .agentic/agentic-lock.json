@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 55,
-    "contentHash": "sha256:e3a05aa01ec200097037b3b3450d5ed6453e5c1cc5470e39ec0022d009101ed1",
+    "fileCount": 57,
+    "contentHash": "sha256:279b3e50084001ef3e86dff3d9a03a4d843bc1e7fdcfc069da0959e034e60fb1",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -62,6 +62,11 @@
         "sizeBytes": 604
       },
       {
+        "path": "registry/artifacts/ArchitectureDecision/artifact.json",
+        "sha256": "sha256:d2b5b6e4780dc961077b4dadcb54702a6aac330ff0f04bd29aafef470f3bd2ed",
+        "sizeBytes": 559
+      },
+      {
         "path": "registry/artifacts/CodeReview/artifact.json",
         "sha256": "sha256:bf3b476b884d3bc241378855b5a139fd1bf27b8da4f2b3768300418f5568d039",
         "sizeBytes": 473
@@ -90,6 +95,11 @@
         "path": "registry/artifacts/QAReport/artifact.schema.json",
         "sha256": "sha256:5f2d083e9dec38f1b17588cc16b0733884f470200cecbb12c1007414ff4b54b4",
         "sizeBytes": 1238
+      },
+      {
+        "path": "registry/artifacts/Requirements/artifact.json",
+        "sha256": "sha256:579c2c1107546d500e7c1c63778463843efa6d88842fcc3d56d077b60f9c961b",
+        "sizeBytes": 546
       },
       {
         "path": "registry/artifacts/TestReport/artifact.json",
