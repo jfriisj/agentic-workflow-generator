@@ -578,6 +578,19 @@ def break_output_manifest_duplicate_target_name(worktree: Path) -> None:
 
 
 
+def break_output_manifest_summary_missing_error_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("output manifest summary must be an object before mutation")
+
+    summary.pop("errorCount", None)
+    write_json(path, data)
+
+
+
 def break_output_manifest_summary_error_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1296,6 +1309,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_duplicate_target_name,
             "duplicate target name",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary errorCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_summary_missing_error_count,
+            "summary.errorCount",
         ),
         (
             "failure",
