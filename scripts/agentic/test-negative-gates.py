@@ -133,6 +133,18 @@ def break_generated_output(worktree: Path) -> None:
     path.unlink()
 
 
+def break_output_manifest_schema_version(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    if "schemaVersion" not in data:
+        raise RuntimeError("schemaVersion already missing before mutation")
+
+    del data["schemaVersion"]
+    write_json(path, data)
+
+
+
 def break_output_manifest_hash(worktree: Path) -> None:
     path = worktree / ".github" / "copilot-instructions.md"
     if not path.is_file():
@@ -228,6 +240,12 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_output,
             "missing generated file",
+        ),
+        (
+            "output manifest validation fails when schemaVersion is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_schema_version,
+            "schemaVersion",
         ),
         (
             "output manifest validation fails when generated file content drifts",
