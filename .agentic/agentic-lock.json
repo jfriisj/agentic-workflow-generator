@@ -1,0 +1,151 @@
+{
+  "lockfileVersion": 1,
+  "generatedAt": "2026-05-25T13:19:53+00:00",
+  "generator": {
+    "name": "agentic-gen",
+    "mode": "local-mvp-lockfile"
+  },
+  "inputs": {
+    "patterns": [
+      ".agentic/agentic.json",
+      ".agentic/schemas/*.json",
+      "registry/**/*.json",
+      "registry/**/SKILL.md",
+      "scripts/agentic/*.py",
+      "scripts/agentic/*.sh"
+    ],
+    "fileCount": 26,
+    "files": [
+      {
+        "path": ".agentic/agentic.json",
+        "sha256": "sha256:2bc86678daddca71d73f97a5be0a7fc4714d563e8ac844d15ded52996a2fc0b5",
+        "sizeBytes": 7070
+      },
+      {
+        "path": ".agentic/schemas/agentic.schema.json",
+        "sha256": "sha256:d681991d78ea5de99cb626ffdc98b10f443257ed915f38a1a2357f53692e6579",
+        "sizeBytes": 7146
+      },
+      {
+        "path": "registry/agents/Architect/agent.json",
+        "sha256": "sha256:ef7b49fcc383f7cc7636abbfc7fad55fde5d8003968c265d40bb0cf8595e54be",
+        "sizeBytes": 720
+      },
+      {
+        "path": "registry/agents/CodeReviewer/agent.json",
+        "sha256": "sha256:72223b93ef5fead95ac6c07b798dde1162d8d92128b1057588d249a6eb1b25bb",
+        "sizeBytes": 756
+      },
+      {
+        "path": "registry/agents/Implementer/agent.json",
+        "sha256": "sha256:b5f57865fe9fb33fa5c90d9cd0cd75e07ef3613726475a22f7a64538a50a0ae4",
+        "sizeBytes": 752
+      },
+      {
+        "path": "registry/agents/Orchestrator/agent.json",
+        "sha256": "sha256:59cf0f98adea7bb4d8c3a9457dcf05b04a60f98fdd5fe52175afaf2e9eef3229",
+        "sizeBytes": 744
+      },
+      {
+        "path": "registry/agents/QA/agent.json",
+        "sha256": "sha256:7f5efc736892394385766a6d9cd06e43beaabd9b83539c63e7f2a0361a81dca3",
+        "sizeBytes": 707
+      },
+      {
+        "path": "registry/agents/Requirements/agent.json",
+        "sha256": "sha256:d8367d5f4be1d3ddae7a35f719e9e29c9ee5c1a1616e454fe49db8ba84fc5f2a",
+        "sizeBytes": 765
+      },
+      {
+        "path": "registry/agents/TestRunner/agent.json",
+        "sha256": "sha256:01169b498e3765da2cb06a85b560dc85c638749ec3eea666fc5c87df3c3d798d",
+        "sizeBytes": 635
+      },
+      {
+        "path": "registry/profiles/microservice-platform.profile.json",
+        "sha256": "sha256:f4c15ad26f853735f663bdb73cc1b7de8f2145d444cb84c49785281ba15ad543",
+        "sizeBytes": 709
+      },
+      {
+        "path": "registry/skills/code-review-clean-code/SKILL.md",
+        "sha256": "sha256:6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
+        "sizeBytes": 970
+      },
+      {
+        "path": "registry/skills/code-review-clean-code/skill.json",
+        "sha256": "sha256:214d4206b254b25e51a51b30e729383d6f640a31cb522088cba2cd090cbdf770",
+        "sizeBytes": 396
+      },
+      {
+        "path": "registry/skills/code-review-tests/SKILL.md",
+        "sha256": "sha256:d4bd37cafaa8c7e3b13b968b74e6e97f0ce36482d0cae69ed0e42b1fa1f621d7",
+        "sizeBytes": 535
+      },
+      {
+        "path": "registry/skills/code-review-tests/skill.json",
+        "sha256": "sha256:21fb5b9a81bf0bc0e36e9f6bd3eea956434042990c129d9ee84030bdd314d9bb",
+        "sizeBytes": 352
+      },
+      {
+        "path": "registry/skills/mvp-core-capabilities/SKILL.md",
+        "sha256": "sha256:38185b3dda55d59c5351f8aea04c1e6b20472d638021f1634fc570895024af69",
+        "sizeBytes": 762
+      },
+      {
+        "path": "registry/skills/mvp-core-capabilities/skill.json",
+        "sha256": "sha256:ebba441c139a5bd1457c19ef55d7f0dd2a6b723e186dcffcb016cc6bfddca9b6",
+        "sizeBytes": 829
+      },
+      {
+        "path": "registry/skills/workflow-routing/SKILL.md",
+        "sha256": "sha256:dfd0c74084da1173d82df61d23bfe855324524c78e6b0aaf5ed8e88ace15985c",
+        "sizeBytes": 554
+      },
+      {
+        "path": "registry/skills/workflow-routing/skill.json",
+        "sha256": "sha256:edeea9133c790c5a6af8a50402639e4e47c71e4cd1b89bd754ef40481310a3ea",
+        "sizeBytes": 386
+      },
+      {
+        "path": "registry/targets/opencode/adapter.json",
+        "sha256": "sha256:c7c9412071260adad201bc9d4f7a87a03037631b744e2869f80db4dae4f4e923",
+        "sizeBytes": 1245
+      },
+      {
+        "path": "registry/targets/vscode-copilot/adapter.json",
+        "sha256": "sha256:b60dfba0fae38139cf8370461b3e9ac2e27ac1a939e3e7c066351d9c6c5b48ad",
+        "sizeBytes": 1571
+      },
+      {
+        "path": "registry/workflows/orchestrated-delivery.workflow.json",
+        "sha256": "sha256:6f869be68648738a5e9d55f741b7a863bb86627fe98863f1d18ef88c33881e6e",
+        "sizeBytes": 1155
+      },
+      {
+        "path": "scripts/agentic/agentic-gen.sh",
+        "sha256": "sha256:17d834b3afbf813497b4c64778de8b399bcb87336856ba0e6cc7ed2d2eaecb7b",
+        "sizeBytes": 3439
+      },
+      {
+        "path": "scripts/agentic/generate-lockfile.py",
+        "sha256": "sha256:082b866c5cf6dcf790f30b6eaed064d8d12f9c7f26e4aabb3f7b5d2c721e034c",
+        "sizeBytes": 2528
+      },
+      {
+        "path": "scripts/agentic/generate-vscode-copilot.py",
+        "sha256": "sha256:a32124bb8ff4f34b37bd6e74196ab55eacb9817e83aa681edef9fe07bdec3c0d",
+        "sizeBytes": 7536
+      },
+      {
+        "path": "scripts/agentic/resolve-agentic-config.py",
+        "sha256": "sha256:264ec5a7856e47f54f763fd7404a5a2d33b28bbbd3bd95ac4498aa7f636b019b",
+        "sizeBytes": 7950
+      },
+      {
+        "path": "scripts/agentic/validate-agentic-config.sh",
+        "sha256": "sha256:2ed371300a068135772fe40f7b1b745faecdd46e31dc44fa2f0e384ce0493fd0",
+        "sizeBytes": 1048
+      }
+    ]
+  }
+}
