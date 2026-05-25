@@ -96,6 +96,68 @@ def validate_summary_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def validate_project_string_field(
+    project: dict[str, Any],
+    field: str,
+    errors: list[str],
+) -> None:
+    value = project.get(field)
+    if not isinstance(value, str) or not value.strip():
+        errors.append(f"{RESOLUTION_PATH}: project.{field} must be a non-empty string")
+
+
+def validate_project_string_list_field(
+    project: dict[str, Any],
+    field: str,
+    errors: list[str],
+) -> None:
+    value = project.get(field)
+
+    if not isinstance(value, list) or not value:
+        errors.append(f"{RESOLUTION_PATH}: project.{field} must be a non-empty list")
+        return
+
+    seen_values: set[str] = set()
+
+    for index, entry in enumerate(value):
+        if not isinstance(entry, str) or not entry.strip():
+            errors.append(
+                f"{RESOLUTION_PATH}: project.{field}[{index}] must be a non-empty string"
+            )
+            continue
+
+        if entry in seen_values:
+            errors.append(
+                f"{RESOLUTION_PATH}: project.{field}[{index}] is duplicated"
+            )
+
+        seen_values.add(entry)
+
+
+def validate_project_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    project = resolution.get("project")
+
+    if not isinstance(project, dict):
+        return [f"{RESOLUTION_PATH}: project must be an object"]
+
+    for field in [
+        "name",
+        "type",
+        "description",
+        "architectureProfile",
+    ]:
+        validate_project_string_field(project, field, errors)
+
+    for field in [
+        "languageProfiles",
+        "runtimeProfiles",
+    ]:
+        validate_project_string_list_field(project, field, errors)
+
+    return errors
+
+
 def validate_workflow_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     workflow = resolution.get("workflow")
@@ -267,6 +329,7 @@ def main() -> int:
             errors.append(f"{RESOLUTION_PATH}: expected non-empty '{required_key}' collection")
 
     errors.extend(validate_summary_resolution(resolution))
+    errors.extend(validate_project_resolution(resolution))
     errors.extend(validate_workflow_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))

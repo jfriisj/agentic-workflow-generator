@@ -1701,6 +1701,181 @@ def break_resolution_output(worktree: Path) -> None:
 
 
 
+
+def break_resolution_missing_project(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data.pop("project", None)
+    write_json(path, data)
+
+
+def break_resolution_invalid_project_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data["project"] = "not-an-object"
+    write_json(path, data)
+
+
+def mutate_project_string_field(
+    worktree: Path,
+    field: str,
+    action: str,
+) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    project = data.get("project")
+    if not isinstance(project, dict):
+        raise RuntimeError("resolution project must be an object before mutation")
+
+    if action == "missing":
+        project.pop(field, None)
+    elif action == "empty":
+        project[field] = ""
+    elif action == "invalid-type":
+        project[field] = {"not": "a-string"}
+    else:
+        raise RuntimeError(f"Unknown project string mutation action: {action}")
+
+    write_json(path, data)
+
+
+def mutate_project_list_field(
+    worktree: Path,
+    field: str,
+    action: str,
+) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    project = data.get("project")
+    if not isinstance(project, dict):
+        raise RuntimeError("resolution project must be an object before mutation")
+
+    if action == "missing":
+        project.pop(field, None)
+    elif action == "invalid-type":
+        project[field] = {"not": "a-list"}
+    elif action == "empty-list":
+        project[field] = []
+    elif action == "invalid-entry-type":
+        values = project.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+        values[0] = {"not": "a-string"}
+    elif action == "empty-entry":
+        values = project.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+        values[0] = ""
+    elif action == "duplicate-entry":
+        values = project.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+        values.append(values[0])
+    else:
+        raise RuntimeError(f"Unknown project list mutation action: {action}")
+
+    write_json(path, data)
+
+
+def break_resolution_project_missing_name(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "name", "missing")
+
+
+def break_resolution_project_empty_name(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "name", "empty")
+
+
+def break_resolution_project_invalid_name_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "name", "invalid-type")
+
+
+def break_resolution_project_missing_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "type", "missing")
+
+
+def break_resolution_project_empty_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "type", "empty")
+
+
+def break_resolution_project_invalid_type_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "type", "invalid-type")
+
+
+def break_resolution_project_missing_description(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "description", "missing")
+
+
+def break_resolution_project_empty_description(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "description", "empty")
+
+
+def break_resolution_project_invalid_description_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "description", "invalid-type")
+
+
+def break_resolution_project_missing_architecture_profile(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "architectureProfile", "missing")
+
+
+def break_resolution_project_empty_architecture_profile(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "architectureProfile", "empty")
+
+
+def break_resolution_project_invalid_architecture_profile_type(worktree: Path) -> None:
+    mutate_project_string_field(worktree, "architectureProfile", "invalid-type")
+
+
+def break_resolution_project_missing_language_profiles(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "missing")
+
+
+def break_resolution_project_invalid_language_profiles_type(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "invalid-type")
+
+
+def break_resolution_project_empty_language_profiles(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "empty-list")
+
+
+def break_resolution_project_invalid_language_profile_entry_type(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "invalid-entry-type")
+
+
+def break_resolution_project_empty_language_profile_entry(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "empty-entry")
+
+
+def break_resolution_project_duplicate_language_profile(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "languageProfiles", "duplicate-entry")
+
+
+def break_resolution_project_missing_runtime_profiles(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "missing")
+
+
+def break_resolution_project_invalid_runtime_profiles_type(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "invalid-type")
+
+
+def break_resolution_project_empty_runtime_profiles(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "empty-list")
+
+
+def break_resolution_project_invalid_runtime_profile_entry_type(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "invalid-entry-type")
+
+
+def break_resolution_project_empty_runtime_profile_entry(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "empty-entry")
+
+
+def break_resolution_project_duplicate_runtime_profile(worktree: Path) -> None:
+    mutate_project_list_field(worktree, "runtimeProfiles", "duplicate-entry")
+
 def break_resolution_missing_workflow(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2986,6 +3161,188 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_workflow_duplicate_terminal_state,
             "workflow.terminalStates",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_missing_project,
+            "project must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_invalid_project_type,
+            "project must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project name is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_name,
+            "project.name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project name is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_name,
+            "project.name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project name has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_name_type,
+            "project.name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project type is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_type,
+            "project.type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project type is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_type,
+            "project.type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project type has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_type_type,
+            "project.type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project description is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_description,
+            "project.description must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project description is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_description,
+            "project.description must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project description has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_description_type,
+            "project.description must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project architectureProfile is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_architecture_profile,
+            "project.architectureProfile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project architectureProfile is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_architecture_profile,
+            "project.architectureProfile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project architectureProfile has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_architecture_profile_type,
+            "project.architectureProfile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_language_profiles,
+            "project.languageProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_language_profiles_type,
+            "project.languageProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_language_profiles,
+            "project.languageProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_language_profile_entry_type,
+            "project.languageProfiles[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_language_profile_entry,
+            "project.languageProfiles[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project languageProfiles has duplicate entry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_duplicate_language_profile,
+            "project.languageProfiles",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_missing_runtime_profiles,
+            "project.runtimeProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_runtime_profiles_type,
+            "project.runtimeProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_runtime_profiles,
+            "project.runtimeProfiles must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_invalid_runtime_profile_entry_type,
+            "project.runtimeProfiles[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_empty_runtime_profile_entry,
+            "project.runtimeProfiles[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project runtimeProfiles has duplicate entry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_duplicate_runtime_profile,
+            "project.runtimeProfiles",
         ),
         (
             "failure",
