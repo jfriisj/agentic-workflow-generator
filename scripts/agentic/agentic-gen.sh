@@ -49,7 +49,7 @@ Commands:
   coverage   Report agent capability to skill capability coverage.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
-  all        Run check, validate, resolve, lock, validate artifacts, and generate.
+  all        Run checks, validations, coverage, resolve, lock, artifacts, and generate.
   verify     Run all and fail if generated output drifts from git.
   verify-quiet
              Run verify with full output written to a log file.
@@ -144,6 +144,7 @@ run_pipeline() {
   python scripts/agentic/validate-workflow-registry.py
   python scripts/agentic/validate-profile-registry.py
   python scripts/agentic/validate-registry-references.py
+  python scripts/agentic/report-capability-coverage.py
   python scripts/agentic/resolve-agentic-config.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
