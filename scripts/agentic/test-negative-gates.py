@@ -464,6 +464,15 @@ def break_output_manifest_empty_owned_paths(worktree: Path) -> None:
 
 
 
+def break_output_manifest_empty_targets(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    data["targets"] = []
+    write_json(path, data)
+
+
+
 def break_output_manifest_invalid_targets_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1180,6 +1189,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_empty_owned_paths,
             "expected non-empty ownedPaths list",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when targets is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_empty_targets,
+            "expected non-empty targets list",
         ),
         (
             "failure",
