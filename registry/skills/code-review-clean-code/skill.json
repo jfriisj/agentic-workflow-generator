@@ -1,0 +1,16 @@
+{
+    "name": "code-review-clean-code",
+    "version": "0.1.0",
+    "description": "Clean code review guidance for readability, naming, structure, duplication, and maintainability.",
+    "provides": [
+        "review.clean-code"
+    ],
+    "requires": [],
+    "allowedAgents": [
+        "CodeReviewer"
+    ],
+    "contentPath": "SKILL.md",
+    "contextBudget": {
+        "maxTokens": 1800
+    }
+}

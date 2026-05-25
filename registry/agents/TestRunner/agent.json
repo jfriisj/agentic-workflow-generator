@@ -1,0 +1,26 @@
+{
+    "name": "TestRunner",
+    "version": "0.1.0",
+    "role": "validation",
+    "description": "Runs tests and produces validation evidence.",
+    "responsibilities": [
+        "Run relevant tests",
+        "Collect validation output",
+        "Diagnose test failures",
+        "Create test report"
+    ],
+    "mustNot": [
+        "Approve code quality",
+        "Change requirements",
+        "Hide failing validation"
+    ],
+    "defaultPermissionProfile": "test-runner",
+    "capabilities": [
+        "test.run",
+        "test.report",
+        "test.diagnose-failure"
+    ],
+    "requiredArtifacts": [
+        "TestReport"
+    ]
+}

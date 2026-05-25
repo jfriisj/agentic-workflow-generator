@@ -1,0 +1,29 @@
+{
+    "name": "microservice-platform",
+    "version": "0.1.0",
+    "description": "Workflow profile for event-driven microservice platforms.",
+    "workflow": "orchestrated-delivery",
+    "recommendedAgents": [
+        "Orchestrator",
+        "Requirements",
+        "Architect",
+        "Implementer",
+        "TestRunner",
+        "CodeReviewer",
+        "QA"
+    ],
+    "recommendedCapabilities": [
+        "workflow.route",
+        "requirements.elicit",
+        "architecture.design",
+        "implementation.code",
+        "test.run",
+        "review.clean-code",
+        "qa.verify-acceptance-criteria"
+    ],
+    "recommendedRuntimeProfiles": [
+        "docker",
+        "k3s",
+        "kafka"
+    ]
+}

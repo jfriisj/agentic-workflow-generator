@@ -1,0 +1,42 @@
+{
+    "name": "opencode",
+    "version": "0.1.0",
+    "description": "Target adapter for generating OpenCode agents, skills, and project instructions.",
+    "outputPaths": {
+        "agents": ".opencode/agents",
+        "skills": ".opencode/skills",
+        "instructions": "AGENTS.md",
+        "config": "opencode.json",
+        "runtimeContext": ".runtime/context",
+        "resolution": ".runtime/resolution"
+    },
+    "templates": {
+        "agent": "templates/agent.md.hbs",
+        "skill": "templates/skill.md.hbs",
+        "instructions": "templates/AGENTS.md.hbs",
+        "config": "templates/opencode.json.hbs",
+        "runtimeContext": "templates/runtime-context.md.hbs"
+    },
+    "supportedFeatures": {
+        "agents": true,
+        "skills": true,
+        "handoffs": "instruction-only",
+        "permissionProfiles": true,
+        "runtimeContext": "instruction-reference",
+        "toolRestrictions": true
+    },
+    "permissionMapping": {
+        "read-only": {
+            "edit": "deny",
+            "bash": "deny"
+        },
+        "implementation": {
+            "edit": "allow",
+            "bash": "allow"
+        },
+        "test-runner": {
+            "edit": "allow",
+            "bash": "allow"
+        }
+    }
+}
