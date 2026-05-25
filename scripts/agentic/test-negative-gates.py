@@ -1092,6 +1092,15 @@ def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
 
 
 
+def break_resolution_empty_targets(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data["targets"] = []
+    write_json(path, data)
+
+
+
 def break_resolution_missing_targets(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -1891,6 +1900,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_absolute,
             "is unsafe",
+        ),
+        (
+            "failure",
+            "resolution validation fails when targets is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_empty_targets,
+            "expected non-empty 'targets' collection",
         ),
         (
             "failure",
