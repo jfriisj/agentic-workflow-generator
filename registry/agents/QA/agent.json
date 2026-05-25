@@ -23,5 +23,8 @@
   ],
   "requiredArtifacts": [
     "QAReport"
+  ],
+  "produces": [
+    "QAReport"
   ]
 }

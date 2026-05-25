@@ -1,26 +1,29 @@
 {
-    "name": "Implementer",
-    "version": "0.1.0",
-    "role": "implementation",
-    "description": "Implements approved work according to requirements, plan, and architecture.",
-    "responsibilities": [
-        "Modify product code",
-        "Update tests",
-        "Keep implementation aligned with approved artifacts",
-        "Create implementation report"
-    ],
-    "mustNot": [
-        "Change workflow routing",
-        "Self-approve implementation",
-        "Skip validation evidence"
-    ],
-    "defaultPermissionProfile": "implementation",
-    "capabilities": [
-        "implementation.code",
-        "implementation.refactor",
-        "implementation.update-tests"
-    ],
-    "requiredArtifacts": [
-        "ImplementationReport"
-    ]
+  "name": "Implementer",
+  "version": "0.1.0",
+  "role": "implementation",
+  "description": "Implements approved work according to requirements, plan, and architecture.",
+  "responsibilities": [
+    "Modify product code",
+    "Update tests",
+    "Keep implementation aligned with approved artifacts",
+    "Create implementation report"
+  ],
+  "mustNot": [
+    "Change workflow routing",
+    "Self-approve implementation",
+    "Skip validation evidence"
+  ],
+  "defaultPermissionProfile": "implementation",
+  "capabilities": [
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests"
+  ],
+  "requiredArtifacts": [
+    "ImplementationReport"
+  ],
+  "produces": [
+    "ImplementationReport"
+  ]
 }
