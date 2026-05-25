@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COMMAND="${1:-}"
-TARGET="${2:-vscode-copilot}"
+TARGET="${2:-all}"
 
 usage() {
   cat <<'USAGE'
@@ -10,18 +10,20 @@ Usage:
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh lock
-  scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode]
+  scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh check
-  scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode]
+  scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
+  scripts/agentic/agentic-gen.sh verify [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh status
 
 Commands:
   validate   Validate .agentic/agentic.json against its JSON Schema.
   resolve    Resolve agents, targets, capabilities, and skills.
-  lock       Generate .agentic/agentic-lock.json from config, registry, and scripts.
+  lock       Generate deterministic .agentic/agentic-lock.json.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
   all        Run check, validate, resolve, lock, and generate.
+  verify     Run all and fail if generated output drifts from git.
   status     Show generated files and git status.
 USAGE
 }
@@ -36,6 +38,11 @@ require_file() {
 
 validate_json_files() {
   find registry .agentic -name "*.json" -print0 | xargs -0 -r -n1 python -m json.tool >/dev/null
+
+  if [[ -f opencode.json ]]; then
+    python -m json.tool opencode.json >/dev/null
+  fi
+
   echo "PASS: JSON files are syntactically valid."
 }
 
@@ -43,15 +50,16 @@ check_scripts() {
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
-  require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/generate-opencode.py"
+  require_file "scripts/agentic/generate-lockfile.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
+
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
-  python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/generate-opencode.py"
+  python -m py_compile "scripts/agentic/generate-lockfile.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -66,21 +74,62 @@ generate_target() {
     opencode)
       python scripts/agentic/generate-opencode.py
       ;;
+    all|all-targets)
+      python scripts/agentic/generate-vscode-copilot.py
+      python scripts/agentic/generate-opencode.py
+      ;;
     *)
       echo "ERROR: Unsupported target: $target" >&2
-      echo "Supported targets: vscode-copilot, opencode" >&2
+      echo "Supported targets: vscode-copilot, opencode, all" >&2
       exit 1
       ;;
   esac
 }
 
+run_pipeline() {
+  local target="$1"
+
+  check_scripts
+  validate_json_files
+  scripts/agentic/validate-agentic-config.sh
+  python scripts/agentic/resolve-agentic-config.py
+  python scripts/agentic/generate-lockfile.py
+  generate_target "$target"
+}
+
+verify_no_drift() {
+  if ! git diff --quiet; then
+    echo "ERROR: Generated output drift detected." >&2
+    echo "Run scripts/agentic/agentic-gen.sh all and commit the resulting changes." >&2
+    echo "" >&2
+    git status --short >&2
+    exit 1
+  fi
+
+  if ! git diff --cached --quiet; then
+    echo "ERROR: Staged changes exist after generation." >&2
+    git status --short >&2
+    exit 1
+  fi
+
+  echo "PASS: Generated output is up-to-date with committed sources."
+}
+
 show_status() {
-  echo "Generated agents:"
+  echo "Generated VS Code agents:"
   find .github/agents -name "*.agent.md" -print 2>/dev/null | sort || true
 
   echo ""
-  echo "Generated skills:"
+  echo "Generated VS Code skills:"
   find .github/skills -name "SKILL.md" -print 2>/dev/null | sort || true
+
+  echo ""
+  echo "Generated OpenCode agents:"
+  find .opencode/agents -name "*.md" -print 2>/dev/null | sort || true
+
+  echo ""
+  echo "Generated OpenCode skills:"
+  find .opencode/skills -name "SKILL.md" -print 2>/dev/null | sort || true
 
   echo ""
   echo "Generated metadata:"
@@ -95,17 +144,6 @@ show_status() {
   fi
 
   echo ""
-
-  echo "Generated OpenCode agents:"
-  find .opencode/agents -name "*.md" -print 2>/dev/null | sort || true
-
-  echo ""
-
-  echo "Generated OpenCode skills:"
-  find .opencode/skills -name "SKILL.md" -print 2>/dev/null | sort || true
-
-  echo ""
-
   echo "Git status:"
   git status --short
 }
@@ -130,12 +168,11 @@ case "$COMMAND" in
     validate_json_files
     ;;
   all)
-    check_scripts
-    validate_json_files
-    scripts/agentic/validate-agentic-config.sh
-    python scripts/agentic/resolve-agentic-config.py
-    python scripts/agentic/generate-lockfile.py
-    generate_target "$TARGET"
+    run_pipeline "$TARGET"
+    ;;
+  verify)
+    run_pipeline "$TARGET"
+    verify_no_drift
     ;;
   status)
     show_status

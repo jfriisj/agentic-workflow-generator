@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -75,18 +74,27 @@ def main() -> int:
     if not files:
         raise RuntimeError("No files matched lockfile input patterns.")
 
+    records = [file_record(path) for path in files]
+
+    aggregate_digest = hashlib.sha256()
+    for record in records:
+        aggregate_digest.update(record["path"].encode("utf-8"))
+        aggregate_digest.update(b"\0")
+        aggregate_digest.update(record["sha256"].encode("utf-8"))
+        aggregate_digest.update(b"\0")
+
     lockfile = {
         "lockfileVersion": 1,
-        "generatedAt": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "generator": {
             "name": "agentic-gen",
-            "mode": "local-mvp-lockfile",
+            "mode": "local-mvp-lockfile"
         },
         "inputs": {
             "patterns": LOCK_PATTERNS,
-            "fileCount": len(files),
-            "files": [file_record(path) for path in files],
-        },
+            "fileCount": len(records),
+            "contentHash": "sha256:" + aggregate_digest.hexdigest(),
+            "files": records
+        }
     }
 
     LOCKFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -94,7 +102,7 @@ def main() -> int:
         json.dump(lockfile, file, indent=2, ensure_ascii=False)
         file.write("\n")
 
-    print(f"PASS: Generated lockfile with {len(files)} input file(s).")
+    print(f"PASS: Generated deterministic lockfile with {len(records)} input file(s).")
     print(f"Lockfile: {LOCKFILE_PATH}")
     return 0
 
