@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 53,
-    "contentHash": "sha256:ca7be1341283be366abf0bdadf608e59d6799e79a8e9d90c76a643dab830a4b9",
+    "contentHash": "sha256:700cad191e29b17c6780d1ee920f8f4892dbb92e1e8f073ec74f0250868e7b40",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -148,13 +148,13 @@
       },
       {
         "path": "registry/targets/opencode/adapter.json",
-        "sha256": "sha256:c7c9412071260adad201bc9d4f7a87a03037631b744e2869f80db4dae4f4e923",
-        "sizeBytes": 1245
+        "sha256": "sha256:b7daf562cf9fe77c4e4dd0ef03e80227919ab178ef9062fe6162f3fd241ebc1a",
+        "sizeBytes": 1204
       },
       {
         "path": "registry/targets/vscode-copilot/adapter.json",
-        "sha256": "sha256:b60dfba0fae38139cf8370461b3e9ac2e27ac1a939e3e7c066351d9c6c5b48ad",
-        "sizeBytes": 1571
+        "sha256": "sha256:ede801776c4fbc74397db9ba92a270ad4cad441cb78ac7db31ee2a3c96da3595",
+        "sizeBytes": 1676
       },
       {
         "path": "registry/workflows/orchestrated-delivery.workflow.json",
@@ -178,8 +178,8 @@
       },
       {
         "path": "scripts/agentic/generate-output-manifest.py",
-        "sha256": "sha256:ebcf0e71a21cd03e9b8c01bfd3d045490259f55c9d64df20c79b9bc8fc2f5555",
-        "sizeBytes": 3904
+        "sha256": "sha256:4dbfe82c1c99cc883fd85cc49adf79af3ed2a69d3653f9ea0ef844deb44c5210",
+        "sizeBytes": 4630
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",
