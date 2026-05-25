@@ -107,6 +107,7 @@ def expect_success(
     command: list[str],
     mutate,
     expected_text: str,
+    post_check=None,
 ) -> tuple[bool, str]:
     worktree = copy_repo_to_temp()
 
@@ -127,10 +128,23 @@ def expect_success(
                 f"Output:\n{result.stdout}",
             )
 
+        if post_check is not None:
+            post_passed, post_message = post_check(worktree)
+            if not post_passed:
+                return False, f"{name}: {post_message}\n\nOutput:\n{result.stdout}"
+
         return True, f"PASS: {name}"
 
     finally:
         shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+
+def assert_cleanup_apply_removed_file(worktree: Path) -> tuple[bool, str]:
+    path = worktree / ".github" / "agents" / "cleanup-apply-test.agent.md"
+    if path.exists():
+        return False, f"cleanup apply did not remove expected file: {path.relative_to(worktree)}"
+    return True, "cleanup apply removed expected unmanaged file"
 
 
 
@@ -163,6 +177,13 @@ def break_generated_output(worktree: Path) -> None:
         raise RuntimeError(f"Expected generated file not found before mutation: {path}")
 
     path.unlink()
+
+
+def break_cleanup_generated_apply(worktree: Path) -> None:
+    path = worktree / ".github" / "agents" / "cleanup-apply-test.agent.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("# Cleanup apply test\n", encoding="utf-8")
+
 
 
 def break_cleanup_generated_dry_run(worktree: Path) -> None:
@@ -291,6 +312,14 @@ def main() -> int:
             "Would remove unmanaged generated file",
         ),
         (
+            "success",
+            "cleanup apply removes unmanaged generated file",
+            ["scripts/agentic/agentic-gen.sh", "cleanup-generated", "--apply"],
+            break_cleanup_generated_apply,
+            "Removed unmanaged generated file",
+            assert_cleanup_apply_removed_file,
+        ),
+        (
             "failure",
             "output manifest validation fails when schemaVersion is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
@@ -343,9 +372,12 @@ def main() -> int:
 
     failures: list[str] = []
 
-    for expectation, name, command, mutate, expected_text in tests:
+    for test in tests:
+        expectation, name, command, mutate, expected_text, *rest = test
+        post_check = rest[0] if rest else None
+
         if expectation == "success":
-            passed, message = expect_success(name, command, mutate, expected_text)
+            passed, message = expect_success(name, command, mutate, expected_text, post_check)
         elif expectation == "failure":
             passed, message = expect_failure(name, command, mutate, expected_text)
         else:
