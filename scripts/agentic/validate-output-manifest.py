@@ -26,6 +26,7 @@ def load_json(path: Path) -> dict[str, Any]:
         raise FileNotFoundError(f"Required file not found: {path}")
 
     data = json.loads(path.read_text(encoding="utf-8"))
+    errors.extend(validate_schema_version(data))
     if not isinstance(data, dict):
         raise ValueError(f"{path}: expected top-level object")
 
@@ -217,7 +218,6 @@ def validate_schema_version(data: dict[str, object]) -> list[str]:
 
 def main() -> int:
     errors: list[str] = []
-    errors.extend(validate_schema_version(data))
 
     try:
         manifest = load_json(MANIFEST_PATH)
