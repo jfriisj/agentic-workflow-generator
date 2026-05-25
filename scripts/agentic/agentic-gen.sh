@@ -16,6 +16,7 @@ Usage:
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh verify [vscode-copilot|opencode|all]
+  scripts/agentic/agentic-gen.sh verify-quiet [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh status
 
 Commands:
@@ -30,6 +31,8 @@ Commands:
   check      Run syntax checks for scripts and JSON files.
   all        Run check, validate, resolve, lock, validate artifacts, and generate.
   verify     Run all and fail if generated output drifts from git.
+  verify-quiet
+             Run verify with full output written to a log file.
   status     Show generated files and git status.
 USAGE
 }
@@ -115,16 +118,41 @@ verify_no_drift() {
     echo "Run scripts/agentic/agentic-gen.sh all and commit the resulting changes." >&2
     echo "" >&2
     git status --short >&2
-    exit 1
+    return 1
   fi
 
   if ! git diff --cached --quiet; then
     echo "ERROR: Staged changes exist after generation." >&2
     git status --short >&2
-    exit 1
+    return 1
   fi
 
   echo "PASS: Generated output is up-to-date with committed sources."
+}
+
+
+run_quiet_verify() {
+  local target="$1"
+  local log_path="${AGENTIC_VERIFY_LOG:-/tmp/agentic-verify.log}"
+
+  rm -f "$log_path"
+
+  if ! run_pipeline "$target" >"$log_path" 2>&1; then
+    echo "FAIL: verify pipeline failed. Full log: $log_path" >&2
+    echo "" >&2
+    tail -n 120 "$log_path" >&2 || true
+    return 1
+  fi
+
+  if ! verify_no_drift >>"$log_path" 2>&1; then
+    echo "FAIL: generated output drift detected. Full log: $log_path" >&2
+    echo "" >&2
+    tail -n 120 "$log_path" >&2 || true
+    return 1
+  fi
+
+  echo "PASS: verify-quiet completed successfully."
+  echo "Log: $log_path"
 }
 
 show_status() {
@@ -191,6 +219,9 @@ case "$COMMAND" in
   verify)
     run_pipeline "$TARGET"
     verify_no_drift
+    ;;
+  verify-quiet)
+    run_quiet_verify "$TARGET"
     ;;
   status)
     show_status
