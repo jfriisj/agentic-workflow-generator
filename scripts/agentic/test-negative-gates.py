@@ -144,6 +144,12 @@ def break_output_manifest_hash(worktree: Path) -> None:
     )
 
 
+def break_output_manifest_ownership(worktree: Path) -> None:
+    path = worktree / ".github" / "agents" / "extra.agent.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("# Extra generated file drift test\n", encoding="utf-8")
+
+
 def break_resolution_output(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -201,6 +207,12 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_hash,
             "sha256 mismatch",
+        ),
+        (
+            "output manifest validation fails when unmanaged generated file exists",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_ownership,
+            "unmanaged generated file under owned path",
         ),
         (
             "resolution validation fails when missingCapabilities is non-empty",
