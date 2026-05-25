@@ -114,7 +114,8 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": []
     },
     {
       "name": "Requirements",
@@ -142,7 +143,8 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": []
     },
     {
       "name": "Architect",
@@ -170,7 +172,8 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": []
     },
     {
       "name": "Implementer",
@@ -208,7 +211,29 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": [
+        {
+          "type": "ImplementationReport",
+          "contractPath": "registry/artifacts/ImplementationReport/artifact.json",
+          "pathPattern": "agent-output/implementation/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Implementation Report",
+            "## Status",
+            "## Summary",
+            "## Files Changed",
+            "## Implementation Notes",
+            "## Validation Performed",
+            "## Known Risks",
+            "## Handoff Target"
+          ]
+        }
+      ]
     },
     {
       "name": "TestRunner",
@@ -246,7 +271,29 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": [
+        {
+          "type": "TestReport",
+          "contractPath": "registry/artifacts/TestReport/artifact.json",
+          "pathPattern": "agent-output/test-report/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Test Report",
+            "## Status",
+            "## Summary",
+            "## Test Commands",
+            "## Test Results",
+            "## Failures",
+            "## Coverage Notes",
+            "## Handoff Target"
+          ]
+        }
+      ]
     },
     {
       "name": "CodeReviewer",
@@ -284,7 +331,28 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": [
+        {
+          "type": "CodeReview",
+          "contractPath": "registry/artifacts/CodeReview/artifact.json",
+          "pathPattern": "agent-output/code-review/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Code Review",
+            "## Status",
+            "## Summary",
+            "## Evidence Reviewed",
+            "## Findings",
+            "## Required Fixes",
+            "## Handoff Target"
+          ]
+        }
+      ]
     },
     {
       "name": "QA",
@@ -312,7 +380,29 @@
           }
         }
       ],
-      "unresolvedCapabilities": []
+      "unresolvedCapabilities": [],
+      "produces": [
+        {
+          "type": "QAReport",
+          "contractPath": "registry/artifacts/QAReport/artifact.json",
+          "pathPattern": "agent-output/qa-report/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# QA Report",
+            "## Status",
+            "## Summary",
+            "## Evidence Reviewed",
+            "## Gate Results",
+            "## Release Risks",
+            "## Required Follow-up",
+            "## Handoff Target"
+          ]
+        }
+      ]
     }
   ],
   "capabilityIndex": {

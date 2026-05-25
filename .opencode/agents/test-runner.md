@@ -63,6 +63,29 @@ test-runner
 - Approve code quality
 - Change requirements
 
+<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
+## Produced Artifacts
+
+When this agent completes work, it must produce output that matches the declared artifact contract.
+
+### TestReport
+
+- contract: `registry/artifacts/TestReport/artifact.json`
+- output path pattern: `agent-output/test-report/*.md`
+- allowed statuses: PASS, FAIL, BLOCKED
+
+Required headings:
+
+- # Test Report
+- ## Status
+- ## Summary
+- ## Test Commands
+- ## Test Results
+- ## Failures
+- ## Coverage Notes
+- ## Handoff Target
+<!-- END GENERATED PRODUCED ARTIFACTS -->
+
 ## Output Expectations
 
 When producing an artifact, include:

@@ -64,6 +64,28 @@ read-only
 - Approve release
 - Change workflow routing
 
+<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
+## Produced Artifacts
+
+When this agent completes work, it must produce output that matches the declared artifact contract.
+
+### CodeReview
+
+- contract: `registry/artifacts/CodeReview/artifact.json`
+- output path pattern: `agent-output/code-review/*.md`
+- allowed statuses: PASS, FAIL, BLOCKED
+
+Required headings:
+
+- # Code Review
+- ## Status
+- ## Summary
+- ## Evidence Reviewed
+- ## Findings
+- ## Required Fixes
+- ## Handoff Target
+<!-- END GENERATED PRODUCED ARTIFACTS -->
+
 ## Output Expectations
 
 When producing an artifact, include:

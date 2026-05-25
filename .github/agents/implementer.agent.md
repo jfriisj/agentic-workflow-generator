@@ -56,6 +56,29 @@ implementation
 - Change workflow routing
 - Self-approve implementation
 
+<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
+## Produced Artifacts
+
+When this agent completes work, it must produce output that matches the declared artifact contract.
+
+### ImplementationReport
+
+- contract: `registry/artifacts/ImplementationReport/artifact.json`
+- output path pattern: `agent-output/implementation/*.md`
+- allowed statuses: PASS, FAIL, BLOCKED
+
+Required headings:
+
+- # Implementation Report
+- ## Status
+- ## Summary
+- ## Files Changed
+- ## Implementation Notes
+- ## Validation Performed
+- ## Known Risks
+- ## Handoff Target
+<!-- END GENERATED PRODUCED ARTIFACTS -->
+
 ## Output Expectations
 
 When producing an artifact, include:

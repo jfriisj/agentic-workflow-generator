@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 37,
-    "contentHash": "sha256:baecffa3bb8b03ff09f57726e2dd2773edab6d0e59732971da75ce96b0e70574",
+    "fileCount": 39,
+    "contentHash": "sha256:fad4777fedeb988bc22cd2a6a50f907effc2d72b121f38c292734d68802f91a2",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -163,8 +163,13 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:4fff616becf33430ede43863b655a3ef1494f892ecb5e94e6e63ccd42f4b45cb",
-        "sizeBytes": 5742
+        "sha256": "sha256:94b44c792532ce375f87ac01b8b2f42c999b7977c3ce965f68f418c795b22978",
+        "sizeBytes": 6324
+      },
+      {
+        "path": "scripts/agentic/enrich-resolution-artifacts.py",
+        "sha256": "sha256:680805deb39a4139a07b3bf5456b224c7366279d2696b1f05728f5eb0f9fa621",
+        "sizeBytes": 2633
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",
@@ -180,6 +185,11 @@
         "path": "scripts/agentic/generate-vscode-copilot.py",
         "sha256": "sha256:a32124bb8ff4f34b37bd6e74196ab55eacb9817e83aa681edef9fe07bdec3c0d",
         "sizeBytes": 7536
+      },
+      {
+        "path": "scripts/agentic/render-produced-artifact-sections.py",
+        "sha256": "sha256:5ed796d8d1f9ad904bcb176833221a52100d0f1e47d550f7f23b71b01f1aa89b",
+        "sizeBytes": 4312
       },
       {
         "path": "scripts/agentic/resolve-agentic-config.py",

@@ -64,6 +64,12 @@ read-only
 - Override gates without evidence
 - Perform domain-specific review
 
+<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
+## Produced Artifacts
+
+This agent does not declare a produced artifact contract.
+<!-- END GENERATED PRODUCED ARTIFACTS -->
+
 ## Output Expectations
 
 When producing an artifact, include:

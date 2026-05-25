@@ -60,6 +60,8 @@ check_scripts() {
   require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
+  require_file "scripts/agentic/enrich-resolution-artifacts.py"
+  require_file "scripts/agentic/render-produced-artifact-sections.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
@@ -70,6 +72,8 @@ check_scripts() {
   python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
+  python -m py_compile "scripts/agentic/enrich-resolution-artifacts.py"
+  python -m py_compile "scripts/agentic/render-produced-artifact-sections.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -103,10 +107,12 @@ run_pipeline() {
   validate_json_files
   scripts/agentic/validate-agentic-config.sh
   python scripts/agentic/resolve-agentic-config.py
+  python scripts/agentic/enrich-resolution-artifacts.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
   python scripts/agentic/validate-agent-artifact-bindings.py
   generate_target "$target"
+  python scripts/agentic/render-produced-artifact-sections.py
 }
 
 verify_no_drift() {
@@ -166,6 +172,7 @@ case "$COMMAND" in
     ;;
   resolve)
     python scripts/agentic/resolve-agentic-config.py
+    python scripts/agentic/enrich-resolution-artifacts.py
     ;;
   lock)
     python scripts/agentic/generate-lockfile.py
@@ -178,8 +185,10 @@ case "$COMMAND" in
     ;;
   generate)
     python scripts/agentic/resolve-agentic-config.py
+    python scripts/agentic/enrich-resolution-artifacts.py
     python scripts/agentic/generate-lockfile.py
     generate_target "$TARGET"
+    python scripts/agentic/render-produced-artifact-sections.py
     ;;
   check)
     check_scripts
