@@ -12,6 +12,8 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-resolution
   scripts/agentic/agentic-gen.sh lock
   scripts/agentic/agentic-gen.sh validate-lockfile
+  scripts/agentic/agentic-gen.sh manifest
+  scripts/agentic/agentic-gen.sh validate-manifest
   scripts/agentic/agentic-gen.sh validate-artifacts
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
@@ -41,6 +43,9 @@ Commands:
   lock       Generate deterministic .agentic/agentic-lock.json.
   validate-lockfile
              Validate generated lockfile structure.
+  manifest   Generate deterministic output manifest.
+  validate-manifest
+             Validate generated output manifest.
   validate-artifacts
              Validate registered artifact contracts and existing artifact files.
   validate-agents
@@ -317,6 +322,14 @@ case "$COMMAND" in
     ;;
   validate-lockfile)
     python scripts/agentic/validate-lockfile.py
+    ;;
+
+  manifest)
+    python scripts/agentic/generate-output-manifest.py
+    ;;
+
+  validate-manifest)
+    python scripts/agentic/validate-output-manifest.py
     ;;
   validate-artifacts)
     python scripts/agentic/validate-artifacts.py
