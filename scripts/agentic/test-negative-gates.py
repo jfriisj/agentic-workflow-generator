@@ -371,6 +371,38 @@ def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
 
 
 
+def break_output_manifest_declared_file_missing(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    generated_files = first_target.get("generatedFiles")
+    if not isinstance(generated_files, list) or not generated_files:
+        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+
+    first_entry = generated_files[0]
+    if not isinstance(first_entry, dict):
+        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+
+    generated_path = first_entry.get("path")
+    if not isinstance(generated_path, str) or not generated_path.strip():
+        raise RuntimeError("output manifest generatedFiles[0].path must be a non-empty string before mutation")
+
+    file_path = worktree / generated_path
+    if not file_path.is_file():
+        raise RuntimeError(f"Expected generated file to exist before mutation: {generated_path}")
+
+    file_path.unlink()
+
+
+
 def break_output_manifest_generated_file_absolute_path(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -775,6 +807,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_duplicate_generated_file_path,
             "duplicate generated file path",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when declared generated file is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_declared_file_missing,
+            "file does not exist",
         ),
         (
             "failure",
