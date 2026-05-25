@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 46,
-    "contentHash": "sha256:226eb5c858a52d0bbab516ab7ed595349bb36996ad824766ea8026feb697146f",
+    "fileCount": 47,
+    "contentHash": "sha256:43d12d76b4a112dc1e5b8994dcfeccf9e576286f12b0fbf0f07bc462137b451e",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -210,6 +210,11 @@
         "path": "scripts/agentic/validate-artifacts.py",
         "sha256": "sha256:e7b22c4379e9df1ac5e06ce41d2f109d7d28569ab59e1aa3c4ae88defd09688b",
         "sizeBytes": 3646
+      },
+      {
+        "path": "scripts/agentic/validate-generated-output.py",
+        "sha256": "sha256:48a009085da988757859f323f28a92ae06affeed90eee0db330e7b42b74be2d6",
+        "sizeBytes": 4553
       },
       {
         "path": "scripts/agentic/validate-lockfile.py",
