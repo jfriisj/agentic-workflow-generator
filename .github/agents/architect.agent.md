@@ -1,7 +1,6 @@
 ---
-name: architect
+name: Architect
 description: Designs system structure, boundaries, interfaces, and architectural decisions.
-tools: [search, read/readFile]
 ---
 
 # Architect
@@ -54,11 +53,9 @@ read-only
 - Implement product code
 - Skip quality gates
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 This agent does not declare a produced artifact contract.
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

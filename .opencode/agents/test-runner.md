@@ -63,7 +63,6 @@ test-runner
 - Approve code quality
 - Change requirements
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 When this agent completes work, it must produce output that matches the declared artifact contract.
@@ -84,7 +83,6 @@ Required headings:
 - ## Failures
 - ## Coverage Notes
 - ## Handoff Target
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

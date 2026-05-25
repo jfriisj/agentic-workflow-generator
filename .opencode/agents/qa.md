@@ -61,7 +61,6 @@ read-only
 - Implement product code
 - Override failed tests
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 When this agent completes work, it must produce output that matches the declared artifact contract.
@@ -82,7 +81,6 @@ Required headings:
 - ## Release Risks
 - ## Required Follow-up
 - ## Handoff Target
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

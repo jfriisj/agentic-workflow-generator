@@ -61,11 +61,9 @@ read-only
 - Implement product code
 - Skip quality gates
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 This agent does not declare a produced artifact contract.
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

@@ -63,7 +63,6 @@ implementation
 - Change workflow routing
 - Self-approve implementation
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 When this agent completes work, it must produce output that matches the declared artifact contract.
@@ -84,7 +83,6 @@ Required headings:
 - ## Validation Performed
 - ## Known Risks
 - ## Handoff Target
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

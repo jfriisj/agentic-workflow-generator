@@ -1,7 +1,6 @@
 ---
-name: code-reviewer
+name: CodeReviewer
 description: Reviews implementation for maintainability, correctness, tests, and safety.
-tools: [search, read/readFile]
 ---
 
 # CodeReviewer
@@ -57,7 +56,6 @@ read-only
 - Approve release
 - Change workflow routing
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 When this agent completes work, it must produce output that matches the declared artifact contract.
@@ -77,7 +75,6 @@ Required headings:
 - ## Findings
 - ## Required Fixes
 - ## Handoff Target
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

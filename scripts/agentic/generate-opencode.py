@@ -11,6 +11,7 @@ ROOT = Path.cwd()
 CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
 RESOLUTION_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
 REGISTRY_PATH = ROOT / "registry"
+
 AGENTS_OUTPUT_DIR = ROOT / ".opencode" / "agents"
 SKILLS_OUTPUT_DIR = ROOT / ".opencode" / "skills"
 INSTRUCTIONS_OUTPUT_PATH = ROOT / "AGENTS.md"
@@ -31,17 +32,17 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
         file.write("\n")
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
 def slugify(value: str) -> str:
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", value)
     value = value.replace("_", "-").replace(" ", "-")
     value = re.sub(r"[^a-zA-Z0-9-]+", "-", value)
     value = re.sub(r"-+", "-", value)
     return value.strip("-").lower()
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
 
 
 def markdown_list(values: list[str]) -> str:
@@ -64,7 +65,49 @@ def permission_for_profile(adapter: dict[str, Any], permission_profile: str) -> 
     return mapping
 
 
-def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, Any], adapter: dict[str, Any]) -> str:
+def render_produced_artifacts(produces: list[dict[str, Any]]) -> str:
+    if not produces:
+        return """## Produced Artifacts
+
+This agent does not declare a produced artifact contract.
+"""
+
+    blocks: list[str] = [
+        "## Produced Artifacts",
+        "",
+        "When this agent completes work, it must produce output that matches the declared artifact contract.",
+    ]
+
+    for artifact in produces:
+        artifact_type = artifact["type"]
+        contract_path = artifact.get("contractPath", "missing")
+        path_pattern = artifact.get("pathPattern", "missing")
+        allowed_statuses = artifact.get("allowedStatuses", [])
+        required_headings = artifact.get("requiredHeadings", [])
+
+        blocks.extend(
+            [
+                "",
+                f"### {artifact_type}",
+                "",
+                f"- contract: `{contract_path}`",
+                f"- output path pattern: `{path_pattern}`",
+                f"- allowed statuses: {', '.join(allowed_statuses)}",
+                "",
+                "Required headings:",
+                "",
+                markdown_list(required_headings),
+            ]
+        )
+
+    return "\n".join(blocks) + "\n"
+
+
+def generate_agent_file(
+    config_agent: dict[str, Any],
+    resolved_agent: dict[str, Any],
+    adapter: dict[str, Any],
+) -> str:
     name = config_agent["name"]
     role = config_agent["role"]
     description = config_agent["description"]
@@ -74,6 +117,7 @@ def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, 
     must_not = config_agent.get("mustNot", [])
     resolved_capabilities = resolved_agent.get("resolvedCapabilities", [])
     resolved_skills = [item["skill"] for item in resolved_capabilities]
+    produces = resolved_agent.get("produces", [])
     runtime_context_path = f".runtime/context/{{{{WORKFLOW_ID}}}}-{name}.context.md"
 
     edit_permission = permission.get("edit", "deny")
@@ -139,6 +183,7 @@ If the file is missing, do not continue.
 
 {markdown_list(must_not)}
 
+{render_produced_artifacts(produces)}
 ## Output Expectations
 
 When producing an artifact, include:
@@ -217,7 +262,7 @@ def generate_opencode_json(config: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "$schema": "https://opencode.ai/config.json",
-        "agent": agents
+        "agent": agents,
     }
 
 
@@ -227,6 +272,7 @@ def copy_resolved_skills(resolution: dict[str, Any]) -> None:
     for agent in resolution.get("agents", []):
         for resolved in agent.get("resolvedCapabilities", []):
             skill_name = resolved["skill"]
+
             if skill_name in copied:
                 continue
 

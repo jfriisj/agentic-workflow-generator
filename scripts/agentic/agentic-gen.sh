@@ -28,7 +28,7 @@ Commands:
              Validate that agent produces bindings point to registered artifact contracts.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
-  all        Run check, validate, resolve, lock, and generate.
+  all        Run check, validate, resolve, lock, validate artifacts, and generate.
   verify     Run all and fail if generated output drifts from git.
   status     Show generated files and git status.
 USAGE
@@ -55,25 +55,23 @@ validate_json_files() {
 check_scripts() {
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
+  require_file "scripts/agentic/enrich-resolution-artifacts.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
   require_file "scripts/agentic/generate-opencode.py"
   require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
-  require_file "scripts/agentic/enrich-resolution-artifacts.py"
-  require_file "scripts/agentic/render-produced-artifact-sections.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
 
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
+  python -m py_compile "scripts/agentic/enrich-resolution-artifacts.py"
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
   python -m py_compile "scripts/agentic/generate-opencode.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
-  python -m py_compile "scripts/agentic/enrich-resolution-artifacts.py"
-  python -m py_compile "scripts/agentic/render-produced-artifact-sections.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -100,19 +98,22 @@ generate_target() {
   esac
 }
 
+resolve_and_enrich() {
+  python scripts/agentic/resolve-agentic-config.py
+  python scripts/agentic/enrich-resolution-artifacts.py
+}
+
 run_pipeline() {
   local target="$1"
 
   check_scripts
   validate_json_files
   scripts/agentic/validate-agentic-config.sh
-  python scripts/agentic/resolve-agentic-config.py
-  python scripts/agentic/enrich-resolution-artifacts.py
+  resolve_and_enrich
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
   python scripts/agentic/validate-agent-artifact-bindings.py
   generate_target "$target"
-  python scripts/agentic/render-produced-artifact-sections.py
 }
 
 verify_no_drift() {
@@ -171,8 +172,7 @@ case "$COMMAND" in
     scripts/agentic/validate-agentic-config.sh
     ;;
   resolve)
-    python scripts/agentic/resolve-agentic-config.py
-    python scripts/agentic/enrich-resolution-artifacts.py
+    resolve_and_enrich
     ;;
   lock)
     python scripts/agentic/generate-lockfile.py
@@ -184,11 +184,9 @@ case "$COMMAND" in
     python scripts/agentic/validate-agent-artifact-bindings.py
     ;;
   generate)
-    python scripts/agentic/resolve-agentic-config.py
-    python scripts/agentic/enrich-resolution-artifacts.py
+    resolve_and_enrich
     python scripts/agentic/generate-lockfile.py
     generate_target "$TARGET"
-    python scripts/agentic/render-produced-artifact-sections.py
     ;;
   check)
     check_scripts

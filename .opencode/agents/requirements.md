@@ -61,11 +61,9 @@ read-only
 - Design implementation details
 - Approve release
 
-<!-- BEGIN GENERATED PRODUCED ARTIFACTS -->
 ## Produced Artifacts
 
 This agent does not declare a produced artifact contract.
-<!-- END GENERATED PRODUCED ARTIFACTS -->
 
 ## Output Expectations
 

@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 39,
-    "contentHash": "sha256:fad4777fedeb988bc22cd2a6a50f907effc2d72b121f38c292734d68802f91a2",
+    "fileCount": 38,
+    "contentHash": "sha256:1d21a6d24e496a2eb35ca9c80801dca05ea233c667427a944935fe84e63297a9",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -163,8 +163,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:94b44c792532ce375f87ac01b8b2f42c999b7977c3ce965f68f418c795b22978",
-        "sizeBytes": 6324
+        "sha256": "sha256:4a2c1b1ebad2463e48a7982ad40d30e5c936a96c085771590bf720cf7c467159",
+        "sizeBytes": 5941
       },
       {
         "path": "scripts/agentic/enrich-resolution-artifacts.py",
@@ -178,18 +178,13 @@
       },
       {
         "path": "scripts/agentic/generate-opencode.py",
-        "sha256": "sha256:3232220893a5eb66bec069f92a6097bf09239622f164fb990ca5809b7c73c380",
-        "sizeBytes": 8142
+        "sha256": "sha256:ab600a86073ffe49d7ff11406ff4f963189b98a4003289ae4d86408684611419",
+        "sizeBytes": 9446
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",
-        "sha256": "sha256:a32124bb8ff4f34b37bd6e74196ab55eacb9817e83aa681edef9fe07bdec3c0d",
-        "sizeBytes": 7536
-      },
-      {
-        "path": "scripts/agentic/render-produced-artifact-sections.py",
-        "sha256": "sha256:5ed796d8d1f9ad904bcb176833221a52100d0f1e47d550f7f23b71b01f1aa89b",
-        "sizeBytes": 4312
+        "sha256": "sha256:b344068214fef05df652193e1de014d95c1e3f101b05289e593131f7b020c309",
+        "sizeBytes": 7654
       },
       {
         "path": "scripts/agentic/resolve-agentic-config.py",

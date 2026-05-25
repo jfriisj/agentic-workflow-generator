@@ -11,6 +11,7 @@ ROOT = Path.cwd()
 CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
 RESOLUTION_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
 REGISTRY_PATH = ROOT / "registry"
+
 AGENTS_OUTPUT_DIR = ROOT / ".github" / "agents"
 SKILLS_OUTPUT_DIR = ROOT / ".github" / "skills"
 INSTRUCTIONS_OUTPUT_PATH = ROOT / ".github" / "copilot-instructions.md"
@@ -23,17 +24,17 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(file)
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
 def slugify(value: str) -> str:
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", value)
     value = value.replace("_", "-").replace(" ", "-")
     value = re.sub(r"[^a-zA-Z0-9-]+", "-", value)
     value = re.sub(r"-+", "-", value)
     return value.strip("-").lower()
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
 
 
 def markdown_list(values: list[str]) -> str:
@@ -49,32 +50,59 @@ def find_config_agent(config: dict[str, Any], agent_name: str) -> dict[str, Any]
     raise RuntimeError(f"Agent not found in config: {agent_name}")
 
 
-def tools_for_permission_profile(adapter: dict[str, Any], permission_profile: str) -> list[str]:
-    mapping = adapter.get("permissionMapping", {}).get(permission_profile, {})
-    tools = mapping.get("tools", [])
-    if isinstance(tools, list):
-        return [str(tool) for tool in tools]
-    return []
+def render_produced_artifacts(produces: list[dict[str, Any]]) -> str:
+    if not produces:
+        return """## Produced Artifacts
+
+This agent does not declare a produced artifact contract.
+"""
+
+    blocks: list[str] = [
+        "## Produced Artifacts",
+        "",
+        "When this agent completes work, it must produce output that matches the declared artifact contract.",
+    ]
+
+    for artifact in produces:
+        artifact_type = artifact["type"]
+        contract_path = artifact.get("contractPath", "missing")
+        path_pattern = artifact.get("pathPattern", "missing")
+        allowed_statuses = artifact.get("allowedStatuses", [])
+        required_headings = artifact.get("requiredHeadings", [])
+
+        blocks.extend(
+            [
+                "",
+                f"### {artifact_type}",
+                "",
+                f"- contract: `{contract_path}`",
+                f"- output path pattern: `{path_pattern}`",
+                f"- allowed statuses: {', '.join(allowed_statuses)}",
+                "",
+                "Required headings:",
+                "",
+                markdown_list(required_headings),
+            ]
+        )
+
+    return "\n".join(blocks) + "\n"
 
 
-def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, Any], adapter: dict[str, Any]) -> str:
+def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, Any]) -> str:
     name = config_agent["name"]
-    slug = slugify(name)
     role = config_agent["role"]
     description = config_agent["description"]
     permission_profile = config_agent["permissionProfile"]
-    tools = tools_for_permission_profile(adapter, permission_profile)
     capabilities = config_agent.get("capabilities", [])
     must_not = config_agent.get("mustNot", [])
     resolved_capabilities = resolved_agent.get("resolvedCapabilities", [])
-    runtime_context_path = f".runtime/context/{{{{WORKFLOW_ID}}}}-{name}.context.md"
-    frontmatter_tools = ", ".join(tools)
     resolved_skills = [item["skill"] for item in resolved_capabilities]
+    produces = resolved_agent.get("produces", [])
+    runtime_context_path = f".runtime/context/{{{{WORKFLOW_ID}}}}-{name}.context.md"
 
     return f"""---
-name: {slug}
+name: {name}
 description: {description}
-tools: [{frontmatter_tools}]
 ---
 
 # {name}
@@ -124,6 +152,7 @@ If the file is missing, do not continue.
 
 {markdown_list(must_not)}
 
+{render_produced_artifacts(produces)}
 ## Output Expectations
 
 When producing an artifact, include:
@@ -137,10 +166,9 @@ When producing an artifact, include:
 """
 
 
-def generate_copilot_instructions(config: dict[str, Any]) -> str:
+def generate_instructions(config: dict[str, Any]) -> str:
     project = config.get("project", {})
     workflow = config.get("workflow", {})
-    enabled_targets = [target["name"] for target in config.get("targets", []) if target.get("enabled")]
     agents = [agent["name"] for agent in config.get("agents", [])]
     gates = [gate["name"] for gate in config.get("gates", [])]
 
@@ -160,10 +188,6 @@ This repository uses generated agentic workflow infrastructure.
 - start state: {workflow.get("startState")}
 - terminal states: {", ".join(workflow.get("terminalStates", []))}
 - fail closed: {workflow.get("failClosed")}
-
-## Enabled Targets
-
-{markdown_list(enabled_targets)}
 
 ## Agents
 
@@ -205,6 +229,7 @@ def copy_resolved_skills(resolution: dict[str, Any]) -> None:
     for agent in resolution.get("agents", []):
         for resolved in agent.get("resolvedCapabilities", []):
             skill_name = resolved["skill"]
+
             if skill_name in copied:
                 continue
 
@@ -228,16 +253,6 @@ def main() -> int:
     if resolution.get("summary", {}).get("errorCount", 0) != 0:
         raise RuntimeError("Resolution contains errors. Run resolver first and fix all reported errors.")
 
-    enabled_targets = {target["name"]: target for target in resolution.get("targets", []) if target.get("enabled")}
-    if "vscode-copilot" not in enabled_targets:
-        raise RuntimeError("vscode-copilot target is not enabled or not resolved.")
-
-    adapter_path_raw = enabled_targets["vscode-copilot"].get("adapterPath")
-    if not adapter_path_raw:
-        raise RuntimeError("vscode-copilot adapter path is missing from resolution.")
-
-    adapter = load_json(ROOT / adapter_path_raw)
-
     AGENTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     SKILLS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -245,10 +260,10 @@ def main() -> int:
         agent_name = resolved_agent["name"]
         config_agent = find_config_agent(config, agent_name)
         output_path = AGENTS_OUTPUT_DIR / f"{slugify(agent_name)}.agent.md"
-        write_text(output_path, generate_agent_file(config_agent, resolved_agent, adapter))
+        write_text(output_path, generate_agent_file(config_agent, resolved_agent))
 
     copy_resolved_skills(resolution)
-    write_text(INSTRUCTIONS_OUTPUT_PATH, generate_copilot_instructions(config))
+    write_text(INSTRUCTIONS_OUTPUT_PATH, generate_instructions(config))
 
     print("PASS: Generated VS Code Copilot output.")
     print(f"Agents: {AGENTS_OUTPUT_DIR}")

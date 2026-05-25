@@ -15,11 +15,6 @@ This repository uses generated agentic workflow infrastructure.
 - terminal states: Done, Blocked
 - fail closed: True
 
-## Enabled Targets
-
-- vscode-copilot
-- opencode
-
 ## Agents
 
 - Orchestrator
