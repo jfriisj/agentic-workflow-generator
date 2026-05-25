@@ -285,6 +285,109 @@ def validate_project_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def workflow_registry_path(profile: str) -> Path:
+    return Path("registry") / "workflows" / f"{profile}.workflow.json"
+
+
+def is_safe_registry_name(value: str) -> bool:
+    return (
+        bool(value.strip())
+        and "/" not in value
+        and "\\" not in value
+        and ".." not in Path(value).parts
+    )
+
+
+def validate_workflow_semantics_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    workflow = resolution.get("workflow")
+
+    if not isinstance(workflow, dict):
+        return errors
+
+    profile = workflow.get("profile")
+    if not isinstance(profile, str) or not profile.strip():
+        return errors
+
+    if not is_safe_registry_name(profile):
+        errors.append(f"{RESOLUTION_PATH}: workflow.profile must be a safe registry name")
+        return errors
+
+    registry_path = workflow_registry_path(profile)
+    if not registry_path.is_file():
+        errors.append(
+            f"{RESOLUTION_PATH}: workflow.profile must reference an existing workflow registry file"
+        )
+        return errors
+
+    try:
+        registry_workflow = load_json(registry_path)
+    except Exception as exc:
+        errors.append(f"{registry_path}: failed to load workflow registry file: {exc}")
+        return errors
+
+    registry_states = registry_workflow.get("states")
+    if not isinstance(registry_states, list):
+        errors.append(f"{registry_path}: states must be a list")
+        return errors
+
+    state_names: set[str] = set()
+    terminal_state_names: set[str] = set()
+
+    for state_index, state in enumerate(registry_states):
+        if not isinstance(state, dict):
+            errors.append(f"{registry_path}: states[{state_index}] must be an object")
+            continue
+
+        state_name = state.get("name")
+        if not isinstance(state_name, str) or not state_name.strip():
+            errors.append(f"{registry_path}: states[{state_index}].name must be a non-empty string")
+            continue
+
+        state_names.add(state_name)
+
+        if state.get("terminal") is True:
+            terminal_state_names.add(state_name)
+
+    start_state = workflow.get("startState")
+    if isinstance(start_state, str) and start_state.strip():
+        if start_state not in state_names:
+            errors.append(
+                f"{RESOLUTION_PATH}: workflow.startState must exist in workflow registry states"
+            )
+        elif start_state in terminal_state_names:
+            errors.append(
+                f"{RESOLUTION_PATH}: workflow.startState must reference a non-terminal registry state"
+            )
+
+    terminal_states = workflow.get("terminalStates")
+    if isinstance(terminal_states, list):
+        for terminal_index, terminal_state in enumerate(terminal_states):
+            if not isinstance(terminal_state, str) or not terminal_state.strip():
+                continue
+
+            if terminal_state not in state_names:
+                errors.append(
+                    f"{RESOLUTION_PATH}: workflow.terminalStates[{terminal_index}] "
+                    "must exist in workflow registry states"
+                )
+            elif terminal_state not in terminal_state_names:
+                errors.append(
+                    f"{RESOLUTION_PATH}: workflow.terminalStates[{terminal_index}] "
+                    "must reference a terminal registry state"
+                )
+
+    registry_fail_closed = registry_workflow.get("failClosed")
+    fail_closed = workflow.get("failClosed")
+    if isinstance(registry_fail_closed, bool) and isinstance(fail_closed, bool):
+        if fail_closed != registry_fail_closed:
+            errors.append(
+                f"{RESOLUTION_PATH}: workflow.failClosed must match workflow registry failClosed"
+            )
+
+    return errors
+
+
 def validate_workflow_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     workflow = resolution.get("workflow")
@@ -618,6 +721,7 @@ def main() -> int:
     errors.extend(validate_summary_resolution(resolution))
     errors.extend(validate_project_resolution(resolution))
     errors.extend(validate_workflow_resolution(resolution))
+    errors.extend(validate_workflow_semantics_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
     errors.extend(validate_agent_identity_resolution(resolution))
     errors.extend(validate_agent_produces_resolution(resolution))

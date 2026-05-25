@@ -2387,6 +2387,91 @@ def break_resolution_project_empty_runtime_profile_entry(worktree: Path) -> None
 def break_resolution_project_duplicate_runtime_profile(worktree: Path) -> None:
     mutate_project_list_field(worktree, "runtimeProfiles", "duplicate-entry")
 
+
+def resolution_workflow(data: dict[str, Any]) -> dict[str, Any]:
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+    return workflow
+
+
+def break_resolution_workflow_profile_missing_registry_file(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    workflow["profile"] = "does-not-exist"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_profile_unsafe_registry_name(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    workflow["profile"] = "../orchestrated-delivery"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_start_state_unknown_registry_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    workflow["startState"] = "UnknownState"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_start_state_terminal_registry_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    workflow["startState"] = "Done"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_terminal_state_unknown_registry_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        raise RuntimeError("workflow.terminalStates must be a non-empty list before mutation")
+
+    terminal_states[0] = "UnknownTerminalState"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_terminal_state_non_terminal_registry_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        raise RuntimeError("workflow.terminalStates must be a non-empty list before mutation")
+
+    terminal_states[0] = "Requirements"
+
+    write_json(path, data)
+
+
+def break_resolution_workflow_fail_closed_registry_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = resolution_workflow(data)
+    workflow["failClosed"] = False
+
+    write_json(path, data)
+
 def break_resolution_missing_workflow(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -4190,6 +4275,55 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_target_adapter_path_missing_file,
             "targets[0].adapterPath must point to an existing file",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow profile registry file is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_profile_missing_registry_file,
+            "workflow.profile must reference an existing workflow registry file",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow profile is unsafe registry name",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_profile_unsafe_registry_name,
+            "workflow.profile must be a safe registry name",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow startState is unknown registry state",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_start_state_unknown_registry_state,
+            "workflow.startState must exist in workflow registry states",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow startState is terminal registry state",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_start_state_terminal_registry_state,
+            "workflow.startState must reference a non-terminal registry state",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalState is unknown registry state",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_terminal_state_unknown_registry_state,
+            "workflow.terminalStates[0] must exist in workflow registry states",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalState is non-terminal registry state",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_terminal_state_non_terminal_registry_state,
+            "workflow.terminalStates[0] must reference a terminal registry state",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow failClosed differs from registry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_fail_closed_registry_mismatch,
+            "workflow.failClosed must match workflow registry failClosed",
         ),
         (
             "failure",
