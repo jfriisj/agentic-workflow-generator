@@ -1,44 +1,52 @@
 {
-    "name": "orchestrated-delivery",
-    "version": "0.1.0",
-    "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
-    "startState": "Requirements",
-    "terminalStates": [
-        "Done",
-        "Blocked"
-    ],
-    "states": [
-        {
-            "name": "Requirements",
-            "agent": "Requirements",
-            "gate": "requirements-review"
-        },
-        {
-            "name": "Architect",
-            "agent": "Architect",
-            "gate": "architecture-review"
-        },
-        {
-            "name": "Implementer",
-            "agent": "Implementer",
-            "gate": "implementation-complete"
-        },
-        {
-            "name": "TestRunner",
-            "agent": "TestRunner",
-            "gate": "test-review"
-        },
-        {
-            "name": "CodeReviewer",
-            "agent": "CodeReviewer",
-            "gate": "code-review"
-        },
-        {
-            "name": "QA",
-            "agent": "QA",
-            "gate": "qa-review"
-        }
-    ],
-    "defaultFailureRoute": "Orchestrator",
-    "failClosed": true
+  "name": "orchestrated-delivery",
+  "version": "0.1.0",
+  "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
+  "startState": "Requirements",
+  "terminalStates": [
+    "Done",
+    "Blocked"
+  ],
+  "states": [
+    {
+      "name": "Requirements",
+      "agent": "Requirements",
+      "gate": "requirements-review"
+    },
+    {
+      "name": "Architect",
+      "agent": "Architect",
+      "gate": "architecture-review"
+    },
+    {
+      "name": "Implementer",
+      "agent": "Implementer",
+      "gate": "implementation-complete"
+    },
+    {
+      "name": "TestRunner",
+      "agent": "TestRunner",
+      "gate": "test-review"
+    },
+    {
+      "name": "CodeReviewer",
+      "agent": "CodeReviewer",
+      "gate": "code-review"
+    },
+    {
+      "name": "QA",
+      "agent": "QA",
+      "gate": "qa-review"
+    },
+    {
+      "name": "Done",
+      "terminal": true
+    },
+    {
+      "name": "Blocked",
+      "terminal": true
+    }
+  ],
+  "defaultFailureRoute": "Orchestrator",
+  "failClosed": true
 }

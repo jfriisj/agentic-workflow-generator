@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 43,
-    "contentHash": "sha256:d0eaffdc6e5c3bca25e86b32c8166015d0a59597cb12fd0cbf661e8b8f30aa1f",
+    "fileCount": 44,
+    "contentHash": "sha256:ad684ea85b0a30b153c667af756a9773c68229e03d97525be8c7d59eeef1e33b",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -158,13 +158,13 @@
       },
       {
         "path": "registry/workflows/orchestrated-delivery.workflow.json",
-        "sha256": "sha256:6f869be68648738a5e9d55f741b7a863bb86627fe98863f1d18ef88c33881e6e",
-        "sizeBytes": 1155
+        "sha256": "sha256:02cc68aaf637ef183a777e76b4a20b446353012ed53a9175ffcea01bab5b698a",
+        "sizeBytes": 1091
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:a9d058b6b0c63c7ea077660dbcf707625f7e4df549991c1f958fa2e14ecd887b",
-        "sizeBytes": 8968
+        "sha256": "sha256:6c77fe99eceee4257e12c907c6a139c3822ebdf7a6df43149cf921cabe5570c1",
+        "sizeBytes": 9287
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",
@@ -180,6 +180,11 @@
         "path": "scripts/agentic/generate-vscode-copilot.py",
         "sha256": "sha256:b344068214fef05df652193e1de014d95c1e3f101b05289e593131f7b020c309",
         "sizeBytes": 7654
+      },
+      {
+        "path": "scripts/agentic/report-capability-coverage.py",
+        "sha256": "sha256:7e95b3aab9a9ced0796b1d7f8254d3f30d4a42b166935245ae8d2e5d342e4cd7",
+        "sizeBytes": 3835
       },
       {
         "path": "scripts/agentic/resolve-agentic-config.py",

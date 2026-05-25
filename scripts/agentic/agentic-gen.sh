@@ -18,6 +18,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
   scripts/agentic/agentic-gen.sh validate-references
+  scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -45,6 +46,7 @@ Commands:
              Validate registered profile definitions.
   validate-references
              Validate cross-references between config and registry files.
+  coverage   Report agent capability to skill capability coverage.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
   all        Run check, validate, resolve, lock, validate artifacts, and generate.
@@ -87,6 +89,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
+  require_file "scripts/agentic/report-capability-coverage.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
@@ -103,6 +106,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   python -m py_compile "scripts/agentic/validate-profile-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
+  python -m py_compile "scripts/agentic/report-capability-coverage.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -257,6 +261,9 @@ case "$COMMAND" in
     ;;
   validate-references)
     python scripts/agentic/validate-registry-references.py
+    ;;
+  coverage)
+    python scripts/agentic/report-capability-coverage.py
     ;;
   generate)
     python scripts/agentic/resolve-agentic-config.py
