@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/agentic/artifacts/implementation-report.schema.json",
+  "title": "ImplementationReport Artifact Contract",
+  "type": "object",
+  "required": [
+    "type",
+    "status",
+    "requiredHeadings",
+    "allowedStatuses"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "ImplementationReport"
+    },
+    "status": {
+      "type": "object",
+      "required": ["heading", "pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "type": "string",
+          "const": "## Status"
+        },
+        "pattern": {
+          "type": "string",
+          "const": "PASS|FAIL|BLOCKED"
+        }
+      }
+    },
+    "allowedStatuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["PASS", "FAIL", "BLOCKED"]
+      },
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true
+    },
+    "requiredHeadings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 7,
+      "uniqueItems": true
+    },
+    "pathPattern": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  }
+}

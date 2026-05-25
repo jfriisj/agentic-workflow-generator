@@ -1,0 +1,24 @@
+{
+  "type": "QAReport",
+  "description": "Artifact contract for final QA gate output.",
+  "pathPattern": "agent-output/qa-report/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "requiredHeadings": [
+    "# QA Report",
+    "## Status",
+    "## Summary",
+    "## Evidence Reviewed",
+    "## Gate Results",
+    "## Release Risks",
+    "## Required Follow-up",
+    "## Handoff Target"
+  ]
+}

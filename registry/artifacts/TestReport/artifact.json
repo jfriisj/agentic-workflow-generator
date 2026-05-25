@@ -1,0 +1,24 @@
+{
+  "type": "TestReport",
+  "description": "Artifact contract for test execution and validation output.",
+  "pathPattern": "agent-output/test-report/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "requiredHeadings": [
+    "# Test Report",
+    "## Status",
+    "## Summary",
+    "## Test Commands",
+    "## Test Results",
+    "## Failures",
+    "## Coverage Notes",
+    "## Handoff Target"
+  ]
+}

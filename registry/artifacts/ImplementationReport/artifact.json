@@ -1,0 +1,24 @@
+{
+  "type": "ImplementationReport",
+  "description": "Artifact contract for implementation output produced by Implementer agents.",
+  "pathPattern": "agent-output/implementation/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "requiredHeadings": [
+    "# Implementation Report",
+    "## Status",
+    "## Summary",
+    "## Files Changed",
+    "## Implementation Notes",
+    "## Validation Performed",
+    "## Known Risks",
+    "## Handoff Target"
+  ]
+}

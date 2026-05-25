@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 30,
-    "contentHash": "sha256:67f38f68813f1f276798f0388306478f500ab01f8861ae74fb35634c4b857b3a",
+    "fileCount": 36,
+    "contentHash": "sha256:3eef676eb196760de7c5f7788559b3860e63fb1331f094c335a5ef4fd26e7aaf",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -69,6 +69,36 @@
       {
         "path": "registry/artifacts/CodeReview/artifact.schema.json",
         "sha256": "sha256:c737668a209d0f97a64d48278e1b18a156426f9c98626dbf6e8c24146cc998c2",
+        "sizeBytes": 1244
+      },
+      {
+        "path": "registry/artifacts/ImplementationReport/artifact.json",
+        "sha256": "sha256:f6db9e7a0e5bded32ebd0d18478cd2a6d956033c326e83ccf02a0ac650066b7a",
+        "sizeBytes": 561
+      },
+      {
+        "path": "registry/artifacts/ImplementationReport/artifact.schema.json",
+        "sha256": "sha256:0b4e47adf206aa8dcc8c0a842e89d53ca3a14e248e2d5cb787e2c99aaaea4414",
+        "sizeBytes": 1274
+      },
+      {
+        "path": "registry/artifacts/QAReport/artifact.json",
+        "sha256": "sha256:38add6044bac202e5d7830d77bf65a6284e8e2c53f612ff95c41dbc70d81dda9",
+        "sizeBytes": 496
+      },
+      {
+        "path": "registry/artifacts/QAReport/artifact.schema.json",
+        "sha256": "sha256:5f2d083e9dec38f1b17588cc16b0733884f470200cecbb12c1007414ff4b54b4",
+        "sizeBytes": 1238
+      },
+      {
+        "path": "registry/artifacts/TestReport/artifact.json",
+        "sha256": "sha256:9f336296cdf7dc70679309af2e9c43bda8133f88398153264372b752dd111ff7",
+        "sizeBytes": 505
+      },
+      {
+        "path": "registry/artifacts/TestReport/artifact.schema.json",
+        "sha256": "sha256:a00dd7a3bb35173f399294a3a43daf6f655e4f0f944236a6e199185d2aae1d11",
         "sizeBytes": 1244
       },
       {
