@@ -379,6 +379,32 @@ def break_output_manifest_empty_generated_files(worktree: Path) -> None:
 
 
 
+
+def break_generation_idempotency_by_changing_generator(worktree: Path) -> None:
+    subprocess.run(
+        ["scripts/agentic/agentic-gen.sh", "all"],
+        cwd=worktree,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=True,
+    )
+
+    generator_path = worktree / "scripts" / "agentic" / "generate-vscode-copilot.py"
+    if not generator_path.is_file():
+        raise RuntimeError(f"Expected generator file not found before mutation: {generator_path}")
+
+    text = generator_path.read_text(encoding="utf-8")
+
+    marker = "def main() -> int:"
+    if marker not in text:
+        raise RuntimeError("Could not find main() in VS Code Copilot generator")
+
+    injection = 'print("negative idempotency drift marker")\\n    '
+
+    text = text.replace(marker, marker + "\\n    " + injection, 1)
+    generator_path.write_text(text, encoding="utf-8")
+
 def break_output_manifest_missing_generated_files(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -3749,6 +3775,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_terminal_state,
             "terminalState",
+        ),
+        (
+            "failure",
+            "generation idempotency validation fails when second generation changes output",
+            ["scripts/agentic/agentic-gen.sh", "validate-idempotency"],
+            break_generation_idempotency_by_changing_generator,
+            "Generation is not idempotent",
         ),
         (
             "failure",

@@ -378,6 +378,9 @@ case "$COMMAND" in
   validate-generated)
     python scripts/agentic/validate-generated-output.py
     ;;
+  validate-idempotency)
+    python scripts/agentic/validate-generation-idempotency.py
+    ;;
   test-negative)
     scripts/agentic/test-negative-gates.py
     ;;
