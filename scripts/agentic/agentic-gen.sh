@@ -18,6 +18,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
   scripts/agentic/agentic-gen.sh validate-targets
+scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-skills
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
@@ -342,6 +343,10 @@ case "$COMMAND" in
     ;;
   validate-targets)
     python scripts/agentic/validate-target-adapters.py
+    ;;
+
+  validate-target-semantics)
+    python scripts/agentic/validate-target-adapter-semantics.py
     ;;
   validate-skills)
     python scripts/agentic/validate-skill-registry.py
