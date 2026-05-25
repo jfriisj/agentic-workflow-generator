@@ -30,6 +30,7 @@ Usage:
   scripts/agentic/agentic-gen.sh verify-quiet [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh status
   scripts/agentic/agentic-gen.sh doctor
+  scripts/agentic/agentic-gen.sh doctor-strict
 
 Commands:
   validate   Validate .agentic/agentic.json against its JSON Schema.
@@ -68,6 +69,8 @@ Commands:
              Run verify with full output written to a log file.
   status     Show generated files and git status.
   doctor     Run verify-quiet, negative gate tests, and git status.
+  doctor-strict
+             Run doctor and fail if the working tree is not clean.
 USAGE
 }
 
@@ -245,6 +248,21 @@ run_doctor() {
   fi
 }
 
+run_doctor_strict() {
+  run_doctor || return 1
+
+  local status_output
+  status_output="$(git status --short)"
+
+  if [[ -n "$status_output" ]]; then
+    echo ""
+    echo "ERROR: Working tree is not clean."
+    return 1
+  fi
+
+  return 0
+}
+
 show_status() {
   echo "Generated VS Code agents:"
   find .github/agents -name "*.agent.md" -print 2>/dev/null | sort || true
@@ -348,6 +366,9 @@ case "$COMMAND" in
     ;;
   doctor)
     run_doctor
+    ;;
+  doctor-strict)
+    run_doctor_strict
     ;;
   status)
     show_status
