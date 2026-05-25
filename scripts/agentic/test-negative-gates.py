@@ -150,6 +150,18 @@ def break_output_manifest_ownership(worktree: Path) -> None:
     path.write_text("# Extra generated file drift test\n", encoding="utf-8")
 
 
+def break_target_adapter_owned_paths(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
+    data = load_json(path)
+
+    if "ownedPaths" not in data:
+        raise RuntimeError("ownedPaths already missing before mutation")
+
+    del data["ownedPaths"]
+    write_json(path, data)
+
+
+
 def break_resolution_output(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -213,6 +225,12 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_ownership,
             "unmanaged generated file under owned path",
+        ),
+        (
+            "target adapter validation fails when ownedPaths is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
+            break_target_adapter_owned_paths,
+            "ownedPaths",
         ),
         (
             "resolution validation fails when missingCapabilities is non-empty",
