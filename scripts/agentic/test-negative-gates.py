@@ -256,6 +256,23 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_invalid_owned_paths_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    first_target["ownedPaths"] = [123]
+    write_json(path, data)
+
+
+
 def break_output_manifest_empty_owned_paths(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -838,6 +855,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when target ownedPaths contains invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_invalid_owned_paths_type,
+            "ownedPaths must contain non-empty strings",
         ),
         (
             "failure",
