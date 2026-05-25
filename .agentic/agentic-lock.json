@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 50,
-    "contentHash": "sha256:955963e092b078f2b31bdd8143bc76350f86e9414ad9ece28539764d6d811817",
+    "fileCount": 51,
+    "contentHash": "sha256:d80bdf8a3b3f35084d0c8022d0408d529997900491a7608fa4ff41afbfb81ba4",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -175,6 +175,11 @@
         "path": "scripts/agentic/generate-opencode.py",
         "sha256": "sha256:ab600a86073ffe49d7ff11406ff4f963189b98a4003289ae4d86408684611419",
         "sizeBytes": 9446
+      },
+      {
+        "path": "scripts/agentic/generate-output-manifest.py",
+        "sha256": "sha256:ebcf0e71a21cd03e9b8c01bfd3d045490259f55c9d64df20c79b9bc8fc2f5555",
+        "sizeBytes": 3904
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",

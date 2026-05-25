@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "0.1.0",
+  "description": "Deterministic manifest of generated target output files.",
+  "targets": [
+    {
+      "name": "vscode-copilot",
+      "ownedPaths": [
+        ".github/agents",
+        ".github/skills",
+        ".github/copilot-instructions.md"
+      ],
+      "generatedFiles": [
+        {
+          "path": ".github/agents/architect.agent.md",
+          "sha256": "5153002c847bd432785cb045cdc6bc70a913e46a4bb0ec037bb0822fb70e07b1",
+          "bytes": 1364
+        },
+        {
+          "path": ".github/agents/code-reviewer.agent.md",
+          "sha256": "89332aee464ebac0a9df6fc0dce0ffbf53724c626d6d08f832dafc537424714a",
+          "bytes": 1761
+        },
+        {
+          "path": ".github/agents/implementer.agent.md",
+          "sha256": "4bf4f1c356c87df8bd395683e1fbef1040a03c3f1f05467368af7e671a847585",
+          "bytes": 1835
+        },
+        {
+          "path": ".github/agents/orchestrator.agent.md",
+          "sha256": "3cac651f6eef3e26a09357d0c7138115f2ad6343e83affb05d9bf2ef26719499",
+          "bytes": 1433
+        },
+        {
+          "path": ".github/agents/qa.agent.md",
+          "sha256": "86131a260aaa8a862c84fb073dc102ac66fb90be916e7574cdb439dbda3f6afe",
+          "bytes": 1729
+        },
+        {
+          "path": ".github/agents/requirements.agent.md",
+          "sha256": "842a0874ab77a13b519acc16fdc1e2f31103bc1ca6e04e3dd401112dc91ff4af",
+          "bytes": 1393
+        },
+        {
+          "path": ".github/agents/test-runner.agent.md",
+          "sha256": "f3795f5e2a081c260d2fa6a28290eb2ff8d7603d962e522f966fff9cac60dc0d",
+          "bytes": 1673
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "sha256": "cf39dae6bb74f65e2d21bd9a2b7b6beff68e0cb8d3485248a52f078621f2fc52",
+          "bytes": 1102
+        },
+        {
+          "path": ".github/skills/code-review-clean-code/SKILL.md",
+          "sha256": "6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
+          "bytes": 970
+        },
+        {
+          "path": ".github/skills/code-review-clean-code/skill.json",
+          "sha256": "214d4206b254b25e51a51b30e729383d6f640a31cb522088cba2cd090cbdf770",
+          "bytes": 396
+        },
+        {
+          "path": ".github/skills/code-review-tests/SKILL.md",
+          "sha256": "d4bd37cafaa8c7e3b13b968b74e6e97f0ce36482d0cae69ed0e42b1fa1f621d7",
+          "bytes": 535
+        },
+        {
+          "path": ".github/skills/code-review-tests/skill.json",
+          "sha256": "21fb5b9a81bf0bc0e36e9f6bd3eea956434042990c129d9ee84030bdd314d9bb",
+          "bytes": 352
+        },
+        {
+          "path": ".github/skills/mvp-core-capabilities/SKILL.md",
+          "sha256": "38185b3dda55d59c5351f8aea04c1e6b20472d638021f1634fc570895024af69",
+          "bytes": 762
+        },
+        {
+          "path": ".github/skills/mvp-core-capabilities/skill.json",
+          "sha256": "ebba441c139a5bd1457c19ef55d7f0dd2a6b723e186dcffcb016cc6bfddca9b6",
+          "bytes": 829
+        },
+        {
+          "path": ".github/skills/workflow-routing/SKILL.md",
+          "sha256": "dfd0c74084da1173d82df61d23bfe855324524c78e6b0aaf5ed8e88ace15985c",
+          "bytes": 554
+        },
+        {
+          "path": ".github/skills/workflow-routing/skill.json",
+          "sha256": "edeea9133c790c5a6af8a50402639e4e47c71e4cd1b89bd754ef40481310a3ea",
+          "bytes": 386
+        }
+      ],
+      "generatedFileCount": 16
+    },
+    {
+      "name": "opencode",
+      "ownedPaths": [
+        ".opencode/agents",
+        ".opencode/skills",
+        "AGENTS.md",
+        "opencode.json"
+      ],
+      "generatedFiles": [
+        {
+          "path": ".opencode/agents/architect.md",
+          "sha256": "774dae40c795915661042f037ca5e79cd567a8fadcd5a2fe41d300825b28c081",
+          "bytes": 1459
+        },
+        {
+          "path": ".opencode/agents/code-reviewer.md",
+          "sha256": "f97ac2775d77a56cdc836a9c1925ecb8483d9b686414688e3160a02716ee736c",
+          "bytes": 1853
+        },
+        {
+          "path": ".opencode/agents/implementer.md",
+          "sha256": "47335e8d4dbad66d0af4cb3686070c5db086106b3f562818d86e4b488c9af21a",
+          "bytes": 1932
+        },
+        {
+          "path": ".opencode/agents/orchestrator.md",
+          "sha256": "58a80abab415147e67329fb3e2b485e0c27deac622c5ff815ceb13484f366d6c",
+          "bytes": 1525
+        },
+        {
+          "path": ".opencode/agents/qa.md",
+          "sha256": "f455486b291826ee54163277509bb91b73fd11bd5c13aefb5a87559d599c7858",
+          "bytes": 1831
+        },
+        {
+          "path": ".opencode/agents/requirements.md",
+          "sha256": "2de7c1a58b281bd7ae0e5c477964ba729cf5c281ea2d278fc9557e25d3ea1dbd",
+          "bytes": 1485
+        },
+        {
+          "path": ".opencode/agents/test-runner.md",
+          "sha256": "ecb069d903ccd7877789619cd0837c9b2f1c6be6229f5699fb40025fca7580ee",
+          "bytes": 1771
+        },
+        {
+          "path": ".opencode/skills/code-review-clean-code/SKILL.md",
+          "sha256": "6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
+          "bytes": 970
+        },
+        {
+          "path": ".opencode/skills/code-review-clean-code/skill.json",
+          "sha256": "214d4206b254b25e51a51b30e729383d6f640a31cb522088cba2cd090cbdf770",
+          "bytes": 396
+        },
+        {
+          "path": ".opencode/skills/code-review-tests/SKILL.md",
+          "sha256": "d4bd37cafaa8c7e3b13b968b74e6e97f0ce36482d0cae69ed0e42b1fa1f621d7",
+          "bytes": 535
+        },
+        {
+          "path": ".opencode/skills/code-review-tests/skill.json",
+          "sha256": "21fb5b9a81bf0bc0e36e9f6bd3eea956434042990c129d9ee84030bdd314d9bb",
+          "bytes": 352
+        },
+        {
+          "path": ".opencode/skills/mvp-core-capabilities/SKILL.md",
+          "sha256": "38185b3dda55d59c5351f8aea04c1e6b20472d638021f1634fc570895024af69",
+          "bytes": 762
+        },
+        {
+          "path": ".opencode/skills/mvp-core-capabilities/skill.json",
+          "sha256": "ebba441c139a5bd1457c19ef55d7f0dd2a6b723e186dcffcb016cc6bfddca9b6",
+          "bytes": 829
+        },
+        {
+          "path": ".opencode/skills/workflow-routing/SKILL.md",
+          "sha256": "dfd0c74084da1173d82df61d23bfe855324524c78e6b0aaf5ed8e88ace15985c",
+          "bytes": 554
+        },
+        {
+          "path": ".opencode/skills/workflow-routing/skill.json",
+          "sha256": "edeea9133c790c5a6af8a50402639e4e47c71e4cd1b89bd754ef40481310a3ea",
+          "bytes": 386
+        },
+        {
+          "path": "AGENTS.md",
+          "sha256": "e86a50f5d6e02c5027f4582a42bac3f8897d9e81fdcb71def3255b8564b4af47",
+          "bytes": 1091
+        },
+        {
+          "path": "opencode.json",
+          "sha256": "b41522d7c8571c316b97bc18317353541b844899493bc94fc1f8032ae26ce63c",
+          "bytes": 432
+        }
+      ],
+      "generatedFileCount": 17
+    }
+  ],
+  "summary": {
+    "targetCount": 2,
+    "generatedFileCount": 33,
+    "errorCount": 0,
+    "errors": []
+  }
+}
