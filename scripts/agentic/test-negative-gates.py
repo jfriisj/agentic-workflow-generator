@@ -255,6 +255,27 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_generated_file_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    generated_files = first_target.get("generatedFiles")
+    if not isinstance(generated_files, list):
+        raise RuntimeError("output manifest generatedFiles must be a list before mutation")
+
+    first_target["generatedFileCount"] = len(generated_files) + 1
+    write_json(path, data)
+
+
+
 def break_output_manifest_hash(worktree: Path) -> None:
     path = worktree / ".github" / "copilot-instructions.md"
     if not path.is_file():
@@ -443,6 +464,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when generatedFileCount is wrong",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_generated_file_count,
+            "generatedFileCount",
         ),
         (
             "failure",
