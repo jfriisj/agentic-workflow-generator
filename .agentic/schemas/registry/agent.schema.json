@@ -10,16 +10,20 @@
       "minLength": 1
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "target": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "model": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "capabilities": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "string",
         "minLength": 1
@@ -43,7 +47,10 @@
       "uniqueItems": true
     },
     "handoffs": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     }
   }
 }
