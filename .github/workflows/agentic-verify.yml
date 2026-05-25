@@ -32,4 +32,4 @@ jobs:
           node-version: "22"
 
       - name: Verify agentic generated output
-        run: scripts/agentic/agentic-gen.sh verify all
+        run: scripts/agentic/agentic-gen.sh verify-quiet all
