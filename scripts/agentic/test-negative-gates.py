@@ -301,6 +301,15 @@ def break_target_adapter_owned_path_absolute(worktree: Path) -> None:
 
 
 
+def break_target_adapter_duplicate_name(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "vscode-copilot" / "adapter.json"
+    data = load_json(path)
+
+    data["name"] = "opencode"
+    write_json(path, data)
+
+
+
 def break_target_adapter_duplicate_owned_path(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
     data = load_json(path)
@@ -454,6 +463,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_duplicate_owned_path,
             "duplicate ownedPath",
+        ),
+        (
+            "failure",
+            "target adapter semantic validation fails when target name is duplicate",
+            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            break_target_adapter_duplicate_name,
+            "duplicate target name",
         ),
         (
             "failure",
