@@ -1733,6 +1733,75 @@ def first_resolution_produce(data: dict[str, Any]) -> tuple[int, dict[str, Any],
     return agent_index, agent, 0, produce
 
 
+
+def mutate_resolution_agent_string_field(
+    worktree: Path,
+    field: str,
+    action: str,
+) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    if action == "missing":
+        agents[0].pop(field, None)
+    elif action == "empty":
+        agents[0][field] = ""
+    elif action == "invalid-type":
+        agents[0][field] = {"not": "a-string"}
+    else:
+        raise RuntimeError(f"Unknown agent string mutation action: {action}")
+
+    write_json(path, data)
+
+
+def break_resolution_agent_missing_role(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "role", "missing")
+
+
+def break_resolution_agent_empty_role(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "role", "empty")
+
+
+def break_resolution_agent_invalid_role_type(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "role", "invalid-type")
+
+
+def break_resolution_agent_missing_registry_path(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "registryPath", "missing")
+
+
+def break_resolution_agent_empty_registry_path(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "registryPath", "empty")
+
+
+def break_resolution_agent_invalid_registry_path_type(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "registryPath", "invalid-type")
+
+
+def break_resolution_duplicate_agent_name(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or len(agents) < 2:
+        raise RuntimeError("resolution agents must contain at least two agents before mutation")
+
+    first_agent = agents[0]
+    second_agent = agents[1]
+    if not isinstance(first_agent, dict) or not isinstance(second_agent, dict):
+        raise RuntimeError("resolution agents[0] and agents[1] must be objects before mutation")
+
+    first_name = first_agent.get("name")
+    if not isinstance(first_name, str) or not first_name.strip():
+        raise RuntimeError("resolution agents[0].name must be a non-empty string before mutation")
+
+    second_agent["name"] = first_name
+    write_json(path, data)
+
 def break_resolution_agent_missing_produces(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -3744,6 +3813,55 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_summary_wrong_produced_artifact_binding_count,
             "summary.producedArtifactBindingCount must match total agents produces length",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent role is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_missing_role,
+            "agents[0].role must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent role is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_empty_role,
+            "agents[0].role must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent role has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_invalid_role_type,
+            "agents[0].role must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_missing_registry_path,
+            "agents[0].registryPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_empty_registry_path,
+            "agents[0].registryPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_invalid_registry_path_type,
+            "agents[0].registryPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent name is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_duplicate_agent_name,
+            "agents[1].name is duplicated",
         ),
         (
             "failure",

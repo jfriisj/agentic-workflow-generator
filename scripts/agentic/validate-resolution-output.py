@@ -334,6 +334,38 @@ def validate_agent_produces_string_list_field(
         seen_values.add(entry)
 
 
+def validate_agent_identity_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    agents = resolution.get("agents")
+
+    if not isinstance(agents, list):
+        return errors
+
+    seen_agent_names: set[str] = set()
+
+    for agent_index, agent in enumerate(agents):
+        if not isinstance(agent, dict):
+            continue
+
+        name = agent.get("name")
+        if isinstance(name, str) and name.strip():
+            if name in seen_agent_names:
+                errors.append(f"{RESOLUTION_PATH}: agents[{agent_index}].name is duplicated")
+            seen_agent_names.add(name)
+
+        role = agent.get("role")
+        if not isinstance(role, str) or not role.strip():
+            errors.append(f"{RESOLUTION_PATH}: agents[{agent_index}].role must be a non-empty string")
+
+        registry_path = agent.get("registryPath")
+        if not isinstance(registry_path, str) or not registry_path.strip():
+            errors.append(
+                f"{RESOLUTION_PATH}: agents[{agent_index}].registryPath must be a non-empty string"
+            )
+
+    return errors
+
+
 def validate_agent_produces_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     agents = resolution.get("agents")
@@ -447,6 +479,7 @@ def main() -> int:
     errors.extend(validate_project_resolution(resolution))
     errors.extend(validate_workflow_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
+    errors.extend(validate_agent_identity_resolution(resolution))
     errors.extend(validate_agent_produces_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
 
