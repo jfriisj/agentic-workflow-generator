@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 53,
-    "contentHash": "sha256:770bdde4da85dd326f30650d50b2e6f76bee539801e92596c0657709dc923bf3",
+    "contentHash": "sha256:40608d11c8376e853ea752d1f8f3ca234cbcfaa72bcaaa648f4642ad8eee39cb",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -243,8 +243,8 @@
       },
       {
         "path": "scripts/agentic/validate-output-manifest.py",
-        "sha256": "sha256:98073cbb0cf8fd105995542dfee5c1ef7ab20212beaeaeb7f2289353c9315c7e",
-        "sizeBytes": 6492
+        "sha256": "sha256:c2bd480e9741db5e60c429fcb2572b3639324c09c9b7002bf5cc13f1f3e5144d",
+        "sizeBytes": 8673
       },
       {
         "path": "scripts/agentic/validate-profile-registry.py",
