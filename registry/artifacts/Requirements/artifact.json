@@ -1,0 +1,25 @@
+{
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "description": "Artifact contract for requirements output produced by Requirements agents.",
+  "pathPattern": "agent-output/requirements/*.md",
+  "requiredHeadings": [
+    "# Requirements",
+    "## Status",
+    "## Summary",
+    "## Scope",
+    "## Requirements",
+    "## Acceptance Criteria",
+    "## Assumptions",
+    "## Constraints",
+    "## Handoff Target"
+  ],
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "type": "Requirements"
+}

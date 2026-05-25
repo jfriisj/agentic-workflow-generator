@@ -1,0 +1,24 @@
+{
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "description": "Artifact contract for architecture decision output produced by Architect agents.",
+  "pathPattern": "agent-output/architecture-decision/*.md",
+  "requiredHeadings": [
+    "# Architecture Decision",
+    "## Status",
+    "## Summary",
+    "## Context",
+    "## Decision",
+    "## Alternatives Considered",
+    "## Consequences",
+    "## Handoff Target"
+  ],
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "type": "ArchitectureDecision"
+}
