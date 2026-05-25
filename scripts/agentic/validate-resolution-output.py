@@ -473,6 +473,10 @@ def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
             if not isinstance(adapter_path, str) or not adapter_path.strip():
                 errors.append(f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a non-empty string")
 
+            elif not is_safe_relative_path(adapter_path):
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a safe relative path"
+                )
     return errors
 
 

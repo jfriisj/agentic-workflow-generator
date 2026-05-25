@@ -1759,6 +1759,44 @@ def mutate_resolution_agent_string_field(
 
 
 
+
+def break_resolution_target_adapter_path_parent_reference(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+
+    target = targets[0]
+    if not isinstance(target, dict):
+        raise RuntimeError("resolution targets[0] must be an object before mutation")
+
+    if target.get("missing") is not False:
+        raise RuntimeError("resolution targets[0] must be non-missing before mutation")
+
+    target["adapterPath"] = "../registry/targets/unsafe/adapter.json"
+    write_json(path, data)
+
+
+def break_resolution_target_adapter_path_absolute(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+
+    target = targets[0]
+    if not isinstance(target, dict):
+        raise RuntimeError("resolution targets[0] must be an object before mutation")
+
+    if target.get("missing") is not False:
+        raise RuntimeError("resolution targets[0] must be non-missing before mutation")
+
+    target["adapterPath"] = "/tmp/unsafe/adapter.json"
+    write_json(path, data)
+
 def break_resolution_agent_registry_path_parent_reference(worktree: Path) -> None:
     mutate_resolution_agent_string_field(worktree, "registryPath", "empty")
 
@@ -3968,6 +4006,20 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_produce_path_pattern_absolute,
             "pathPattern must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target adapterPath contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_adapter_path_parent_reference,
+            "targets[0].adapterPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target adapterPath is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_adapter_path_absolute,
+            "targets[0].adapterPath must be a safe relative path",
         ),
         (
             "failure",
