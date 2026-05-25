@@ -301,6 +301,19 @@ def break_target_adapter_owned_path_absolute(worktree: Path) -> None:
 
 
 
+def break_target_adapter_duplicate_owned_path(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
+    data = load_json(path)
+
+    owned_paths = data.get("ownedPaths")
+    if not isinstance(owned_paths, list) or not owned_paths:
+        raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+
+    owned_paths.append(owned_paths[0])
+    write_json(path, data)
+
+
+
 def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
     data = load_json(path)
@@ -434,6 +447,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_overlap,
             "ownedPaths overlap between targets",
+        ),
+        (
+            "failure",
+            "target adapter semantic validation fails when ownedPaths has duplicate",
+            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            break_target_adapter_duplicate_owned_path,
+            "duplicate ownedPath",
         ),
         (
             "failure",
