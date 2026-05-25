@@ -2930,6 +2930,56 @@ def break_resolution_summary_nonempty_errors(worktree: Path) -> None:
     summary["errors"] = ["synthetic resolution summary error"]
     write_json(path, data)
 
+
+def first_profile_file(worktree: Path) -> Path:
+    profiles = sorted((worktree / "registry" / "profiles").glob("*.profile.json"))
+    if not profiles:
+        raise RuntimeError("expected at least one profile registry file")
+    return profiles[0]
+
+
+def break_profile_workflow_reference(worktree: Path) -> None:
+    path = first_profile_file(worktree)
+    data = load_json(path)
+    data["workflow"] = "does-not-exist"
+    write_json(path, data)
+
+
+def break_profile_recommended_agent_reference(worktree: Path) -> None:
+    path = first_profile_file(worktree)
+    data = load_json(path)
+    agents = data.get("recommendedAgents")
+    if not isinstance(agents, list):
+        agents = []
+        data["recommendedAgents"] = agents
+    agents.append("DoesNotExist")
+    write_json(path, data)
+
+
+def break_profile_recommended_capability_reference(worktree: Path) -> None:
+    path = first_profile_file(worktree)
+    data = load_json(path)
+    capabilities = data.get("recommendedCapabilities")
+    if not isinstance(capabilities, list):
+        capabilities = []
+        data["recommendedCapabilities"] = capabilities
+    capabilities.append("does.not.exist")
+    write_json(path, data)
+
+
+def break_profile_recommended_runtime_profiles_type(worktree: Path) -> None:
+    path = first_profile_file(worktree)
+    data = load_json(path)
+    data["recommendedRuntimeProfiles"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_profile_version_empty(worktree: Path) -> None:
+    path = first_profile_file(worktree)
+    data = load_json(path)
+    data["version"] = ""
+    write_json(path, data)
+
 def break_lockfile(worktree: Path) -> None:
     path = worktree / ".agentic" / "agentic-lock.json"
     data = load_json(path)
@@ -4400,6 +4450,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_target_config_enabled_mismatch,
             "target name/enabled projection must match .agentic/agentic.json: targets",
+        ),
+        (
+            "failure",
+            "profile registry validation fails when workflow reference is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
+            break_profile_workflow_reference,
+            "workflow must reference an existing workflow registry file",
+        ),
+        (
+            "failure",
+            "profile registry validation fails when recommended agent is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
+            break_profile_recommended_agent_reference,
+            "recommendedAgents entry 'DoesNotExist' must reference an existing agent",
+        ),
+        (
+            "failure",
+            "profile registry validation fails when recommended capability is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
+            break_profile_recommended_capability_reference,
+            "recommendedCapabilities entry 'does.not.exist' must be provided by a registered skill",
+        ),
+        (
+            "failure",
+            "profile registry validation fails when recommended runtime profiles has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
+            break_profile_recommended_runtime_profiles_type,
+            "recommendedRuntimeProfiles must be a list when present",
+        ),
+        (
+            "failure",
+            "profile registry validation fails when version is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
+            break_profile_version_empty,
+            "version must be a non-empty string when present",
         ),
         (
             "failure",

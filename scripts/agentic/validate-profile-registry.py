@@ -9,6 +9,11 @@ ROOT = Path.cwd()
 PROFILES_DIR = ROOT / "registry" / "profiles"
 
 
+AGENTS_DIR = ROOT / "registry" / "agents"
+SKILLS_DIR = ROOT / "registry" / "skills"
+WORKFLOWS_DIR = ROOT / "registry" / "workflows"
+
+
 def load_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"Required file not found: {path}")
@@ -48,7 +53,94 @@ def validate_string_list(path: Path, profile: dict[str, Any], key: str) -> list[
     return errors
 
 
-def validate_profile_file(path: Path) -> list[str]:
+
+def collect_agent_names() -> set[str]:
+    names: set[str] = set()
+
+    for path in sorted(AGENTS_DIR.glob("*/agent.json")):
+        try:
+            agent = load_json(path)
+        except Exception:
+            continue
+
+        name = agent.get("name")
+        if isinstance(name, str) and name.strip():
+            names.add(name)
+
+    return names
+
+
+def collect_skill_capabilities() -> set[str]:
+    capabilities: set[str] = set()
+
+    for path in sorted(SKILLS_DIR.glob("*/skill.json")):
+        try:
+            skill = load_json(path)
+        except Exception:
+            continue
+
+        provides = skill.get("provides")
+        if not isinstance(provides, list):
+            continue
+
+        for capability in provides:
+            if isinstance(capability, str) and capability.strip():
+                capabilities.add(capability)
+
+    return capabilities
+
+
+def validate_profile_references(
+    path: Path,
+    profile: dict[str, Any],
+    agent_names: set[str],
+    skill_capabilities: set[str],
+) -> list[str]:
+    errors: list[str] = []
+
+    workflow = profile.get("workflow")
+    if workflow is not None:
+        if not isinstance(workflow, str) or not workflow.strip():
+            errors.append(f"{path}: workflow must be a non-empty string when present")
+        else:
+            workflow_path = WORKFLOWS_DIR / f"{workflow}.workflow.json"
+            if not workflow_path.is_file():
+                errors.append(f"{path}: workflow must reference an existing workflow registry file")
+
+    recommended_agents = profile.get("recommendedAgents")
+    if isinstance(recommended_agents, list):
+        for agent in recommended_agents:
+            if isinstance(agent, str) and agent.strip() and agent not in agent_names:
+                errors.append(f"{path}: recommendedAgents entry '{agent}' must reference an existing agent")
+
+    recommended_capabilities = profile.get("recommendedCapabilities")
+    if isinstance(recommended_capabilities, list):
+        for capability in recommended_capabilities:
+            if (
+                isinstance(capability, str)
+                and capability.strip()
+                and capability not in skill_capabilities
+            ):
+                errors.append(
+                    f"{path}: recommendedCapabilities entry '{capability}' "
+                    "must be provided by a registered skill"
+                )
+
+    recommended_runtime_profiles = profile.get("recommendedRuntimeProfiles")
+    if recommended_runtime_profiles is not None:
+        errors.extend(validate_string_list(path, profile, "recommendedRuntimeProfiles"))
+
+    version = profile.get("version")
+    if version is not None and (not isinstance(version, str) or not version.strip()):
+        errors.append(f"{path}: version must be a non-empty string when present")
+
+    return errors
+
+def validate_profile_file(
+    path: Path,
+    agent_names: set[str],
+    skill_capabilities: set[str],
+) -> list[str]:
     errors: list[str] = []
 
     try:
@@ -80,12 +172,15 @@ def validate_profile_file(path: Path) -> list[str]:
         "recommendedSkills",
         "recommendedWorkflows",
         "recommendedTargets",
+        "recommendedRuntimeProfiles",
     ]:
         errors.extend(validate_string_list(path, profile, key))
 
     defaults = profile.get("defaults")
     if defaults is not None and not isinstance(defaults, dict):
         errors.append(f"{path}: defaults must be an object when present")
+
+    errors.extend(validate_profile_references(path, profile, agent_names, skill_capabilities))
 
     return errors
 
@@ -99,8 +194,11 @@ def main() -> int:
 
     errors: list[str] = []
 
+    agent_names = collect_agent_names()
+    skill_capabilities = collect_skill_capabilities()
+
     for profile_file in profile_files:
-        errors.extend(validate_profile_file(profile_file))
+        errors.extend(validate_profile_file(profile_file, agent_names, skill_capabilities))
 
     if errors:
         print(f"FAIL: Profile registry validation found {len(errors)} error(s).")
