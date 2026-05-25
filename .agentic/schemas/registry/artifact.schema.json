@@ -74,6 +74,41 @@
     },
     "required": {
       "type": "boolean"
+    },
+    "binding": {
+      "type": "object",
+      "required": [
+        "producerRequired"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "producerRequired": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "producerRequired": {
+                "const": false
+              }
+            },
+            "required": [
+              "producerRequired"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      ]
     }
   }
 }

@@ -44,79 +44,101 @@ def expected_schema_for_contract(contract: dict[str, Any]) -> dict[str, Any]:
     allowed_statuses = list(contract["allowedStatuses"])
     required_headings = list(contract["requiredHeadings"])
 
+    required_fields = [
+        "type",
+        "description",
+        "pathPattern",
+        "status",
+        "allowedStatuses",
+        "requiredHeadings",
+    ]
+
+    properties: dict[str, Any] = {
+        "type": {
+            "type": "string",
+            "const": artifact_type,
+        },
+        "description": {
+            "type": "string",
+            "const": contract["description"],
+        },
+        "pathPattern": {
+            "type": "string",
+            "const": contract["pathPattern"],
+        },
+        "status": {
+            "type": "object",
+            "required": ["heading", "pattern"],
+            "additionalProperties": False,
+            "properties": {
+                "heading": {
+                    "type": "string",
+                    "const": contract["status"]["heading"],
+                },
+                "pattern": {
+                    "type": "string",
+                    "const": contract["status"]["pattern"],
+                },
+            },
+        },
+        "allowedStatuses": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "type": "string",
+                    "const": status,
+                }
+                for status in allowed_statuses
+            ],
+            "items": False,
+            "minItems": len(allowed_statuses),
+            "maxItems": len(allowed_statuses),
+            "uniqueItems": True,
+        },
+        "requiredHeadings": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "type": "string",
+                    "const": heading,
+                }
+                for heading in required_headings
+            ],
+            "items": False,
+            "minItems": len(required_headings),
+            "maxItems": len(required_headings),
+            "uniqueItems": True,
+        },
+    }
+
+    binding = contract.get("binding")
+    if binding is not None:
+        required_fields.append("binding")
+        properties["binding"] = {
+            "type": "object",
+            "required": ["producerRequired", "reason"],
+            "additionalProperties": False,
+            "properties": {
+                "producerRequired": {
+                    "type": "boolean",
+                    "const": binding["producerRequired"],
+                },
+                "reason": {
+                    "type": "string",
+                    "const": binding["reason"],
+                },
+            },
+        }
+
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": f"https://example.local/agentic/artifacts/{slugify_artifact_type(artifact_type)}.schema.json",
         "title": f"{artifact_type} Artifact Contract",
         "type": "object",
-        "required": [
-            "type",
-            "description",
-            "pathPattern",
-            "status",
-            "allowedStatuses",
-            "requiredHeadings",
-        ],
+        "required": required_fields,
         "additionalProperties": False,
-        "properties": {
-            "type": {
-                "type": "string",
-                "const": artifact_type,
-            },
-            "description": {
-                "type": "string",
-                "const": contract["description"],
-            },
-            "pathPattern": {
-                "type": "string",
-                "const": contract["pathPattern"],
-            },
-            "status": {
-                "type": "object",
-                "required": ["heading", "pattern"],
-                "additionalProperties": False,
-                "properties": {
-                    "heading": {
-                        "type": "string",
-                        "const": contract["status"]["heading"],
-                    },
-                    "pattern": {
-                        "type": "string",
-                        "const": contract["status"]["pattern"],
-                    },
-                },
-            },
-            "allowedStatuses": {
-                "type": "array",
-                "prefixItems": [
-                    {
-                        "type": "string",
-                        "const": status,
-                    }
-                    for status in allowed_statuses
-                ],
-                "items": False,
-                "minItems": len(allowed_statuses),
-                "maxItems": len(allowed_statuses),
-                "uniqueItems": True,
-            },
-            "requiredHeadings": {
-                "type": "array",
-                "prefixItems": [
-                    {
-                        "type": "string",
-                        "const": heading,
-                    }
-                    for heading in required_headings
-                ],
-                "items": False,
-                "minItems": len(required_headings),
-                "maxItems": len(required_headings),
-                "uniqueItems": True,
-            },
-        },
+        "properties": properties,
     }
-
 
 def validate_string_list(path: Path, data: dict[str, Any], key: str) -> list[str]:
     errors: list[str] = []
