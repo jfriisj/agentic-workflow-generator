@@ -1,0 +1,17 @@
+{
+  "name": "code-review-tests",
+  "version": "0.1.0",
+  "description": "Review guidance for test coverage, validation evidence, and test reliability.",
+  "provides": [
+    "review.tests"
+  ],
+  "requires": [],
+  "allowedAgents": [
+    "CodeReviewer",
+    "TestRunner"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 1600
+  }
+}
