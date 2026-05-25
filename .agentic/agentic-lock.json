@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 49,
-    "contentHash": "sha256:bb89b5f42cf822aef378f2f1ae8088edd61c6f13a7823a26f447c1d6d74162c9",
+    "fileCount": 50,
+    "contentHash": "sha256:955963e092b078f2b31bdd8143bc76350f86e9414ad9ece28539764d6d811817",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -163,8 +163,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:0a7b4e7c3eb33e8387f4f9278a4865121bdf08a5c56692b5caba4524770d256f",
-        "sizeBytes": 12000
+        "sha256": "sha256:8fd9055a70052c2a55463b6a33f1984cd514a4f55c0eaf945d39ce3b028c1095",
+        "sizeBytes": 12436
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",
@@ -240,6 +240,11 @@
         "path": "scripts/agentic/validate-registry-references.py",
         "sha256": "sha256:b9fc24bb1a6b4f5b1c944d3fbbd488a8934c53b71871fa8167c8fcdb5a17c4e8",
         "sizeBytes": 8484
+      },
+      {
+        "path": "scripts/agentic/validate-registry-schemas.py",
+        "sha256": "sha256:d2e73a1b155b95a8ea62072b7dbcd3647b541ab89b5850d6f48b901d205eeff5",
+        "sizeBytes": 5463
       },
       {
         "path": "scripts/agentic/validate-resolution-output.py",

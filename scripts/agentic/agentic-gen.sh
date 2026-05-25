@@ -20,6 +20,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
   scripts/agentic/agentic-gen.sh validate-references
+  scripts/agentic/agentic-gen.sh validate-registry-schemas
   scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh validate-generated
@@ -56,6 +57,8 @@ Commands:
              Validate registered profile definitions.
   validate-references
              Validate cross-references between config and registry files.
+  validate-registry-schemas
+             Validate registry files against JSON Schemas.
   coverage   Report agent capability to skill capability coverage.
   generate   Generate target-specific output.
   validate-generated
@@ -109,6 +112,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
+  require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
@@ -129,6 +133,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   python -m py_compile "scripts/agentic/validate-profile-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
+  python -m py_compile "scripts/agentic/validate-registry-schemas.py"
   python -m py_compile "scripts/agentic/report-capability-coverage.py"
 
   echo "PASS: Script syntax checks passed."
@@ -167,6 +172,7 @@ run_pipeline() {
   python scripts/agentic/validate-workflow-registry.py || return 1
   python scripts/agentic/validate-profile-registry.py || return 1
   python scripts/agentic/validate-registry-references.py || return 1
+  python scripts/agentic/validate-registry-schemas.py || return 1
   python scripts/agentic/report-capability-coverage.py || return 1
   python scripts/agentic/resolve-agentic-config.py || return 1
   python scripts/agentic/validate-resolution-output.py || return 1
@@ -335,6 +341,9 @@ case "$COMMAND" in
     ;;
   validate-references)
     python scripts/agentic/validate-registry-references.py
+    ;;
+  validate-registry-schemas)
+    python scripts/agentic/validate-registry-schemas.py
     ;;
   coverage)
     python scripts/agentic/report-capability-coverage.py

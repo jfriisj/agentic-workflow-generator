@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "artifact.schema.json",
+  "title": "Artifact Contract Registry Entry",
+  "type": "object",
+  "required": ["description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "schemaPath": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "producedBy": {
+      "type": "array"
+    }
+  }
+}
