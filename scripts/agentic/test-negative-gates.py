@@ -162,6 +162,21 @@ def break_target_adapter_owned_paths(worktree: Path) -> None:
 
 
 
+def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
+    data = load_json(path)
+
+    owned_paths = data.get("ownedPaths")
+    if not isinstance(owned_paths, list):
+        raise RuntimeError("ownedPaths must be a list before mutation")
+
+    if ".github/agents" not in owned_paths:
+        owned_paths.append(".github/agents")
+
+    write_json(path, data)
+
+
+
 def break_resolution_output(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -231,6 +246,12 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
             break_target_adapter_owned_paths,
             "ownedPaths",
+        ),
+        (
+            "target adapter semantic validation fails when ownedPaths overlap",
+            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            break_target_adapter_owned_path_overlap,
+            "ownedPaths overlap between targets",
         ),
         (
             "resolution validation fails when missingCapabilities is non-empty",
