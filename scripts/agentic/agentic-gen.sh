@@ -11,6 +11,7 @@ Usage:
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh validate-resolution
   scripts/agentic/agentic-gen.sh lock
+  scripts/agentic/agentic-gen.sh validate-lockfile
   scripts/agentic/agentic-gen.sh validate-artifacts
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
@@ -33,6 +34,8 @@ Commands:
   validate-resolution
              Validate generated resolver output.
   lock       Generate deterministic .agentic/agentic-lock.json.
+  validate-lockfile
+             Validate generated lockfile structure.
   validate-artifacts
              Validate registered artifact contracts and existing artifact files.
   validate-agents
@@ -85,6 +88,7 @@ check_scripts() {
   require_file "scripts/agentic/generate-vscode-copilot.py"
   require_file "scripts/agentic/generate-opencode.py"
   require_file "scripts/agentic/generate-lockfile.py"
+  require_file "scripts/agentic/validate-lockfile.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-registry.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -103,6 +107,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
   python -m py_compile "scripts/agentic/generate-opencode.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
+  python -m py_compile "scripts/agentic/validate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-registry.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -153,6 +158,7 @@ run_pipeline() {
   python scripts/agentic/resolve-agentic-config.py || return 1
   python scripts/agentic/validate-resolution-output.py || return 1
   python scripts/agentic/generate-lockfile.py || return 1
+  python scripts/agentic/validate-lockfile.py || return 1
   python scripts/agentic/validate-artifacts.py || return 1
   python scripts/agentic/validate-agent-registry.py || return 1
   python scripts/agentic/validate-agent-artifact-bindings.py || return 1
@@ -247,6 +253,9 @@ case "$COMMAND" in
     ;;
   lock)
     python scripts/agentic/generate-lockfile.py
+    ;;
+  validate-lockfile)
+    python scripts/agentic/validate-lockfile.py
     ;;
   validate-artifacts)
     python scripts/agentic/validate-artifacts.py
