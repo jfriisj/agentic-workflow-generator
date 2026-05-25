@@ -1,0 +1,8 @@
+# Agentic Workflow Generator runtime output
+.runtime/
+
+# Optional generated metadata
+.agentic/generated/
+
+# Keep lockfile committed
+!.agentic/agentic-lock.json
