@@ -53,6 +53,70 @@ def is_plain_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def validate_reference_paths_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+
+    agents = resolution.get("agents")
+    if isinstance(agents, list):
+        for agent_index, agent in enumerate(agents):
+            if not isinstance(agent, dict):
+                continue
+
+            registry_path = agent.get("registryPath")
+            if (
+                isinstance(registry_path, str)
+                and registry_path.strip()
+                and is_safe_relative_path(registry_path)
+                and not Path(registry_path).is_file()
+            ):
+                errors.append(
+                    f"{RESOLUTION_PATH}: agents[{agent_index}].registryPath "
+                    "must point to an existing file"
+                )
+
+            produces = agent.get("produces")
+            if not isinstance(produces, list):
+                continue
+
+            for produce_index, produce in enumerate(produces):
+                if not isinstance(produce, dict):
+                    continue
+
+                contract_path = produce.get("contractPath")
+                if (
+                    isinstance(contract_path, str)
+                    and contract_path.strip()
+                    and is_safe_relative_path(contract_path)
+                    and not Path(contract_path).is_file()
+                ):
+                    errors.append(
+                        f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}]."
+                        "contractPath must point to an existing file"
+                    )
+
+    targets = resolution.get("targets")
+    if isinstance(targets, list):
+        for target_index, target in enumerate(targets):
+            if not isinstance(target, dict):
+                continue
+
+            missing = target.get("missing")
+            adapter_path = target.get("adapterPath")
+
+            if missing is False and (
+                isinstance(adapter_path, str)
+                and adapter_path.strip()
+                and is_safe_relative_path(adapter_path)
+                and not Path(adapter_path).is_file()
+            ):
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{target_index}].adapterPath "
+                    "must point to an existing file"
+                )
+
+    return errors
+
+
 def validate_target_semantics_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     targets = resolution.get("targets")
@@ -559,6 +623,7 @@ def main() -> int:
     errors.extend(validate_agent_produces_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
     errors.extend(validate_target_semantics_resolution(resolution))
+    errors.extend(validate_reference_paths_resolution(resolution))
 
     errors.extend(walk_for_errors(resolution))
 

@@ -1782,6 +1782,38 @@ def semantic_first_missing_resolution_target(data: dict[str, Any]) -> dict[str, 
     raise RuntimeError("expected at least one missing target before mutation")
 
 
+
+def break_resolution_agent_registry_path_missing_file(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    agents[0]["registryPath"] = "registry/agents/does-not-exist/agent.json"
+    write_json(path, data)
+
+
+def break_resolution_produce_contract_path_missing_file(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+    produce["contractPath"] = "registry/artifacts/DoesNotExist/artifact.json"
+
+    write_json(path, data)
+
+
+def break_resolution_target_adapter_path_missing_file(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    target = semantic_first_present_resolution_target(data)
+    target["adapterPath"] = "registry/targets/does-not-exist/adapter.json"
+
+    write_json(path, data)
+
 def break_resolution_semantic_missing_target_enabled_true(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -4137,6 +4169,27 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_semantic_duplicate_target_name,
             "targets[1].name is duplicated",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath points to missing file",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_registry_path_missing_file,
+            "agents[0].registryPath must point to an existing file",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath points to missing file",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_contract_path_missing_file,
+            "contractPath must point to an existing file",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target adapterPath points to missing file",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_adapter_path_missing_file,
+            "targets[0].adapterPath must point to an existing file",
         ),
         (
             "failure",
