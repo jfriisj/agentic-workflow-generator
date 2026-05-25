@@ -141,22 +141,22 @@ generate_target() {
 run_pipeline() {
   local target="$1"
 
-  check_scripts
-  validate_json_files
-  scripts/agentic/validate-agentic-config.sh
-  python scripts/agentic/validate-target-adapters.py
-  python scripts/agentic/validate-skill-registry.py
-  python scripts/agentic/validate-workflow-registry.py
-  python scripts/agentic/validate-profile-registry.py
-  python scripts/agentic/validate-registry-references.py
-  python scripts/agentic/report-capability-coverage.py
-  python scripts/agentic/resolve-agentic-config.py
-  python scripts/agentic/validate-resolution-output.py
-  python scripts/agentic/generate-lockfile.py
-  python scripts/agentic/validate-artifacts.py
-  python scripts/agentic/validate-agent-registry.py
-  python scripts/agentic/validate-agent-artifact-bindings.py
-  generate_target "$target"
+  check_scripts || return 1
+  validate_json_files || return 1
+  scripts/agentic/validate-agentic-config.sh || return 1
+  python scripts/agentic/validate-target-adapters.py || return 1
+  python scripts/agentic/validate-skill-registry.py || return 1
+  python scripts/agentic/validate-workflow-registry.py || return 1
+  python scripts/agentic/validate-profile-registry.py || return 1
+  python scripts/agentic/validate-registry-references.py || return 1
+  python scripts/agentic/report-capability-coverage.py || return 1
+  python scripts/agentic/resolve-agentic-config.py || return 1
+  python scripts/agentic/validate-resolution-output.py || return 1
+  python scripts/agentic/generate-lockfile.py || return 1
+  python scripts/agentic/validate-artifacts.py || return 1
+  python scripts/agentic/validate-agent-registry.py || return 1
+  python scripts/agentic/validate-agent-artifact-bindings.py || return 1
+  generate_target "$target" || return 1
 }
 
 verify_no_drift() {
