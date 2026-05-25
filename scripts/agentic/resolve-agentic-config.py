@@ -63,10 +63,45 @@ def load_available_skills() -> dict[str, dict[str, Any]]:
 
 
 def capabilities_for_skill(skill: dict[str, Any]) -> list[str]:
-    capabilities = skill.get("capabilities", [])
-    if not isinstance(capabilities, list):
-        return []
-    return [str(capability) for capability in capabilities]
+    candidates: list[Any] = []
+
+    for key in [
+        "capabilities",
+        "provides",
+        "providedCapabilities",
+        "provided_capabilities",
+    ]:
+        value = skill.get(key)
+
+        if isinstance(value, list):
+            candidates.extend(value)
+
+        if isinstance(value, dict):
+            nested = value.get("capabilities")
+            if isinstance(nested, list):
+                candidates.extend(nested)
+
+    single_capability = skill.get("capability")
+    if isinstance(single_capability, str):
+        candidates.append(single_capability)
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+
+    for capability in candidates:
+        if isinstance(capability, str):
+            value = capability.strip()
+        elif isinstance(capability, dict):
+            raw_value = capability.get("name") or capability.get("id") or capability.get("capability")
+            value = str(raw_value).strip() if raw_value is not None else ""
+        else:
+            value = ""
+
+        if value and value not in seen:
+            normalized.append(value)
+            seen.add(value)
+
+    return normalized
 
 
 def resolve_capability(
@@ -148,20 +183,23 @@ def resolve_agent(
 
 def resolve_target(target: dict[str, Any], errors: list[str]) -> dict[str, Any]:
     target_name = target["name"]
+    enabled = bool(target.get("enabled", False))
     adapter_file = registry_target_path(target_name)
 
     if not adapter_file.is_file():
-        errors.append(f"Missing target adapter: {adapter_file.relative_to(ROOT)}")
+        if enabled:
+            errors.append(f"Missing enabled target adapter: {adapter_file.relative_to(ROOT)}")
+
         return {
             "name": target_name,
-            "enabled": target.get("enabled", False),
+            "enabled": enabled,
             "adapterPath": None,
             "missing": True,
         }
 
     return {
         "name": target_name,
-        "enabled": target.get("enabled", False),
+        "enabled": enabled,
         "adapterPath": str(adapter_file.relative_to(ROOT)),
         "missing": False,
     }

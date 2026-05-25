@@ -30,12 +30,24 @@
         "workflow.validate-state",
         "workflow.handoff"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "workflow.route",
-        "workflow.validate-state",
-        "workflow.handoff"
+      "resolvedCapabilities": [
+        {
+          "capability": "workflow.route",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        },
+        {
+          "capability": "workflow.validate-state",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        },
+        {
+          "capability": "workflow.handoff",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": []
     },
     {
@@ -46,11 +58,19 @@
         "requirements.elicit",
         "requirements.define-acceptance-criteria"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "requirements.elicit",
-        "requirements.define-acceptance-criteria"
+      "resolvedCapabilities": [
+        {
+          "capability": "requirements.elicit",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "requirements.define-acceptance-criteria",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": []
     },
     {
@@ -61,11 +81,19 @@
         "architecture.design",
         "architecture.evaluate-tradeoffs"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "architecture.design",
-        "architecture.evaluate-tradeoffs"
+      "resolvedCapabilities": [
+        {
+          "capability": "architecture.design",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "architecture.evaluate-tradeoffs",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": []
     },
     {
@@ -77,12 +105,24 @@
         "implementation.refactor",
         "implementation.update-tests"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "implementation.code",
-        "implementation.refactor",
-        "implementation.update-tests"
+      "resolvedCapabilities": [
+        {
+          "capability": "implementation.code",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "implementation.refactor",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "implementation.update-tests",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": [
         {
           "type": "ImplementationReport",
@@ -115,12 +155,24 @@
         "test.report",
         "test.diagnose-failure"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "test.run",
-        "test.report",
-        "test.diagnose-failure"
+      "resolvedCapabilities": [
+        {
+          "capability": "test.run",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "test.report",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "test.diagnose-failure",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": [
         {
           "type": "TestReport",
@@ -153,12 +205,24 @@
         "review.tests",
         "review.security"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "review.clean-code",
-        "review.tests",
-        "review.security"
+      "resolvedCapabilities": [
+        {
+          "capability": "review.clean-code",
+          "skill": "code-review-clean-code",
+          "skillPath": "registry/skills/code-review-clean-code/skill.json"
+        },
+        {
+          "capability": "review.tests",
+          "skill": "code-review-tests",
+          "skillPath": "registry/skills/code-review-tests/skill.json"
+        },
+        {
+          "capability": "review.security",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": [
         {
           "type": "CodeReview",
@@ -189,11 +253,19 @@
         "qa.verify-acceptance-criteria",
         "qa.validate-evidence"
       ],
-      "resolvedCapabilities": [],
-      "missingCapabilities": [
-        "qa.verify-acceptance-criteria",
-        "qa.validate-evidence"
+      "resolvedCapabilities": [
+        {
+          "capability": "qa.verify-acceptance-criteria",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "qa.validate-evidence",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
       ],
+      "missingCapabilities": [],
       "produces": [
         {
           "type": "QAReport",
@@ -249,28 +321,7 @@
     "targetCount": 4,
     "availableSkillCount": 4,
     "producedArtifactBindingCount": 4,
-    "errorCount": 20,
-    "errors": [
-      "Agent Orchestrator has unresolved capability: workflow.route",
-      "Agent Orchestrator has unresolved capability: workflow.validate-state",
-      "Agent Orchestrator has unresolved capability: workflow.handoff",
-      "Agent Requirements has unresolved capability: requirements.elicit",
-      "Agent Requirements has unresolved capability: requirements.define-acceptance-criteria",
-      "Agent Architect has unresolved capability: architecture.design",
-      "Agent Architect has unresolved capability: architecture.evaluate-tradeoffs",
-      "Agent Implementer has unresolved capability: implementation.code",
-      "Agent Implementer has unresolved capability: implementation.refactor",
-      "Agent Implementer has unresolved capability: implementation.update-tests",
-      "Agent TestRunner has unresolved capability: test.run",
-      "Agent TestRunner has unresolved capability: test.report",
-      "Agent TestRunner has unresolved capability: test.diagnose-failure",
-      "Agent CodeReviewer has unresolved capability: review.clean-code",
-      "Agent CodeReviewer has unresolved capability: review.tests",
-      "Agent CodeReviewer has unresolved capability: review.security",
-      "Agent QA has unresolved capability: qa.verify-acceptance-criteria",
-      "Agent QA has unresolved capability: qa.validate-evidence",
-      "Missing target adapter: registry/targets/codex/adapter.json",
-      "Missing target adapter: registry/targets/claude-code/adapter.json"
-    ]
+    "errorCount": 0,
+    "errors": []
   }
 }

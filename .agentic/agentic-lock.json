@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 37,
-    "contentHash": "sha256:42d2c46e0e157257f7254ecfc0bc5c58583c1d0a6f89abdb159cbb4e812dd699",
+    "contentHash": "sha256:78a022fa12e3bdb7117e7ec148f2ea1c5c1dd688d12b1970a9fb4cbb12954d25",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -183,8 +183,8 @@
       },
       {
         "path": "scripts/agentic/resolve-agentic-config.py",
-        "sha256": "sha256:f484a6bf6ff6a675b9df4ab49f0ba67bdf1fda8a72d98365e69fb4a7c2f128bd",
-        "sizeBytes": 7159
+        "sha256": "sha256:f4fa6b0674e93a75927bde96e7da9417b4e3f11f4828dfcd5c5918ac0b1e24c6",
+        "sizeBytes": 8164
       },
       {
         "path": "scripts/agentic/validate-agent-artifact-bindings.py",
