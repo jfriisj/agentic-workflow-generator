@@ -256,6 +256,28 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_duplicate_target_name(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or len(targets) < 2:
+        raise RuntimeError("output manifest targets must contain at least two targets before mutation")
+
+    first_target = targets[0]
+    second_target = targets[1]
+    if not isinstance(first_target, dict) or not isinstance(second_target, dict):
+        raise RuntimeError("output manifest targets must be objects before mutation")
+
+    first_name = first_target.get("name")
+    if not isinstance(first_name, str) or not first_name.strip():
+        raise RuntimeError("first output manifest target name must be a non-empty string before mutation")
+
+    second_target["name"] = first_name
+    write_json(path, data)
+
+
+
 def break_output_manifest_summary_error_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -765,6 +787,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when target name is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_duplicate_target_name,
+            "duplicate target name",
         ),
         (
             "failure",
