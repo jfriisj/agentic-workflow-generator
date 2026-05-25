@@ -27,23 +27,3 @@ The review must produce:
 * required fixes
 * evidence reviewed
 * handoff target
-  EOF
-
-cat > registry/skills/code-review-tests/skill.json <<'EOF'
-{
-"name": "code-review-tests",
-"version": "0.1.0",
-"description": "Review guidance for test coverage, validation evidence, and test reliability.",
-"provides": [
-"review.tests"
-],
-"requires": [],
-"allowedAgents": [
-"CodeReviewer",
-"TestRunner"
-],
-"contentPath": "SKILL.md",
-"contextBudget": {
-"maxTokens": 1600
-}
-}
