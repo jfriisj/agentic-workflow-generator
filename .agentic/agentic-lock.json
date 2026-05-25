@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 37,
-    "contentHash": "sha256:eaba2e0e17b021b5fc97e60c0751d1c016ced9903250410cd5c45c44ca8829e6",
+    "fileCount": 38,
+    "contentHash": "sha256:06faa9aae0173681a2d6bfb3487467387bf5be011a1eaf9394c1b0a85529273c",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -163,8 +163,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:d95e42c3ef7af49bceccc971f4d208790148bc8776d3bf13dfa2d1c1b8f0392b",
-        "sizeBytes": 6595
+        "sha256": "sha256:f38e1bd0163289921a08736d9369c38b5166c406949213298a387552acd53279",
+        "sizeBytes": 6979
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",
@@ -200,6 +200,11 @@
         "path": "scripts/agentic/validate-artifacts.py",
         "sha256": "sha256:e7b22c4379e9df1ac5e06ce41d2f109d7d28569ab59e1aa3c4ae88defd09688b",
         "sizeBytes": 3646
+      },
+      {
+        "path": "scripts/agentic/validate-target-adapters.py",
+        "sha256": "sha256:5b13e50a1d487f09ca869fee925dcdf46e3d925ff055cb402878643742bda80a",
+        "sizeBytes": 3030
       }
     ]
   }

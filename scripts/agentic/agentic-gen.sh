@@ -12,6 +12,7 @@ Usage:
   scripts/agentic/agentic-gen.sh lock
   scripts/agentic/agentic-gen.sh validate-artifacts
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
+  scripts/agentic/agentic-gen.sh validate-targets
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -27,6 +28,8 @@ Commands:
              Validate registered artifact contracts and existing artifact files.
   validate-agent-artifacts
              Validate that agent produces bindings point to registered artifact contracts.
+  validate-targets
+             Validate registered target adapters.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
   all        Run check, validate, resolve, lock, validate artifacts, and generate.
@@ -63,6 +66,7 @@ check_scripts() {
   require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
+  require_file "scripts/agentic/validate-target-adapters.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
@@ -73,6 +77,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
+  python -m py_compile "scripts/agentic/validate-target-adapters.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -105,6 +110,7 @@ run_pipeline() {
   check_scripts
   validate_json_files
   scripts/agentic/validate-agentic-config.sh
+  python scripts/agentic/validate-target-adapters.py
   python scripts/agentic/resolve-agentic-config.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
@@ -203,6 +209,9 @@ case "$COMMAND" in
     ;;
   validate-agent-artifacts)
     python scripts/agentic/validate-agent-artifact-bindings.py
+    ;;
+  validate-targets)
+    python scripts/agentic/validate-target-adapters.py
     ;;
   generate)
     python scripts/agentic/resolve-agentic-config.py
