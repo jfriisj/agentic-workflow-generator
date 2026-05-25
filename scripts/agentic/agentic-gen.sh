@@ -9,6 +9,7 @@ usage() {
 Usage:
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
+  scripts/agentic/agentic-gen.sh validate-resolution
   scripts/agentic/agentic-gen.sh lock
   scripts/agentic/agentic-gen.sh validate-artifacts
   scripts/agentic/agentic-gen.sh validate-agents
@@ -29,6 +30,8 @@ Usage:
 Commands:
   validate   Validate .agentic/agentic.json against its JSON Schema.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
+  validate-resolution
+             Validate generated resolver output.
   lock       Generate deterministic .agentic/agentic-lock.json.
   validate-artifacts
              Validate registered artifact contracts and existing artifact files.
@@ -78,6 +81,7 @@ validate_json_files() {
 check_scripts() {
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
+  require_file "scripts/agentic/validate-resolution-output.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
   require_file "scripts/agentic/generate-opencode.py"
   require_file "scripts/agentic/generate-lockfile.py"
@@ -95,6 +99,7 @@ check_scripts() {
   bash -n "scripts/agentic/agentic-gen.sh"
 
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
+  python -m py_compile "scripts/agentic/validate-resolution-output.py"
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
   python -m py_compile "scripts/agentic/generate-opencode.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
@@ -146,6 +151,7 @@ run_pipeline() {
   python scripts/agentic/validate-registry-references.py
   python scripts/agentic/report-capability-coverage.py
   python scripts/agentic/resolve-agentic-config.py
+  python scripts/agentic/validate-resolution-output.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
   python scripts/agentic/validate-agent-registry.py
@@ -235,6 +241,9 @@ case "$COMMAND" in
     ;;
   resolve)
     python scripts/agentic/resolve-agentic-config.py
+    ;;
+  validate-resolution)
+    python scripts/agentic/validate-resolution-output.py
     ;;
   lock)
     python scripts/agentic/generate-lockfile.py
