@@ -2395,6 +2395,54 @@ def resolution_workflow(data: dict[str, Any]) -> dict[str, Any]:
     return workflow
 
 
+
+def break_resolution_project_config_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    project = data.get("project")
+    if not isinstance(project, dict):
+        raise RuntimeError("resolution project must be an object before mutation")
+
+    project["name"] = "different-project-name"
+    write_json(path, data)
+
+
+def break_resolution_workflow_config_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["startState"] = "Architect"
+    write_json(path, data)
+
+
+def break_resolution_target_config_name_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets or not isinstance(targets[0], dict):
+        raise RuntimeError("resolution targets[0] must be an object before mutation")
+
+    targets[0]["name"] = "different-target-name"
+    write_json(path, data)
+
+
+def break_resolution_target_config_enabled_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets or not isinstance(targets[0], dict):
+        raise RuntimeError("resolution targets[0] must be an object before mutation")
+
+    targets[0]["enabled"] = False
+    write_json(path, data)
+
 def break_resolution_workflow_profile_missing_registry_file(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -4324,6 +4372,34 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_workflow_fail_closed_registry_mismatch,
             "workflow.failClosed must match workflow registry failClosed",
+        ),
+        (
+            "failure",
+            "resolution validation fails when project differs from config",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_project_config_mismatch,
+            "project must match .agentic/agentic.json: project",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow differs from config",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_config_mismatch,
+            "workflow must match .agentic/agentic.json: workflow",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target name differs from config",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_config_name_mismatch,
+            "target name/enabled projection must match .agentic/agentic.json: targets",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target enabled differs from config",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_config_enabled_mismatch,
+            "target name/enabled projection must match .agentic/agentic.json: targets",
         ),
         (
             "failure",

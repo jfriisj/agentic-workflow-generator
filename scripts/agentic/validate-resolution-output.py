@@ -53,6 +53,60 @@ def is_plain_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+CONFIG_PATH = Path(".agentic") / "agentic.json"
+
+
+def target_identity_projection(targets: Any) -> Any:
+    if not isinstance(targets, list):
+        return targets
+
+    projected_targets: list[Any] = []
+    for target in targets:
+        if not isinstance(target, dict):
+            projected_targets.append(target)
+            continue
+
+        projected_targets.append(
+            {
+                "name": target.get("name"),
+                "enabled": target.get("enabled"),
+            }
+        )
+
+    return projected_targets
+
+
+def validate_config_resolution_consistency(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+
+    try:
+        config = load_json(CONFIG_PATH)
+    except Exception as exc:
+        return [f"{CONFIG_PATH}: failed to load agentic config: {exc}"]
+
+    config_project = config.get("project")
+    resolution_project = resolution.get("project")
+    if isinstance(config_project, dict) and isinstance(resolution_project, dict):
+        if config_project != resolution_project:
+            errors.append(f"{RESOLUTION_PATH}: project must match {CONFIG_PATH}: project")
+
+    config_workflow = config.get("workflow")
+    resolution_workflow = resolution.get("workflow")
+    if isinstance(config_workflow, dict) and isinstance(resolution_workflow, dict):
+        if config_workflow != resolution_workflow:
+            errors.append(f"{RESOLUTION_PATH}: workflow must match {CONFIG_PATH}: workflow")
+
+    config_targets = config.get("targets")
+    resolution_targets = resolution.get("targets")
+    if isinstance(config_targets, list) and isinstance(resolution_targets, list):
+        if target_identity_projection(config_targets) != target_identity_projection(resolution_targets):
+            errors.append(
+                f"{RESOLUTION_PATH}: target name/enabled projection must match {CONFIG_PATH}: targets"
+            )
+
+    return errors
+
+
 def validate_reference_paths_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
 
@@ -720,6 +774,7 @@ def main() -> int:
 
     errors.extend(validate_summary_resolution(resolution))
     errors.extend(validate_project_resolution(resolution))
+    errors.extend(validate_config_resolution_consistency(resolution))
     errors.extend(validate_workflow_resolution(resolution))
     errors.extend(validate_workflow_semantics_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
