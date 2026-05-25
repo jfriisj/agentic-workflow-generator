@@ -5,9 +5,11 @@
   "type": "object",
   "required": [
     "type",
+    "description",
+    "pathPattern",
     "status",
-    "requiredHeadings",
-    "allowedStatuses"
+    "allowedStatuses",
+    "requiredHeadings"
   ],
   "additionalProperties": false,
   "properties": {
@@ -15,9 +17,20 @@
       "type": "string",
       "const": "CodeReview"
     },
+    "description": {
+      "type": "string",
+      "const": "Artifact contract for code review gate output."
+    },
+    "pathPattern": {
+      "type": "string",
+      "const": "agent-output/code-review/*.md"
+    },
     "status": {
       "type": "object",
-      "required": ["heading", "pattern"],
+      "required": [
+        "heading",
+        "pattern"
+      ],
       "additionalProperties": false,
       "properties": {
         "heading": {
@@ -32,27 +45,61 @@
     },
     "allowedStatuses": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["PASS", "FAIL", "BLOCKED"]
-      },
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "PASS"
+        },
+        {
+          "type": "string",
+          "const": "FAIL"
+        },
+        {
+          "type": "string",
+          "const": "BLOCKED"
+        }
+      ],
+      "items": false,
       "minItems": 3,
       "maxItems": 3,
       "uniqueItems": true
     },
     "requiredHeadings": {
       "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 6,
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "# Code Review"
+        },
+        {
+          "type": "string",
+          "const": "## Status"
+        },
+        {
+          "type": "string",
+          "const": "## Summary"
+        },
+        {
+          "type": "string",
+          "const": "## Evidence Reviewed"
+        },
+        {
+          "type": "string",
+          "const": "## Findings"
+        },
+        {
+          "type": "string",
+          "const": "## Required Fixes"
+        },
+        {
+          "type": "string",
+          "const": "## Handoff Target"
+        }
+      ],
+      "items": false,
+      "minItems": 7,
+      "maxItems": 7,
       "uniqueItems": true
-    },
-    "pathPattern": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
     }
   }
 }

@@ -7,15 +7,27 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path.cwd()
-ARTIFACT_REGISTRY = ROOT / "registry" / "artifacts"
+ARTIFACTS_DIR = ROOT / "registry" / "artifacts"
 
 
 def load_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"Required file not found: {path}")
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
 
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: expected JSON object")
+
+    return data
+
+
+def write_json(path: Path, data: dict[str, Any]) -> None:
+    path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def is_safe_relative_path(value: str) -> bool:
@@ -23,193 +35,235 @@ def is_safe_relative_path(value: str) -> bool:
     return not path.is_absolute() and ".." not in path.parts
 
 
-def validate_string_list_entries(
-    contract_path: Path,
-    contract: dict[str, Any],
-    key: str,
-) -> list[str]:
+def slugify_artifact_type(artifact_type: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "-", artifact_type).lower()
+
+
+def expected_schema_for_contract(contract: dict[str, Any]) -> dict[str, Any]:
+    artifact_type = str(contract["type"])
+    allowed_statuses = list(contract["allowedStatuses"])
+    required_headings = list(contract["requiredHeadings"])
+
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": f"https://example.local/agentic/artifacts/{slugify_artifact_type(artifact_type)}.schema.json",
+        "title": f"{artifact_type} Artifact Contract",
+        "type": "object",
+        "required": [
+            "type",
+            "description",
+            "pathPattern",
+            "status",
+            "allowedStatuses",
+            "requiredHeadings",
+        ],
+        "additionalProperties": False,
+        "properties": {
+            "type": {
+                "type": "string",
+                "const": artifact_type,
+            },
+            "description": {
+                "type": "string",
+                "const": contract["description"],
+            },
+            "pathPattern": {
+                "type": "string",
+                "const": contract["pathPattern"],
+            },
+            "status": {
+                "type": "object",
+                "required": ["heading", "pattern"],
+                "additionalProperties": False,
+                "properties": {
+                    "heading": {
+                        "type": "string",
+                        "const": contract["status"]["heading"],
+                    },
+                    "pattern": {
+                        "type": "string",
+                        "const": contract["status"]["pattern"],
+                    },
+                },
+            },
+            "allowedStatuses": {
+                "type": "array",
+                "prefixItems": [
+                    {
+                        "type": "string",
+                        "const": status,
+                    }
+                    for status in allowed_statuses
+                ],
+                "items": False,
+                "minItems": len(allowed_statuses),
+                "maxItems": len(allowed_statuses),
+                "uniqueItems": True,
+            },
+            "requiredHeadings": {
+                "type": "array",
+                "prefixItems": [
+                    {
+                        "type": "string",
+                        "const": heading,
+                    }
+                    for heading in required_headings
+                ],
+                "items": False,
+                "minItems": len(required_headings),
+                "maxItems": len(required_headings),
+                "uniqueItems": True,
+            },
+        },
+    }
+
+
+def validate_string_list(path: Path, data: dict[str, Any], key: str) -> list[str]:
     errors: list[str] = []
-    values = contract.get(key)
+    value = data.get(key)
 
-    if not isinstance(values, list) or not values:
-        return errors
+    if not isinstance(value, list) or not value:
+        return [f"{path}: {key} must be a non-empty list"]
 
-    seen_values: set[str] = set()
+    seen: set[str] = set()
 
-    for index, value in enumerate(values):
-        if not isinstance(value, str) or not value.strip():
-            errors.append(f"{contract_path}: {key}[{index}] must be a non-empty string")
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            errors.append(f"{path}: {key} entries must be non-empty strings")
             continue
 
-        if value in seen_values:
-            errors.append(f"{contract_path}: {key}[{index}] is duplicated")
+        if item in seen:
+            errors.append(f"{path}: {key} contains duplicate entry")
+            continue
 
-        seen_values.add(value)
-
-    return errors
-
-
-def validate_status_pattern(
-    contract_path: Path,
-    status_pattern: str,
-    allowed_statuses: list[Any],
-) -> list[str]:
-    errors: list[str] = []
-
-    if not all(isinstance(status, str) and status.strip() for status in allowed_statuses):
-        return errors
-
-    pattern_values = [part.strip() for part in status_pattern.split("|") if part.strip()]
-    if not pattern_values:
-        errors.append(f"{contract_path}: status.pattern must define at least one status value")
-        return errors
-
-    allowed_set = set(allowed_statuses)
-    pattern_set = set(pattern_values)
-
-    if pattern_set != allowed_set:
-        errors.append(f"{contract_path}: status.pattern must match allowedStatuses")
+        seen.add(item)
 
     return errors
 
-def validate_contract_shape(contract_path: Path) -> dict[str, Any]:
-    contract = load_json(contract_path)
+
+def validate_artifact_contract(path: Path) -> list[str]:
     errors: list[str] = []
+    expected_type = path.parent.name
 
-    required_keys = {"type", "status", "allowedStatuses", "requiredHeadings"}
-    missing = sorted(required_keys - set(contract.keys()))
+    try:
+        artifact = load_json(path)
+    except Exception as exc:
+        return [f"{path}: {exc}"]
 
-    if missing:
-        raise ValueError(f"{contract_path}: missing required keys: {', '.join(missing)}")
+    artifact_type = artifact.get("type")
+    if artifact_type != expected_type:
+        errors.append(f"{path}: type must match containing directory '{expected_type}'")
 
-    artifact_type = contract.get("type")
-    expected_type = contract_path.parent.name
-    if not isinstance(artifact_type, str) or not artifact_type.strip():
-        errors.append(f"{contract_path}: type must be a non-empty string")
-    elif artifact_type != expected_type:
-        errors.append(f"{contract_path}: type '{artifact_type}' does not match folder '{expected_type}'")
+    description = artifact.get("description")
+    if not isinstance(description, str) or not description.strip():
+        errors.append(f"{path}: description must be a non-empty string")
 
-    description = contract.get("description")
-    if description is not None and not isinstance(description, str):
-        errors.append(f"{contract_path}: description must be a string when present")
+    path_pattern = artifact.get("pathPattern")
+    if not isinstance(path_pattern, str) or not path_pattern.strip():
+        errors.append(f"{path}: pathPattern must be a non-empty string")
+    elif not is_safe_relative_path(path_pattern):
+        errors.append(f"{path}: pathPattern must be a safe relative path")
 
-    path_pattern = contract.get("pathPattern")
-    if path_pattern is not None:
-        if not isinstance(path_pattern, str) or not path_pattern.strip():
-            errors.append(f"{contract_path}: pathPattern must be a non-empty string when present")
-        elif not is_safe_relative_path(path_pattern):
-            errors.append(f"{contract_path}: pathPattern must be a safe relative path")
+    errors.extend(validate_string_list(path, artifact, "requiredHeadings"))
+    errors.extend(validate_string_list(path, artifact, "allowedStatuses"))
 
-    required_headings = contract["requiredHeadings"]
-    if not isinstance(required_headings, list) or not required_headings:
-        errors.append(f"{contract_path}: requiredHeadings must be a non-empty list")
-    else:
-        errors.extend(validate_string_list_entries(contract_path, contract, "requiredHeadings"))
-
-    allowed_statuses = contract["allowedStatuses"]
-    if not isinstance(allowed_statuses, list) or not allowed_statuses:
-        errors.append(f"{contract_path}: allowedStatuses must be a non-empty list")
-    else:
-        errors.extend(validate_string_list_entries(contract_path, contract, "allowedStatuses"))
-
-    status = contract["status"]
+    status = artifact.get("status")
     if not isinstance(status, dict):
-        errors.append(f"{contract_path}: status must be an object")
-    else:
-        status_heading = status.get("heading")
-        if status_heading != "## Status":
-            errors.append(f"{contract_path}: status.heading must be '## Status'")
-        elif isinstance(required_headings, list) and status_heading not in required_headings:
-            errors.append(f"{contract_path}: status.heading must be included in requiredHeadings")
+        errors.append(f"{path}: status must be an object")
+        return errors
 
-        status_pattern = status.get("pattern")
-        if not isinstance(status_pattern, str) or not status_pattern.strip():
-            errors.append(f"{contract_path}: status.pattern must be a non-empty string")
-        elif isinstance(allowed_statuses, list):
-            errors.extend(validate_status_pattern(contract_path, status_pattern, allowed_statuses))
+    status_heading = status.get("heading")
+    if status_heading != "## Status":
+        errors.append(f"{path}: status.heading must be exactly '## Status'")
 
-    if errors:
-        raise ValueError("\n".join(errors))
+    required_headings = artifact.get("requiredHeadings")
+    if isinstance(required_headings, list) and status_heading not in required_headings:
+        errors.append(f"{path}: status.heading must be present in requiredHeadings")
 
-    return contract
+    status_pattern = status.get("pattern")
+    if not isinstance(status_pattern, str) or not status_pattern.strip():
+        errors.append(f"{path}: status.pattern must be a non-empty string")
+        return errors
 
+    allowed_statuses = artifact.get("allowedStatuses")
+    if isinstance(allowed_statuses, list):
+        try:
+            compiled_pattern = re.compile(status_pattern)
+        except re.error as exc:
+            errors.append(f"{path}: status.pattern is not a valid regex: {exc}")
+            return errors
 
-def extract_status(markdown: str) -> str | None:
-    status_section = re.search(
-        r"^## Status\s*$\n(?P<body>.*?)(?=^##\s+|\Z)",
-        markdown,
-        flags=re.MULTILINE | re.DOTALL,
-    )
-
-    if not status_section:
-        return None
-
-    body = status_section.group("body").strip()
-    match = re.search(r"\b(PASS|FAIL|BLOCKED)\b", body)
-
-    if not match:
-        return None
-
-    return match.group(1)
-
-
-def validate_markdown_artifact(path: Path, contract: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    markdown = path.read_text(encoding="utf-8")
-
-    for heading in contract["requiredHeadings"]:
-        if heading not in markdown:
-            errors.append(f"{path}: missing required heading: {heading}")
-
-    status = extract_status(markdown)
-
-    if status is None:
-        errors.append(f"{path}: missing valid status value PASS, FAIL, or BLOCKED under ## Status")
-    elif status not in contract["allowedStatuses"]:
-        errors.append(f"{path}: unsupported status: {status}")
+        for allowed_status in allowed_statuses:
+            if isinstance(allowed_status, str) and not compiled_pattern.fullmatch(allowed_status):
+                errors.append(f"{path}: status.pattern must match every allowed status")
+                break
 
     return errors
 
 
-def contract_artifact_paths(contract: dict[str, Any]) -> list[Path]:
-    path_pattern = contract.get("pathPattern")
+def validate_artifact_schema_parity(path: Path) -> list[str]:
+    schema_path = path.parent / "artifact.schema.json"
 
-    if not path_pattern:
-        return []
+    if not schema_path.is_file():
+        return [f"{path.parent}: missing artifact.schema.json"]
 
-    return sorted(ROOT.glob(path_pattern))
+    try:
+        artifact = load_json(path)
+        schema = load_json(schema_path)
+    except Exception as exc:
+        return [f"{schema_path}: {exc}"]
+
+    try:
+        expected_schema = expected_schema_for_contract(artifact)
+    except Exception as exc:
+        return [f"{schema_path}: could not build expected artifact schema: {exc}"]
+
+    if schema != expected_schema:
+        return [f"{schema_path}: artifact.schema.json does not match expected schema generated from artifact.json"]
+
+    return []
+
+
+def validate_orphan_artifact_schemas() -> list[str]:
+    errors: list[str] = []
+
+    for schema_path in sorted(ARTIFACTS_DIR.glob("*/artifact.schema.json")):
+        artifact_path = schema_path.parent / "artifact.json"
+        if not artifact_path.is_file():
+            errors.append(f"{schema_path}: orphan artifact.schema.json without artifact.json")
+
+    return errors
+
+
+def generate_missing_or_outdated_schemas() -> None:
+    for artifact_path in sorted(ARTIFACTS_DIR.glob("*/artifact.json")):
+        artifact = load_json(artifact_path)
+        schema_path = artifact_path.parent / "artifact.schema.json"
+        write_json(schema_path, expected_schema_for_contract(artifact))
 
 
 def main() -> int:
-    contract_files = sorted(ARTIFACT_REGISTRY.glob("*/artifact.json"))
+    artifact_files = sorted(ARTIFACTS_DIR.glob("*/artifact.json"))
 
-    if not contract_files:
-        print("WARN: No artifact contracts found under registry/artifacts.")
+    if not artifact_files:
+        print("WARN: No artifact contracts found.")
         return 0
 
     errors: list[str] = []
-    checked_artifacts = 0
 
-    for contract_path in contract_files:
-        try:
-            contract = validate_contract_shape(contract_path)
-        except Exception as exc:
-            errors.append(str(exc))
-            continue
+    for artifact_path in artifact_files:
+        errors.extend(validate_artifact_contract(artifact_path))
+        errors.extend(validate_artifact_schema_parity(artifact_path))
 
-        artifact_paths = contract_artifact_paths(contract)
-        checked_artifacts += len(artifact_paths)
-
-        for artifact_path in artifact_paths:
-            errors.extend(validate_markdown_artifact(artifact_path, contract))
+    errors.extend(validate_orphan_artifact_schemas())
 
     if errors:
-        print(f"FAIL: Artifact validation found {len(errors)} error(s).")
+        print(f"FAIL: Artifact contract validation found {len(errors)} error(s).")
         for error in errors:
             print(f"  - {error}")
         return 1
 
-    print(f"PASS: Artifact contracts are valid. Checked {checked_artifacts} artifact file(s).")
+    print(f"PASS: Artifact contracts are valid. Checked {len(artifact_files)} artifact file(s).")
     return 0
 
 

@@ -3023,6 +3023,98 @@ def awg_mutate_first_target_adapter(worktree: Path, mutator) -> None:
     write_json(path, data)
 
 
+
+def awg_first_artifact_schema_file(worktree: Path) -> Path:
+    schema_files = sorted((worktree / "registry" / "artifacts").glob("*/artifact.schema.json"))
+    if not schema_files:
+        raise RuntimeError("expected at least one artifact schema file")
+    return schema_files[0]
+
+
+def awg_first_artifact_contract_file(worktree: Path) -> Path:
+    artifact_files = sorted((worktree / "registry" / "artifacts").glob("*/artifact.json"))
+    if not artifact_files:
+        raise RuntimeError("expected at least one artifact contract file")
+    return artifact_files[0]
+
+
+def break_artifact_missing_schema(worktree: Path) -> None:
+    schema_path = awg_first_artifact_schema_file(worktree)
+    schema_path.unlink()
+
+
+def break_artifact_orphan_schema(worktree: Path) -> None:
+    orphan_dir = worktree / "registry" / "artifacts" / "OrphanArtifact"
+    orphan_dir.mkdir(parents=True, exist_ok=True)
+    write_json(
+        orphan_dir / "artifact.schema.json",
+        {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://example.local/agentic/artifacts/orphan.schema.json",
+            "type": "object",
+        },
+    )
+
+
+def break_artifact_schema_type_const_drift(worktree: Path) -> None:
+    schema_path = awg_first_artifact_schema_file(worktree)
+    schema = load_json(schema_path)
+
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        raise RuntimeError("artifact schema properties must be an object before mutation")
+
+    type_property = properties.get("type")
+    if not isinstance(type_property, dict):
+        raise RuntimeError("artifact schema type property must be an object before mutation")
+
+    type_property["const"] = "WrongArtifactType"
+    write_json(schema_path, schema)
+
+
+def break_artifact_schema_status_pattern_drift(worktree: Path) -> None:
+    schema_path = awg_first_artifact_schema_file(worktree)
+    schema = load_json(schema_path)
+
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        raise RuntimeError("artifact schema properties must be an object before mutation")
+
+    status = properties.get("status")
+    if not isinstance(status, dict):
+        raise RuntimeError("artifact schema status property must be an object before mutation")
+
+    status_properties = status.get("properties")
+    if not isinstance(status_properties, dict):
+        raise RuntimeError("artifact schema status properties must be an object before mutation")
+
+    pattern = status_properties.get("pattern")
+    if not isinstance(pattern, dict):
+        raise RuntimeError("artifact schema status.pattern property must be an object before mutation")
+
+    pattern["const"] = "PASS"
+    write_json(schema_path, schema)
+
+
+def break_artifact_schema_required_headings_drift(worktree: Path) -> None:
+    schema_path = awg_first_artifact_schema_file(worktree)
+    schema = load_json(schema_path)
+
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        raise RuntimeError("artifact schema properties must be an object before mutation")
+
+    required_headings = properties.get("requiredHeadings")
+    if not isinstance(required_headings, dict):
+        raise RuntimeError("artifact schema requiredHeadings property must be an object before mutation")
+
+    prefix_items = required_headings.get("prefixItems")
+    if not isinstance(prefix_items, list) or not prefix_items:
+        raise RuntimeError("artifact schema requiredHeadings.prefixItems must be non-empty before mutation")
+
+    prefix_items.pop()
+    write_json(schema_path, schema)
+
 def break_target_adapter_missing_name(worktree: Path) -> None:
     awg_mutate_first_target_adapter(worktree, lambda data: data.pop("name", None))
 
@@ -5127,7 +5219,7 @@ def main() -> int:
             "artifact validation fails when type does not match folder",
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_type_folder_mismatch,
-            "does not match folder",
+            "type must match containing directory",
         ),
         (
             "failure",
@@ -5148,7 +5240,7 @@ def main() -> int:
             "artifact validation fails when required heading entry is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_required_heading_empty_entry,
-            "requiredHeadings[0] must be a non-empty string",
+            "requiredHeadings entries must be non-empty strings",
         ),
         (
             "failure",
@@ -5162,7 +5254,7 @@ def main() -> int:
             "artifact validation fails when allowed status entry is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_allowed_status_empty_entry,
-            "allowedStatuses[0] must be a non-empty string",
+            "allowedStatuses entries must be non-empty strings",
         ),
         (
             "failure",
@@ -5197,14 +5289,14 @@ def main() -> int:
             "artifact validation fails when status pattern differs from allowedStatuses",
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_status_pattern_mismatch,
-            "status.pattern must match allowedStatuses",
+            "status.pattern must match every allowed status",
         ),
         (
             "failure",
             "artifact validation fails when status heading is not required",
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_status_heading_not_required,
-            "status.heading must be included in requiredHeadings",
+            "status.heading must be present in requiredHeadings",
         ),
         (
             "failure",
@@ -5464,6 +5556,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_agentic_config_target_enabled_invalid_type,
             "enabled must be a boolean",
+        ),
+        (
+            "failure",
+            "artifact validation fails when artifact schema is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_missing_schema,
+            "missing artifact.schema.json",
+        ),
+        (
+            "failure",
+            "artifact validation fails when artifact schema is orphaned",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_orphan_schema,
+            "orphan artifact.schema.json without artifact.json",
+        ),
+        (
+            "failure",
+            "artifact validation fails when schema type const drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_schema_type_const_drift,
+            "artifact.schema.json does not match expected schema",
+        ),
+        (
+            "failure",
+            "artifact validation fails when schema status pattern drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_schema_status_pattern_drift,
+            "artifact.schema.json does not match expected schema",
+        ),
+        (
+            "failure",
+            "artifact validation fails when schema required headings drift",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_schema_required_headings_drift,
+            "artifact.schema.json does not match expected schema",
         ),
         (
             "failure",

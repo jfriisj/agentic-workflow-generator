@@ -1,13 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/agentic/artifacts/qa-report.schema.json",
+  "$id": "https://example.local/agentic/artifacts/q-a-report.schema.json",
   "title": "QAReport Artifact Contract",
   "type": "object",
   "required": [
     "type",
+    "description",
+    "pathPattern",
     "status",
-    "requiredHeadings",
-    "allowedStatuses"
+    "allowedStatuses",
+    "requiredHeadings"
   ],
   "additionalProperties": false,
   "properties": {
@@ -15,9 +17,20 @@
       "type": "string",
       "const": "QAReport"
     },
+    "description": {
+      "type": "string",
+      "const": "Artifact contract for final QA gate output."
+    },
+    "pathPattern": {
+      "type": "string",
+      "const": "agent-output/qa-report/*.md"
+    },
     "status": {
       "type": "object",
-      "required": ["heading", "pattern"],
+      "required": [
+        "heading",
+        "pattern"
+      ],
       "additionalProperties": false,
       "properties": {
         "heading": {
@@ -32,27 +45,65 @@
     },
     "allowedStatuses": {
       "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["PASS", "FAIL", "BLOCKED"]
-      },
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "PASS"
+        },
+        {
+          "type": "string",
+          "const": "FAIL"
+        },
+        {
+          "type": "string",
+          "const": "BLOCKED"
+        }
+      ],
+      "items": false,
       "minItems": 3,
       "maxItems": 3,
       "uniqueItems": true
     },
     "requiredHeadings": {
       "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 7,
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "# QA Report"
+        },
+        {
+          "type": "string",
+          "const": "## Status"
+        },
+        {
+          "type": "string",
+          "const": "## Summary"
+        },
+        {
+          "type": "string",
+          "const": "## Evidence Reviewed"
+        },
+        {
+          "type": "string",
+          "const": "## Gate Results"
+        },
+        {
+          "type": "string",
+          "const": "## Release Risks"
+        },
+        {
+          "type": "string",
+          "const": "## Required Follow-up"
+        },
+        {
+          "type": "string",
+          "const": "## Handoff Target"
+        }
+      ],
+      "items": false,
+      "minItems": 8,
+      "maxItems": 8,
       "uniqueItems": true
-    },
-    "pathPattern": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
     }
   }
 }
