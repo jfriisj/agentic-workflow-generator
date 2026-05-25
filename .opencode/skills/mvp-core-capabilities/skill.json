@@ -1,0 +1,33 @@
+{
+  "name": "mvp-core-capabilities",
+  "version": "0.1.0",
+  "description": "Placeholder MVP skill pack for core workflow, requirements, architecture, implementation, testing, and QA capabilities.",
+  "provides": [
+    "requirements.elicit",
+    "requirements.define-acceptance-criteria",
+    "architecture.design",
+    "architecture.evaluate-tradeoffs",
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests",
+    "test.run",
+    "test.report",
+    "test.diagnose-failure",
+    "qa.verify-acceptance-criteria",
+    "qa.validate-evidence",
+    "review.security"
+  ],
+  "requires": [],
+  "allowedAgents": [
+    "Requirements",
+    "Architect",
+    "Implementer",
+    "TestRunner",
+    "CodeReviewer",
+    "QA"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2400
+  }
+}

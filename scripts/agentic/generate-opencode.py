@@ -1,0 +1,290 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import re
+import shutil
+from pathlib import Path
+from typing import Any
+
+ROOT = Path.cwd()
+CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
+RESOLUTION_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
+REGISTRY_PATH = ROOT / "registry"
+AGENTS_OUTPUT_DIR = ROOT / ".opencode" / "agents"
+SKILLS_OUTPUT_DIR = ROOT / ".opencode" / "skills"
+INSTRUCTIONS_OUTPUT_PATH = ROOT / "AGENTS.md"
+CONFIG_OUTPUT_PATH = ROOT / "opencode.json"
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        raise FileNotFoundError(f"Required file not found: {path}")
+    with path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def write_json(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as file:
+        json.dump(data, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+
+def slugify(value: str) -> str:
+    value = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", value)
+    value = value.replace("_", "-").replace(" ", "-")
+    value = re.sub(r"[^a-zA-Z0-9-]+", "-", value)
+    value = re.sub(r"-+", "-", value)
+    return value.strip("-").lower()
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def markdown_list(values: list[str]) -> str:
+    if not values:
+        return "- None"
+    return "\n".join(f"- {value}" for value in values)
+
+
+def find_config_agent(config: dict[str, Any], agent_name: str) -> dict[str, Any]:
+    for agent in config.get("agents", []):
+        if agent.get("name") == agent_name:
+            return agent
+    raise RuntimeError(f"Agent not found in config: {agent_name}")
+
+
+def permission_for_profile(adapter: dict[str, Any], permission_profile: str) -> dict[str, Any]:
+    mapping = adapter.get("permissionMapping", {}).get(permission_profile, {})
+    if not isinstance(mapping, dict):
+        return {}
+    return mapping
+
+
+def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, Any], adapter: dict[str, Any]) -> str:
+    name = config_agent["name"]
+    role = config_agent["role"]
+    description = config_agent["description"]
+    permission_profile = config_agent["permissionProfile"]
+    permission = permission_for_profile(adapter, permission_profile)
+    capabilities = config_agent.get("capabilities", [])
+    must_not = config_agent.get("mustNot", [])
+    resolved_capabilities = resolved_agent.get("resolvedCapabilities", [])
+    resolved_skills = [item["skill"] for item in resolved_capabilities]
+    runtime_context_path = f".runtime/context/{{{{WORKFLOW_ID}}}}-{name}.context.md"
+
+    edit_permission = permission.get("edit", "deny")
+    bash_permission = permission.get("bash", "deny")
+
+    return f"""---
+description: {description}
+mode: primary
+permission:
+  edit: {edit_permission}
+  bash: {bash_permission}
+---
+
+# {name}
+
+## Role
+
+{role}
+
+## Description
+
+{description}
+
+## Operating Rules
+
+1. Stay inside your assigned role.
+2. Use only the generated runtime context for workflow-specific knowledge.
+3. Do not invent missing workflow state.
+4. If required runtime context is missing, stop and report `BLOCKED: Missing generated runtime context`.
+5. If required evidence is missing, stop and report `BLOCKED: Missing required evidence`.
+6. Do not override fail-closed gates.
+
+## Runtime Context Requirement
+
+Before doing any work, load this generated runtime context:
+
+~~~text
+{runtime_context_path}
+~~~
+
+If the file is missing, do not continue.
+
+## Permission Profile
+
+~~~text
+{permission_profile}
+~~~
+
+## OpenCode Permission Mapping
+
+- edit: {edit_permission}
+- bash: {bash_permission}
+
+## Capabilities
+
+{markdown_list(capabilities)}
+
+## Resolved Skills
+
+{markdown_list(resolved_skills)}
+
+## Must Not
+
+{markdown_list(must_not)}
+
+## Output Expectations
+
+When producing an artifact, include:
+
+- status: PASS, FAIL, or BLOCKED
+- summary
+- evidence reviewed
+- findings
+- required fixes
+- handoff target
+"""
+
+
+def generate_agents_md(config: dict[str, Any]) -> str:
+    project = config.get("project", {})
+    workflow = config.get("workflow", {})
+    agents = [agent["name"] for agent in config.get("agents", [])]
+    gates = [gate["name"] for gate in config.get("gates", [])]
+
+    return f"""# AGENTS.md
+
+This repository uses generated agentic workflow infrastructure.
+
+## Project
+
+- name: {project.get("name")}
+- type: {project.get("type")}
+- architecture profile: {project.get("architectureProfile")}
+
+## Workflow
+
+- profile: {workflow.get("profile")}
+- start state: {workflow.get("startState")}
+- terminal states: {", ".join(workflow.get("terminalStates", []))}
+- fail closed: {workflow.get("failClosed")}
+
+## Agents
+
+{markdown_list(agents)}
+
+## Gates
+
+{markdown_list(gates)}
+
+## Core Rules
+
+1. The workflow is fail-closed.
+2. Artifacts are workflow memory.
+3. The orchestrator owns routing and state transitions.
+4. Agents must stay within their role.
+5. Agents must use generated runtime context when available.
+6. Missing evidence must result in BLOCKED, not PASS.
+7. Generated files should not be manually edited unless the project explicitly allows overrides.
+
+## Generated Context
+
+Runtime context is generated under:
+
+~~~text
+.runtime/context/
+~~~
+
+Resolution metadata is generated under:
+
+~~~text
+.agentic/generated/
+~~~
+"""
+
+
+def generate_opencode_json(config: dict[str, Any]) -> dict[str, Any]:
+    agents = {
+        slugify(agent["name"]): f".opencode/agents/{slugify(agent['name'])}.md"
+        for agent in config.get("agents", [])
+    }
+
+    return {
+        "$schema": "https://opencode.ai/config.json",
+        "agent": agents
+    }
+
+
+def copy_resolved_skills(resolution: dict[str, Any]) -> None:
+    copied: set[str] = set()
+
+    for agent in resolution.get("agents", []):
+        for resolved in agent.get("resolvedCapabilities", []):
+            skill_name = resolved["skill"]
+            if skill_name in copied:
+                continue
+
+            skill_path = REGISTRY_PATH / "skills" / skill_name
+            output_path = SKILLS_OUTPUT_DIR / skill_name
+
+            if not skill_path.is_dir():
+                raise RuntimeError(f"Resolved skill directory does not exist: {skill_path}")
+
+            if output_path.exists():
+                shutil.rmtree(output_path)
+
+            shutil.copytree(skill_path, output_path)
+            copied.add(skill_name)
+
+
+def main() -> int:
+    config = load_json(CONFIG_PATH)
+    resolution = load_json(RESOLUTION_PATH)
+
+    if resolution.get("summary", {}).get("errorCount", 0) != 0:
+        raise RuntimeError("Resolution contains errors. Run resolver first and fix all reported errors.")
+
+    enabled_targets = {
+        target["name"]: target
+        for target in resolution.get("targets", [])
+        if target.get("enabled")
+    }
+
+    if "opencode" not in enabled_targets:
+        raise RuntimeError("opencode target is not enabled or not resolved.")
+
+    adapter_path_raw = enabled_targets["opencode"].get("adapterPath")
+    if not adapter_path_raw:
+        raise RuntimeError("opencode adapter path is missing from resolution.")
+
+    adapter = load_json(ROOT / adapter_path_raw)
+
+    AGENTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    SKILLS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    for resolved_agent in resolution.get("agents", []):
+        agent_name = resolved_agent["name"]
+        config_agent = find_config_agent(config, agent_name)
+        output_path = AGENTS_OUTPUT_DIR / f"{slugify(agent_name)}.md"
+        write_text(output_path, generate_agent_file(config_agent, resolved_agent, adapter))
+
+    copy_resolved_skills(resolution)
+    write_text(INSTRUCTIONS_OUTPUT_PATH, generate_agents_md(config))
+    write_json(CONFIG_OUTPUT_PATH, generate_opencode_json(config))
+
+    print("PASS: Generated OpenCode output.")
+    print(f"Agents: {AGENTS_OUTPUT_DIR}")
+    print(f"Skills: {SKILLS_OUTPUT_DIR}")
+    print(f"Instructions: {INSTRUCTIONS_OUTPUT_PATH}")
+    print(f"Config: {CONFIG_OUTPUT_PATH}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

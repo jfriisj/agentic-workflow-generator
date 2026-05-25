@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "orchestrator": ".opencode/agents/orchestrator.md",
+    "requirements": ".opencode/agents/requirements.md",
+    "architect": ".opencode/agents/architect.md",
+    "implementer": ".opencode/agents/implementer.md",
+    "test-runner": ".opencode/agents/test-runner.md",
+    "code-reviewer": ".opencode/agents/code-reviewer.md",
+    "qa": ".opencode/agents/qa.md"
+  }
+}

@@ -10,9 +10,9 @@ Usage:
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh lock
-  scripts/agentic/agentic-gen.sh generate [vscode-copilot]
+  scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode]
   scripts/agentic/agentic-gen.sh check
-  scripts/agentic/agentic-gen.sh all
+  scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode]
   scripts/agentic/agentic-gen.sh status
 
 Commands:
@@ -44,12 +44,14 @@ check_scripts() {
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
   require_file "scripts/agentic/generate-lockfile.py"
+  require_file "scripts/agentic/generate-opencode.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
+  python -m py_compile "scripts/agentic/generate-opencode.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -61,9 +63,12 @@ generate_target() {
     vscode-copilot)
       python scripts/agentic/generate-vscode-copilot.py
       ;;
+    opencode)
+      python scripts/agentic/generate-opencode.py
+      ;;
     *)
       echo "ERROR: Unsupported target: $target" >&2
-      echo "Supported targets: vscode-copilot" >&2
+      echo "Supported targets: vscode-copilot, opencode" >&2
       exit 1
       ;;
   esac
@@ -90,6 +95,17 @@ show_status() {
   fi
 
   echo ""
+
+  echo "Generated OpenCode agents:"
+  find .opencode/agents -name "*.md" -print 2>/dev/null | sort || true
+
+  echo ""
+
+  echo "Generated OpenCode skills:"
+  find .opencode/skills -name "SKILL.md" -print 2>/dev/null | sort || true
+
+  echo ""
+
   echo "Git status:"
   git status --short
 }
