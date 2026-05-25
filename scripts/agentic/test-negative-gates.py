@@ -3008,6 +3008,136 @@ def awg_mutate_first_workflow(worktree: Path, mutator) -> None:
     write_json(path, data)
 
 
+
+def awg_first_target_adapter_file(worktree: Path) -> Path:
+    adapter_files = sorted((worktree / "registry" / "targets").glob("*/adapter.json"))
+    if not adapter_files:
+        raise RuntimeError("expected at least one target adapter file")
+    return adapter_files[0]
+
+
+def awg_mutate_first_target_adapter(worktree: Path, mutator) -> None:
+    path = awg_first_target_adapter_file(worktree)
+    data = load_json(path)
+    mutator(data)
+    write_json(path, data)
+
+
+def break_target_adapter_missing_name(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.pop("name", None))
+
+
+def break_target_adapter_empty_name(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("name", ""))
+
+
+def break_target_adapter_name_folder_mismatch(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("name", "different-target"))
+
+
+def break_target_adapter_missing_owned_paths(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.pop("ownedPaths", None))
+
+
+def break_target_adapter_invalid_owned_paths_type(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("ownedPaths", "not-a-list"))
+
+
+def break_target_adapter_empty_owned_paths(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("ownedPaths", []))
+
+
+def break_target_adapter_empty_owned_path_entry(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+        owned_paths[0] = ""
+
+    awg_mutate_first_target_adapter(worktree, mutate)
+
+
+def break_target_adapter_duplicate_owned_path(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+        owned_paths.append(owned_paths[0])
+
+    awg_mutate_first_target_adapter(worktree, mutate)
+
+
+def break_target_adapter_parent_owned_path(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+        owned_paths[0] = "../unsafe"
+
+    awg_mutate_first_target_adapter(worktree, mutate)
+
+
+def break_target_adapter_absolute_owned_path(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+        owned_paths[0] = "/tmp/unsafe"
+
+    awg_mutate_first_target_adapter(worktree, mutate)
+
+
+def break_target_adapter_overlapping_owned_path(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise RuntimeError("ownedPaths must be a non-empty list before mutation")
+
+        base = str(owned_paths[0]).rstrip("/")
+        owned_paths.append(f"{base}/nested")
+
+    awg_mutate_first_target_adapter(worktree, mutate)
+
+
+def break_target_adapter_invalid_description_type(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("description", {"not": "a-string"}))
+
+
+def break_target_adapter_empty_version(worktree: Path) -> None:
+    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("version", ""))
+
+
+def break_agentic_config_duplicate_target_name(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("config targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("first config target must be an object before mutation")
+
+    targets.append(dict(first_target))
+    write_json(path, data)
+
+
+def break_agentic_config_target_enabled_invalid_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("config targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("first config target must be an object before mutation")
+
+    first_target["enabled"] = "true"
+    write_json(path, data)
+
 def break_workflow_registry_name_file_mismatch(worktree: Path) -> None:
     awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
 
@@ -5229,6 +5359,111 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_registry_terminal_state_declares_agent,
             "must not declare agent",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when name is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_missing_name,
+            "name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when name is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_empty_name,
+            "name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when name does not match folder",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_name_folder_mismatch,
+            "does not match target folder",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPaths is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_missing_owned_paths,
+            "ownedPaths must be a non-empty list",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPaths has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_invalid_owned_paths_type,
+            "ownedPaths must be a non-empty list",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPaths is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_empty_owned_paths,
+            "ownedPaths must be a non-empty list",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPath entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_empty_owned_path_entry,
+            "ownedPaths[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPath is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_duplicate_owned_path,
+            "is duplicated",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPath contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_parent_owned_path,
+            "must be a safe relative path",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPath is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_absolute_owned_path,
+            "must be a safe relative path",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when ownedPaths overlap",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_overlapping_owned_path,
+            "overlaps",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when description has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_invalid_description_type,
+            "description must be a string when present",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when version is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_empty_version,
+            "version must be a non-empty string when present",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when config target name is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_agentic_config_duplicate_target_name,
+            "is duplicated",
+        ),
+        (
+            "failure",
+            "target adapter validation fails when config target enabled has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_agentic_config_target_enabled_invalid_type,
+            "enabled must be a boolean",
         ),
         (
             "failure",
