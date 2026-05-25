@@ -335,6 +335,41 @@ def break_output_manifest_generated_file_count(worktree: Path) -> None:
 
 
 
+def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    generated_files = first_target.get("generatedFiles")
+    if not isinstance(generated_files, list) or not generated_files:
+        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+
+    first_entry = generated_files[0]
+    if not isinstance(first_entry, dict):
+        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+
+    generated_files.append(dict(first_entry))
+    first_target["generatedFileCount"] = len(generated_files)
+
+    summary = data.get("summary")
+    if isinstance(summary, dict):
+        total_files = 0
+        for target in targets:
+            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+                total_files += len(target["generatedFiles"])
+        summary["generatedFileCount"] = total_files
+
+    write_json(path, data)
+
+
+
 def break_output_manifest_hash(worktree: Path) -> None:
     path = worktree / ".github" / "copilot-instructions.md"
     if not path.is_file():
@@ -558,6 +593,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_generated_file_count,
             "generatedFileCount",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when generated file path is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_duplicate_generated_file_path,
+            "duplicate generated file path",
         ),
         (
             "failure",
