@@ -23,6 +23,7 @@ Usage:
   scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh validate-generated
+  scripts/agentic/agentic-gen.sh test-negative
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh verify [vscode-copilot|opencode|all]
@@ -57,6 +58,8 @@ Commands:
   generate   Generate target-specific output.
   validate-generated
              Validate generated target output files.
+  test-negative
+             Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
   all        Run checks, validations, coverage, resolve, lock, artifacts, and generate.
   verify     Run all and fail if generated output drifts from git.
@@ -297,6 +300,9 @@ case "$COMMAND" in
     ;;
   validate-generated)
     python scripts/agentic/validate-generated-output.py
+    ;;
+  test-negative)
+    scripts/agentic/test-negative-gates.py
     ;;
   check)
     check_scripts
