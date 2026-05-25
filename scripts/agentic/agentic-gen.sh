@@ -22,6 +22,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-references
   scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
+  scripts/agentic/agentic-gen.sh validate-generated
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh verify [vscode-copilot|opencode|all]
@@ -54,6 +55,8 @@ Commands:
              Validate cross-references between config and registry files.
   coverage   Report agent capability to skill capability coverage.
   generate   Generate target-specific output.
+  validate-generated
+             Validate generated target output files.
   check      Run syntax checks for scripts and JSON files.
   all        Run checks, validations, coverage, resolve, lock, artifacts, and generate.
   verify     Run all and fail if generated output drifts from git.
@@ -89,6 +92,7 @@ check_scripts() {
   require_file "scripts/agentic/generate-opencode.py"
   require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/validate-lockfile.py"
+  require_file "scripts/agentic/validate-generated-output.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-registry.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -108,6 +112,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/generate-opencode.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-lockfile.py"
+  python -m py_compile "scripts/agentic/validate-generated-output.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-registry.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -163,6 +168,7 @@ run_pipeline() {
   python scripts/agentic/validate-agent-registry.py || return 1
   python scripts/agentic/validate-agent-artifact-bindings.py || return 1
   generate_target "$target" || return 1
+  python scripts/agentic/validate-generated-output.py || return 1
 }
 
 verify_no_drift() {
@@ -288,6 +294,9 @@ case "$COMMAND" in
     python scripts/agentic/resolve-agentic-config.py
     python scripts/agentic/generate-lockfile.py
     generate_target "$TARGET"
+    ;;
+  validate-generated)
+    python scripts/agentic/validate-generated-output.py
     ;;
   check)
     check_scripts
