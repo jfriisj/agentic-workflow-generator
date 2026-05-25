@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -381,6 +382,51 @@ def break_output_manifest_hash(worktree: Path) -> None:
     )
 
 
+def break_output_manifest_declared_file_outside_owned_paths(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    generated_files = first_target.get("generatedFiles")
+    if not isinstance(generated_files, list) or not generated_files:
+        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+
+    first_entry = generated_files[0]
+    if not isinstance(first_entry, dict):
+        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+
+    outside_path = "README.md"
+    absolute_outside_path = worktree / outside_path
+    if not absolute_outside_path.is_file():
+        raise RuntimeError(f"Expected outside file to exist before mutation: {outside_path}")
+
+    mutated_entry = dict(first_entry)
+    mutated_entry["path"] = outside_path
+    mutated_entry["sha256"] = hashlib.sha256(absolute_outside_path.read_bytes()).hexdigest()
+    mutated_entry["bytes"] = absolute_outside_path.stat().st_size
+
+    generated_files.append(mutated_entry)
+    first_target["generatedFileCount"] = len(generated_files)
+
+    summary = data.get("summary")
+    if isinstance(summary, dict):
+        total_files = 0
+        for target in targets:
+            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+                total_files += len(target["generatedFiles"])
+        summary["generatedFileCount"] = total_files
+
+    write_json(path, data)
+
+
+
 def break_output_manifest_ownership(worktree: Path) -> None:
     path = worktree / ".github" / "agents" / "extra.agent.md"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -607,6 +653,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_hash,
             "sha256 mismatch",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when declared file is outside ownedPaths",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_declared_file_outside_owned_paths,
+            "declared generated file is outside owned paths",
         ),
         (
             "failure",
