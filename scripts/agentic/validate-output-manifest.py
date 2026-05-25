@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 ROOT = Path.cwd()
 MANIFEST_PATH = ROOT / ".agentic" / "generated" / "output-manifest.json"
+SCHEMA_PATH = ROOT / ".agentic" / "schemas" / "generated" / "output-manifest.schema.json"
 
 
 def sha256_file(path: Path) -> str:
@@ -22,13 +24,97 @@ def load_json(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"Required file not found: {path}")
 
-    with path.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-
+    data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"{path}: expected top-level object")
 
     return data
+
+
+def schema_type_matches(value: Any, expected_type: str) -> bool:
+    if expected_type == "object":
+        return isinstance(value, dict)
+    if expected_type == "array":
+        return isinstance(value, list)
+    if expected_type == "string":
+        return isinstance(value, str)
+    if expected_type == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected_type == "boolean":
+        return isinstance(value, bool)
+    if expected_type == "number":
+        return (isinstance(value, int | float) and not isinstance(value, bool))
+    return True
+
+
+def validate_schema_subset(value: Any, schema: dict[str, Any], location: str, errors: list[str]) -> None:
+    expected_type = schema.get("type")
+    if isinstance(expected_type, str) and not schema_type_matches(value, expected_type):
+        errors.append(f"schema validation failed at {location}: expected {expected_type}")
+        return
+
+    if isinstance(value, dict):
+        required = schema.get("required", [])
+        if isinstance(required, list):
+            for key in required:
+                if isinstance(key, str) and key not in value:
+                    errors.append(f"schema validation failed at {location}: missing required property {key!r}")
+
+        properties = schema.get("properties", {})
+        if isinstance(properties, dict):
+            for key, child_schema in properties.items():
+                if key in value and isinstance(child_schema, dict):
+                    child_location = f"{location}.{key}" if location else key
+                    validate_schema_subset(value[key], child_schema, child_location, errors)
+
+            if schema.get("additionalProperties") is False:
+                allowed = set(properties)
+                for key in value:
+                    if key not in allowed:
+                        errors.append(
+                            f"schema validation failed at {location}: additional property {key!r} is not allowed"
+                        )
+
+    if isinstance(value, list):
+        min_items = schema.get("minItems")
+        if isinstance(min_items, int) and len(value) < min_items:
+            errors.append(f"schema validation failed at {location}: expected at least {min_items} item(s)")
+
+        if schema.get("uniqueItems") is True:
+            seen: set[str] = set()
+            for item in value:
+                marker = json.dumps(item, sort_keys=True, ensure_ascii=False)
+                if marker in seen:
+                    errors.append(f"schema validation failed at {location}: duplicate array item")
+                    break
+                seen.add(marker)
+
+        item_schema = schema.get("items")
+        if isinstance(item_schema, dict):
+            for index, item in enumerate(value):
+                validate_schema_subset(item, item_schema, f"{location}[{index}]", errors)
+
+    if isinstance(value, str):
+        min_length = schema.get("minLength")
+        if isinstance(min_length, int) and len(value) < min_length:
+            errors.append(f"schema validation failed at {location}: string is shorter than {min_length}")
+
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str) and re.fullmatch(pattern, value) is None:
+            errors.append(f"schema validation failed at {location}: string does not match pattern {pattern!r}")
+
+    if isinstance(value, int) and not isinstance(value, bool):
+        minimum = schema.get("minimum")
+        if isinstance(minimum, int | float) and value < minimum:
+            errors.append(f"schema validation failed at {location}: value is below minimum {minimum}")
+
+
+def validate_schema(manifest: dict[str, Any], errors: list[str]) -> None:
+    try:
+        schema = load_json(SCHEMA_PATH)
+        validate_schema_subset(manifest, schema, "manifest", errors)
+    except Exception as exc:
+        errors.append(f"schema validation failed: {exc}")
 
 
 def is_safe_relative_path(path_value: str) -> bool:
@@ -58,9 +144,7 @@ def validate_file_entry(target_name: str, index: int, entry: Any, errors: list[s
 
     actual_sha = sha256_file(file_path)
     if actual_sha != expected_sha:
-        errors.append(
-            f"target {target_name} generatedFiles[{index}]: sha256 mismatch for {path_value}"
-        )
+        errors.append(f"target {target_name} generatedFiles[{index}]: sha256 mismatch for {path_value}")
 
     expected_bytes = entry.get("bytes")
     if not isinstance(expected_bytes, int) or expected_bytes < 0:
@@ -69,9 +153,7 @@ def validate_file_entry(target_name: str, index: int, entry: Any, errors: list[s
 
     actual_bytes = file_path.stat().st_size
     if actual_bytes != expected_bytes:
-        errors.append(
-            f"target {target_name} generatedFiles[{index}]: byte size mismatch for {path_value}"
-        )
+        errors.append(f"target {target_name} generatedFiles[{index}]: byte size mismatch for {path_value}")
 
     return path_value
 
@@ -129,6 +211,8 @@ def main() -> int:
     except Exception as exc:
         print(f"FAIL: Output manifest validation failed: {exc}")
         return 1
+
+    validate_schema(manifest, errors)
 
     schema_version = manifest.get("schemaVersion")
     if not isinstance(schema_version, str) or not schema_version.strip():

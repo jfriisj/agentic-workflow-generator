@@ -49,8 +49,8 @@
         },
         {
           "path": ".opencode/skills/code-review-clean-code/SKILL.md",
-          "sha256": "6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
-          "bytes": 970
+          "sha256": "fcb0450d64e1559bd33f7008672391d5d2ec65c9ec2e2381bc03f814d97c7c0d",
+          "bytes": 589
         },
         {
           "path": ".opencode/skills/code-review-clean-code/skill.json",
@@ -151,8 +151,8 @@
         },
         {
           "path": ".github/skills/code-review-clean-code/SKILL.md",
-          "sha256": "6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
-          "bytes": 970
+          "sha256": "fcb0450d64e1559bd33f7008672391d5d2ec65c9ec2e2381bc03f814d97c7c0d",
+          "bytes": 589
         },
         {
           "path": ".github/skills/code-review-clean-code/skill.json",
