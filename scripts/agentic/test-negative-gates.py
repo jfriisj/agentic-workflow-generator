@@ -255,6 +255,31 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_summary_error_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("output manifest summary must be an object before mutation")
+
+    summary["errorCount"] = 1
+    write_json(path, data)
+
+
+def break_output_manifest_summary_errors(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("output manifest summary must be an object before mutation")
+
+    summary["errors"] = ["synthetic manifest error"]
+    write_json(path, data)
+
+
+
 def break_output_manifest_summary_target_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -498,6 +523,20 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary errorCount is non-zero",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_summary_error_count,
+            "summary.errorCount",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary errors is non-empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_summary_errors,
+            "summary.errors",
         ),
         (
             "failure",
