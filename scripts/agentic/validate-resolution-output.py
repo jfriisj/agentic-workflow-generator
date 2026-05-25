@@ -96,6 +96,48 @@ def validate_summary_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def validate_workflow_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    workflow = resolution.get("workflow")
+
+    if not isinstance(workflow, dict):
+        return [f"{RESOLUTION_PATH}: workflow must be an object"]
+
+    fail_closed = workflow.get("failClosed")
+    if not isinstance(fail_closed, bool):
+        errors.append(f"{RESOLUTION_PATH}: workflow.failClosed must be a boolean")
+
+    profile = workflow.get("profile")
+    if not isinstance(profile, str) or not profile.strip():
+        errors.append(f"{RESOLUTION_PATH}: workflow.profile must be a non-empty string")
+
+    start_state = workflow.get("startState")
+    if not isinstance(start_state, str) or not start_state.strip():
+        errors.append(f"{RESOLUTION_PATH}: workflow.startState must be a non-empty string")
+
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        errors.append(f"{RESOLUTION_PATH}: workflow.terminalStates must be a non-empty list")
+    else:
+        seen_terminal_states: set[str] = set()
+
+        for index, terminal_state in enumerate(terminal_states):
+            if not isinstance(terminal_state, str) or not terminal_state.strip():
+                errors.append(
+                    f"{RESOLUTION_PATH}: workflow.terminalStates[{index}] must be a non-empty string"
+                )
+                continue
+
+            if terminal_state in seen_terminal_states:
+                errors.append(
+                    f"{RESOLUTION_PATH}: workflow.terminalStates[{index}] is duplicated"
+                )
+
+            seen_terminal_states.add(terminal_state)
+
+    return errors
+
+
 def validate_agent_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     agents = resolution.get("agents")
@@ -225,6 +267,7 @@ def main() -> int:
             errors.append(f"{RESOLUTION_PATH}: expected non-empty '{required_key}' collection")
 
     errors.extend(validate_summary_resolution(resolution))
+    errors.extend(validate_workflow_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
 

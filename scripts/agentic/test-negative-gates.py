@@ -1700,6 +1700,202 @@ def break_resolution_output(worktree: Path) -> None:
 
 
 
+
+def break_resolution_missing_workflow(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data.pop("workflow", None)
+    write_json(path, data)
+
+
+def break_resolution_invalid_workflow_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data["workflow"] = "not-an-object"
+    write_json(path, data)
+
+
+def break_resolution_workflow_missing_fail_closed(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow.pop("failClosed", None)
+    write_json(path, data)
+
+
+def break_resolution_workflow_invalid_fail_closed_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["failClosed"] = "not-a-boolean"
+    write_json(path, data)
+
+
+def break_resolution_workflow_missing_profile(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow.pop("profile", None)
+    write_json(path, data)
+
+
+def break_resolution_workflow_empty_profile(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["profile"] = ""
+    write_json(path, data)
+
+
+def break_resolution_workflow_invalid_profile_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["profile"] = {"not": "a-string"}
+    write_json(path, data)
+
+
+def break_resolution_workflow_missing_start_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow.pop("startState", None)
+    write_json(path, data)
+
+
+def break_resolution_workflow_empty_start_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["startState"] = ""
+    write_json(path, data)
+
+
+def break_resolution_workflow_invalid_start_state_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["startState"] = {"not": "a-string"}
+    write_json(path, data)
+
+
+def break_resolution_workflow_missing_terminal_states(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow.pop("terminalStates", None)
+    write_json(path, data)
+
+
+def break_resolution_workflow_invalid_terminal_states_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["terminalStates"] = {"not": "a-list"}
+    write_json(path, data)
+
+
+def break_resolution_workflow_empty_terminal_states(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow["terminalStates"] = []
+    write_json(path, data)
+
+
+def break_resolution_workflow_invalid_terminal_state_entry_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+
+    terminal_states[0] = {"not": "a-string"}
+    write_json(path, data)
+
+
+def break_resolution_workflow_empty_terminal_state_entry(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+
+    terminal_states[0] = ""
+    write_json(path, data)
+
+
+def break_resolution_workflow_duplicate_terminal_state(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+
+    terminal_states.append(terminal_states[0])
+    write_json(path, data)
+
 def break_resolution_missing_summary(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2678,6 +2874,118 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_summary_nonempty_errors,
             "summary.errors must be empty",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_missing_workflow,
+            "workflow must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_invalid_workflow_type,
+            "workflow must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow failClosed is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_missing_fail_closed,
+            "workflow.failClosed must be a boolean",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow failClosed has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_invalid_fail_closed_type,
+            "workflow.failClosed must be a boolean",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow profile is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_missing_profile,
+            "workflow.profile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow profile is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_empty_profile,
+            "workflow.profile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow profile has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_invalid_profile_type,
+            "workflow.profile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow startState is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_missing_start_state,
+            "workflow.startState must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow startState is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_empty_start_state,
+            "workflow.startState must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow startState has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_invalid_start_state_type,
+            "workflow.startState must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalStates is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_missing_terminal_states,
+            "workflow.terminalStates must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalStates has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_invalid_terminal_states_type,
+            "workflow.terminalStates must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalStates is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_empty_terminal_states,
+            "workflow.terminalStates must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalState entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_invalid_terminal_state_entry_type,
+            "workflow.terminalStates[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalState entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_empty_terminal_state_entry,
+            "workflow.terminalStates[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow terminalState is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_duplicate_terminal_state,
+            "workflow.terminalStates",
         ),
         (
             "failure",
