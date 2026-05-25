@@ -156,6 +156,10 @@ def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
         missing = target.get("missing")
         if not isinstance(missing, bool):
             errors.append(f"{RESOLUTION_PATH}: targets[{index}].missing must be a boolean")
+        elif not missing:
+            adapter_path = target.get("adapterPath")
+            if not isinstance(adapter_path, str) or not adapter_path.strip():
+                errors.append(f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a non-empty string")
 
     return errors
 
