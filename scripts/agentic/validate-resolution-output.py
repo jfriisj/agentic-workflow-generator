@@ -149,6 +149,10 @@ def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
         if not isinstance(name, str) or not name.strip():
             errors.append(f"{RESOLUTION_PATH}: targets[{index}].name must be a non-empty string")
 
+        enabled = target.get("enabled")
+        if not isinstance(enabled, bool):
+            errors.append(f"{RESOLUTION_PATH}: targets[{index}].enabled must be a boolean")
+
         missing = target.get("missing")
         if not isinstance(missing, bool):
             errors.append(f"{RESOLUTION_PATH}: targets[{index}].missing must be a boolean")
