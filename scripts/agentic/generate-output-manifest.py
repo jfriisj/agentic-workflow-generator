@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path.cwd()
+TARGET_REGISTRY = ROOT / "registry" / "targets"
 OUTPUT_PATH = ROOT / ".agentic" / "generated" / "output-manifest.json"
 
 
@@ -22,31 +23,69 @@ def relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
 
 
-def existing_files(paths: list[Path]) -> list[Path]:
-    return sorted(path for path in paths if path.is_file())
+def load_json(path: Path) -> dict[str, Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: expected JSON object")
+    return data
 
 
-def collect_vscode_copilot_files() -> list[Path]:
-    files: list[Path] = []
-
-    files.extend(sorted((ROOT / ".github" / "agents").glob("*.agent.md")))
-    files.extend(sorted((ROOT / ".github" / "skills").glob("*/SKILL.md")))
-    files.extend(sorted((ROOT / ".github" / "skills").glob("*/skill.json")))
-    files.append(ROOT / ".github" / "copilot-instructions.md")
-
-    return existing_files(files)
+def is_safe_relative_path(path_value: str) -> bool:
+    path = Path(path_value)
+    return bool(path_value.strip()) and not path.is_absolute() and ".." not in path.parts
 
 
-def collect_opencode_files() -> list[Path]:
-    files: list[Path] = []
+def load_target_adapters() -> list[dict[str, Any]]:
+    adapters: list[dict[str, Any]] = []
 
-    files.extend(sorted((ROOT / ".opencode" / "agents").glob("*.md")))
-    files.extend(sorted((ROOT / ".opencode" / "skills").glob("*/SKILL.md")))
-    files.extend(sorted((ROOT / ".opencode" / "skills").glob("*/skill.json")))
-    files.append(ROOT / "AGENTS.md")
-    files.append(ROOT / "opencode.json")
+    for path in sorted(TARGET_REGISTRY.glob("*/adapter.json")):
+        data = load_json(path)
 
-    return existing_files(files)
+        name = data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(f"{path}: missing non-empty name")
+
+        owned_paths = data.get("ownedPaths")
+        if not isinstance(owned_paths, list) or not owned_paths:
+            raise ValueError(f"{path}: missing non-empty ownedPaths")
+
+        for owned_path in owned_paths:
+            if not isinstance(owned_path, str) or not is_safe_relative_path(owned_path):
+                raise ValueError(f"{path}: unsafe ownedPath {owned_path!r}")
+
+        adapters.append(
+            {
+                "name": name,
+                "registryPath": relative(path),
+                "ownedPaths": owned_paths,
+            }
+        )
+
+    if not adapters:
+        raise ValueError(f"No target adapters found under {TARGET_REGISTRY}")
+
+    return adapters
+
+
+def collect_files_from_owned_paths(owned_paths: list[str]) -> list[Path]:
+    files: set[Path] = set()
+
+    for owned_path_value in owned_paths:
+        owned_path = ROOT / owned_path_value
+
+        if not owned_path.exists():
+            continue
+
+        if owned_path.is_file():
+            files.add(owned_path)
+            continue
+
+        if owned_path.is_dir():
+            for file_path in owned_path.rglob("*"):
+                if file_path.is_file():
+                    files.add(file_path)
+
+    return sorted(files)
 
 
 def file_entry(path: Path) -> dict[str, Any]:
@@ -57,54 +96,40 @@ def file_entry(path: Path) -> dict[str, Any]:
     }
 
 
-def target_entry(name: str, owned_paths: list[str], files: list[Path]) -> dict[str, Any]:
+def target_entry(adapter: dict[str, Any]) -> dict[str, Any]:
+    files = collect_files_from_owned_paths(adapter["ownedPaths"])
+
     return {
-        "name": name,
-        "ownedPaths": owned_paths,
+        "name": adapter["name"],
+        "registryPath": adapter["registryPath"],
+        "ownedPaths": adapter["ownedPaths"],
         "generatedFiles": [file_entry(path) for path in files],
         "generatedFileCount": len(files),
     }
 
 
 def main() -> int:
-    vscode_files = collect_vscode_copilot_files()
-    opencode_files = collect_opencode_files()
-
     errors: list[str] = []
 
-    if not vscode_files:
-        errors.append("vscode-copilot target produced no manifest files")
+    try:
+        adapters = load_target_adapters()
+    except Exception as exc:
+        print(f"FAIL: Could not load target adapters: {exc}")
+        return 1
 
-    if not opencode_files:
-        errors.append("opencode target produced no manifest files")
+    targets = [target_entry(adapter) for adapter in adapters]
+
+    for target in targets:
+        if target["generatedFileCount"] == 0:
+            errors.append(f"{target['name']} target produced no manifest files")
 
     manifest = {
         "schemaVersion": "0.1.0",
         "description": "Deterministic manifest of generated target output files.",
-        "targets": [
-            target_entry(
-                "vscode-copilot",
-                [
-                    ".github/agents",
-                    ".github/skills",
-                    ".github/copilot-instructions.md"
-                ],
-                vscode_files,
-            ),
-            target_entry(
-                "opencode",
-                [
-                    ".opencode/agents",
-                    ".opencode/skills",
-                    "AGENTS.md",
-                    "opencode.json"
-                ],
-                opencode_files,
-            ),
-        ],
+        "targets": targets,
         "summary": {
-            "targetCount": 2,
-            "generatedFileCount": len(vscode_files) + len(opencode_files),
+            "targetCount": len(targets),
+            "generatedFileCount": sum(target["generatedFileCount"] for target in targets),
             "errorCount": len(errors),
             "errors": errors,
         },

@@ -3,7 +3,13 @@
   "$id": "target-adapter.schema.json",
   "title": "Target Adapter Registry Entry",
   "type": "object",
-  "required": ["name", "description", "version"],
+  "required": [
+    "name",
+    "description",
+    "version",
+    "outputPaths",
+    "ownedPaths"
+  ],
   "properties": {
     "name": {
       "type": "string",
@@ -41,6 +47,18 @@
     },
     "supports": {
       "type": "array"
+    },
+    "outputPaths": {
+      "type": "object"
+    },
+    "ownedPaths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     }
   }
 }

@@ -50,5 +50,10 @@
       ],
       "notes": "Test runner agents may execute validation commands but should not own product design decisions."
     }
-  }
+  },
+  "ownedPaths": [
+    ".github/agents",
+    ".github/skills",
+    ".github/copilot-instructions.md"
+  ]
 }
