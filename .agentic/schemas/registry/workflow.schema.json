@@ -3,7 +3,16 @@
   "$id": "workflow.schema.json",
   "title": "Workflow Registry Entry",
   "type": "object",
-  "required": ["name", "description", "version", "startState", "states", "terminalStates", "defaultFailureRoute", "failClosed"],
+  "required": [
+    "name",
+    "description",
+    "version",
+    "startState",
+    "states",
+    "terminalStates",
+    "defaultFailureRoute",
+    "failClosed"
+  ],
   "properties": {
     "name": {
       "type": "string",
@@ -33,7 +42,9 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -46,8 +57,47 @@
           "gate": {
             "type": "string",
             "minLength": 1
+          },
+          "terminal": {
+            "type": "boolean"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "terminal": {
+                  "const": true
+                }
+              },
+              "required": [
+                "terminal"
+              ]
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "agent"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "gate"
+                    ]
+                  }
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "agent",
+                "gate"
+              ]
+            }
+          }
+        ]
       }
     },
     "terminalStates": {
