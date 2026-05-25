@@ -1702,6 +1702,232 @@ def break_resolution_output(worktree: Path) -> None:
 
 
 
+
+def first_resolution_agent_with_produces(data: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+    agents = data.get("agents")
+    if not isinstance(agents, list):
+        raise RuntimeError("resolution agents must be a list before mutation")
+
+    for index, agent in enumerate(agents):
+        if not isinstance(agent, dict):
+            continue
+
+        produces = agent.get("produces")
+        if isinstance(produces, list) and produces:
+            return index, agent
+
+    raise RuntimeError("expected at least one agent with produces before mutation")
+
+
+def first_resolution_produce(data: dict[str, Any]) -> tuple[int, dict[str, Any], int, dict[str, Any]]:
+    agent_index, agent = first_resolution_agent_with_produces(data)
+
+    produces = agent.get("produces")
+    if not isinstance(produces, list) or not produces:
+        raise RuntimeError("agent produces must be a non-empty list before mutation")
+
+    produce = produces[0]
+    if not isinstance(produce, dict):
+        raise RuntimeError("first produce entry must be an object before mutation")
+
+    return agent_index, agent, 0, produce
+
+
+def break_resolution_agent_missing_produces(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    agents[0].pop("produces", None)
+    write_json(path, data)
+
+
+def break_resolution_agent_invalid_produces_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    agents[0]["produces"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_resolution_agent_produces_entry_invalid_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, agent = first_resolution_agent_with_produces(data)
+    produces = agent.get("produces")
+    if not isinstance(produces, list) or not produces:
+        raise RuntimeError("agent produces must be a non-empty list before mutation")
+
+    produces[0] = "not-an-object"
+    write_json(path, data)
+
+
+def mutate_resolution_produce_string_field(
+    worktree: Path,
+    field: str,
+    action: str,
+) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+
+    if action == "missing":
+        produce.pop(field, None)
+    elif action == "empty":
+        produce[field] = ""
+    elif action == "invalid-type":
+        produce[field] = {"not": "a-string"}
+    else:
+        raise RuntimeError(f"Unknown produce string mutation action: {action}")
+
+    write_json(path, data)
+
+
+def mutate_resolution_produce_string_list_field(
+    worktree: Path,
+    field: str,
+    action: str,
+) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+
+    if action == "missing":
+        produce.pop(field, None)
+    elif action == "invalid-type":
+        produce[field] = {"not": "a-list"}
+    elif action == "empty-list":
+        produce[field] = []
+    elif action == "invalid-entry-type":
+        values = produce.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+        values[0] = {"not": "a-string"}
+    elif action == "empty-entry":
+        values = produce.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+        values[0] = ""
+    elif action == "duplicate-entry":
+        values = produce.get(field)
+        if not isinstance(values, list) or not values:
+            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+        values.append(values[0])
+    else:
+        raise RuntimeError(f"Unknown produce string-list mutation action: {action}")
+
+    write_json(path, data)
+
+
+def break_resolution_produce_missing_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "type", "missing")
+
+
+def break_resolution_produce_empty_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "type", "empty")
+
+
+def break_resolution_produce_invalid_type_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "type", "invalid-type")
+
+
+def break_resolution_produce_missing_contract_path(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "contractPath", "missing")
+
+
+def break_resolution_produce_empty_contract_path(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "contractPath", "empty")
+
+
+def break_resolution_produce_invalid_contract_path_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "contractPath", "invalid-type")
+
+
+def break_resolution_produce_missing_path_pattern(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "pathPattern", "missing")
+
+
+def break_resolution_produce_empty_path_pattern(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "pathPattern", "empty")
+
+
+def break_resolution_produce_invalid_path_pattern_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_field(worktree, "pathPattern", "invalid-type")
+
+
+def break_resolution_produce_missing_allowed_statuses(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "missing")
+
+
+def break_resolution_produce_invalid_allowed_statuses_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "invalid-type")
+
+
+def break_resolution_produce_empty_allowed_statuses(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "empty-list")
+
+
+def break_resolution_produce_invalid_allowed_status_entry_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "invalid-entry-type")
+
+
+def break_resolution_produce_empty_allowed_status_entry(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "empty-entry")
+
+
+def break_resolution_produce_duplicate_allowed_status(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "duplicate-entry")
+
+
+def break_resolution_produce_missing_required_headings(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "missing")
+
+
+def break_resolution_produce_invalid_required_headings_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "invalid-type")
+
+
+def break_resolution_produce_empty_required_headings(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "empty-list")
+
+
+def break_resolution_produce_invalid_required_heading_entry_type(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "invalid-entry-type")
+
+
+def break_resolution_produce_empty_required_heading_entry(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "empty-entry")
+
+
+def break_resolution_produce_duplicate_required_heading(worktree: Path) -> None:
+    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "duplicate-entry")
+
+
+def break_resolution_summary_wrong_produced_artifact_binding_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    produced_count = summary.get("producedArtifactBindingCount")
+    if not isinstance(produced_count, int) or isinstance(produced_count, bool):
+        raise RuntimeError("summary.producedArtifactBindingCount must be an integer before mutation")
+
+    summary["producedArtifactBindingCount"] = produced_count + 1
+    write_json(path, data)
+
 def break_resolution_missing_project(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -3343,6 +3569,181 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_project_duplicate_runtime_profile,
             "project.runtimeProfiles",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent produces is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_missing_produces,
+            "agents[0].produces must be a list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent produces has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_invalid_produces_type,
+            "agents[0].produces must be a list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent produces entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_produces_entry_invalid_type,
+            "produces[0] must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce type is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_missing_type,
+            "produces[0].type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce type is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_type,
+            "produces[0].type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce type has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_type_type,
+            "produces[0].type must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_missing_contract_path,
+            "produces[0].contractPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_contract_path,
+            "produces[0].contractPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_contract_path_type,
+            "produces[0].contractPath must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce pathPattern is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_missing_path_pattern,
+            "produces[0].pathPattern must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce pathPattern is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_path_pattern,
+            "produces[0].pathPattern must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce pathPattern has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_path_pattern_type,
+            "produces[0].pathPattern must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_missing_allowed_statuses,
+            "produces[0].allowedStatuses must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_allowed_statuses_type,
+            "produces[0].allowedStatuses must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_allowed_statuses,
+            "produces[0].allowedStatuses must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_allowed_status_entry_type,
+            "allowedStatuses[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_allowed_status_entry,
+            "allowedStatuses[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce allowedStatuses has duplicate entry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_duplicate_allowed_status,
+            "allowedStatuses",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_missing_required_headings,
+            "produces[0].requiredHeadings must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_required_headings_type,
+            "produces[0].requiredHeadings must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_required_headings,
+            "produces[0].requiredHeadings must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_invalid_required_heading_entry_type,
+            "requiredHeadings[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_empty_required_heading_entry,
+            "requiredHeadings[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce requiredHeadings has duplicate entry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_duplicate_required_heading,
+            "requiredHeadings",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produced artifact binding count is wrong",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_wrong_produced_artifact_binding_count,
+            "summary.producedArtifactBindingCount must match total agents produces length",
         ),
         (
             "failure",

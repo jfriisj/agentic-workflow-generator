@@ -284,6 +284,121 @@ def validate_agent_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def validate_agent_produces_string_field(
+    produce: dict[str, Any],
+    agent_index: int,
+    produce_index: int,
+    field: str,
+    errors: list[str],
+) -> None:
+    value = produce.get(field)
+    if not isinstance(value, str) or not value.strip():
+        errors.append(
+            f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}].{field} "
+            "must be a non-empty string"
+        )
+
+
+def validate_agent_produces_string_list_field(
+    produce: dict[str, Any],
+    agent_index: int,
+    produce_index: int,
+    field: str,
+    errors: list[str],
+) -> None:
+    value = produce.get(field)
+
+    if not isinstance(value, list) or not value:
+        errors.append(
+            f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}].{field} "
+            "must be a non-empty list"
+        )
+        return
+
+    seen_values: set[str] = set()
+
+    for entry_index, entry in enumerate(value):
+        if not isinstance(entry, str) or not entry.strip():
+            errors.append(
+                f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}]."
+                f"{field}[{entry_index}] must be a non-empty string"
+            )
+            continue
+
+        if entry in seen_values:
+            errors.append(
+                f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}]."
+                f"{field}[{entry_index}] is duplicated"
+            )
+
+        seen_values.add(entry)
+
+
+def validate_agent_produces_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    agents = resolution.get("agents")
+
+    if not isinstance(agents, list):
+        return errors
+
+    total_produces = 0
+
+    for agent_index, agent in enumerate(agents):
+        if not isinstance(agent, dict):
+            continue
+
+        produces = agent.get("produces")
+        if not isinstance(produces, list):
+            errors.append(f"{RESOLUTION_PATH}: agents[{agent_index}].produces must be a list")
+            continue
+
+        total_produces += len(produces)
+
+        for produce_index, produce in enumerate(produces):
+            if not isinstance(produce, dict):
+                errors.append(
+                    f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}] "
+                    "must be an object"
+                )
+                continue
+
+            for field in [
+                "type",
+                "contractPath",
+                "pathPattern",
+            ]:
+                validate_agent_produces_string_field(
+                    produce,
+                    agent_index,
+                    produce_index,
+                    field,
+                    errors,
+                )
+
+            for field in [
+                "allowedStatuses",
+                "requiredHeadings",
+            ]:
+                validate_agent_produces_string_list_field(
+                    produce,
+                    agent_index,
+                    produce_index,
+                    field,
+                    errors,
+                )
+
+    summary = resolution.get("summary")
+    if isinstance(summary, dict):
+        expected_count = summary.get("producedArtifactBindingCount")
+        if is_plain_int(expected_count) and expected_count != total_produces:
+            errors.append(
+                f"{RESOLUTION_PATH}: summary.producedArtifactBindingCount "
+                "must match total agents produces length"
+            )
+
+    return errors
+
+
 def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     targets = resolution.get("targets")
@@ -332,6 +447,7 @@ def main() -> int:
     errors.extend(validate_project_resolution(resolution))
     errors.extend(validate_workflow_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
+    errors.extend(validate_agent_produces_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
 
     errors.extend(walk_for_errors(resolution))
