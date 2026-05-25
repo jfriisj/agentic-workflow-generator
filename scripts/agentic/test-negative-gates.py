@@ -102,6 +102,38 @@ def expect_failure(
         shutil.rmtree(worktree.parent, ignore_errors=True)
 
 
+def expect_success(
+    name: str,
+    command: list[str],
+    mutate,
+    expected_text: str,
+) -> tuple[bool, str]:
+    worktree = copy_repo_to_temp()
+
+    try:
+        mutate(worktree)
+        result = run(worktree, command)
+
+        if result.returncode != 0:
+            return (
+                False,
+                f"{name}: expected success, but command failed.\n\nOutput:\n{result.stdout}",
+            )
+
+        if expected_text not in result.stdout:
+            return (
+                False,
+                f"{name}: command succeeded, but expected text was not found: {expected_text!r}\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        return True, f"PASS: {name}"
+
+    finally:
+        shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+
 def break_capability_coverage(worktree: Path) -> None:
     path = worktree / "registry" / "skills" / "workflow-routing" / "skill.json"
     data = load_json(path)
@@ -131,6 +163,13 @@ def break_generated_output(worktree: Path) -> None:
         raise RuntimeError(f"Expected generated file not found before mutation: {path}")
 
     path.unlink()
+
+
+def break_cleanup_generated_dry_run(worktree: Path) -> None:
+    path = worktree / ".github" / "agents" / "cleanup-dry-run-test.agent.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("# Cleanup dry-run test\n", encoding="utf-8")
+
 
 
 def break_output_manifest_schema_version(worktree: Path) -> None:
@@ -224,60 +263,77 @@ def break_lockfile(worktree: Path) -> None:
 def main() -> int:
     tests = [
         (
+            "failure",
             "coverage fails when a skill capability is removed",
             ["scripts/agentic/agentic-gen.sh", "coverage"],
             break_capability_coverage,
             "Missing skill coverage",
         ),
         (
+            "failure",
             "workflow validation fails for unknown terminal state",
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_terminal_state,
             "terminalState",
         ),
         (
+            "failure",
             "generated output validation fails when generated agent file is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_output,
             "missing generated file",
         ),
         (
+            "success",
+            "cleanup dry-run detects unmanaged generated file",
+            ["scripts/agentic/agentic-gen.sh", "cleanup-generated", "--dry-run"],
+            break_cleanup_generated_dry_run,
+            "Would remove unmanaged generated file",
+        ),
+        (
+            "failure",
             "output manifest validation fails when schemaVersion is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_schema_version,
             "schemaVersion",
         ),
         (
+            "failure",
             "output manifest validation fails when generated file content drifts",
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_hash,
             "sha256 mismatch",
         ),
         (
+            "failure",
             "output manifest validation fails when unmanaged generated file exists",
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_ownership,
             "unmanaged generated file under owned path",
         ),
         (
+            "failure",
             "target adapter validation fails when ownedPaths is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
             break_target_adapter_owned_paths,
             "ownedPaths",
         ),
         (
+            "failure",
             "target adapter semantic validation fails when ownedPaths overlap",
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_overlap,
             "ownedPaths overlap between targets",
         ),
         (
+            "failure",
             "resolution validation fails when missingCapabilities is non-empty",
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_output,
             "missingCapabilities must be empty",
         ),
         (
+            "failure",
             "lockfile validation fails when tracked files are empty",
             ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
             break_lockfile,
@@ -287,8 +343,15 @@ def main() -> int:
 
     failures: list[str] = []
 
-    for name, command, mutate, expected_text in tests:
-        passed, message = expect_failure(name, command, mutate, expected_text)
+    for expectation, name, command, mutate, expected_text in tests:
+        if expectation == "success":
+            passed, message = expect_success(name, command, mutate, expected_text)
+        elif expectation == "failure":
+            passed, message = expect_failure(name, command, mutate, expected_text)
+        else:
+            passed = False
+            message = f"{name}: unknown expectation {expectation!r}"
+
         print(message)
 
         if not passed:
