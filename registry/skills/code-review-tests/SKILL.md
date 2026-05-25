@@ -1,4 +1,3 @@
-
 # Test Review Skill
 
 ## Purpose
@@ -20,29 +19,8 @@ Check whether:
 
 The review must state:
 
-* tests reviewed
-* evidence path or command output
-* missing validation
-* risk level
-* pass/fail/block decision
-  EOF
-
-cat > registry/skills/workflow-routing/skill.json <<'EOF'
-{
-"name": "workflow-routing",
-"version": "0.1.0",
-"description": "Workflow routing guidance for fail-closed gate-based agent orchestration.",
-"provides": [
-"workflow.route",
-"workflow.validate-state",
-"workflow.handoff"
-],
-"requires": [],
-"allowedAgents": [
-"Orchestrator"
-],
-"contentPath": "SKILL.md",
-"contextBudget": {
-"maxTokens": 1800
-}
-}
+- tests reviewed
+- evidence path or command output
+- missing validation
+- risk level
+- pass/fail/block decision
