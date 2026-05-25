@@ -3038,6 +3038,69 @@ def awg_first_artifact_contract_file(worktree: Path) -> Path:
     return artifact_files[0]
 
 
+
+def awg_first_produced_agent_file(worktree: Path) -> Path:
+    for agent_path in sorted((worktree / "registry" / "agents").glob("*/agent.json")):
+        agent = load_json(agent_path)
+        produces = agent.get("produces")
+        if isinstance(produces, list) and produces:
+            return agent_path
+    raise RuntimeError("expected at least one agent with produced artifacts")
+
+
+def awg_first_future_artifact_file(worktree: Path) -> Path:
+    for artifact_path in sorted((worktree / "registry" / "artifacts").glob("*/artifact.json")):
+        artifact = load_json(artifact_path)
+        binding = artifact.get("binding")
+        if isinstance(binding, dict) and binding.get("producerRequired") is False:
+            return artifact_path
+    raise RuntimeError("expected at least one future/unbound artifact contract")
+
+
+def break_agent_artifact_binding_unknown_required_artifact(worktree: Path) -> None:
+    agent_path = awg_first_produced_agent_file(worktree)
+    agent = load_json(agent_path)
+    agent["requiredArtifacts"] = ["MissingRequiredArtifact"]
+    write_json(agent_path, agent)
+
+
+def break_agent_artifact_binding_unproduced_required_artifact(worktree: Path) -> None:
+    artifact_path = awg_first_future_artifact_file(worktree)
+    artifact = load_json(artifact_path)
+    artifact.pop("binding", None)
+    write_json(artifact_path, artifact)
+
+
+def break_agent_artifact_binding_policy_invalid_type(worktree: Path) -> None:
+    artifact_path = awg_first_future_artifact_file(worktree)
+    artifact = load_json(artifact_path)
+    artifact["binding"] = "future"
+    write_json(artifact_path, artifact)
+
+
+def break_agent_artifact_binding_policy_missing_reason(worktree: Path) -> None:
+    artifact_path = awg_first_future_artifact_file(worktree)
+    artifact = load_json(artifact_path)
+    artifact["binding"] = {
+        "producerRequired": False,
+    }
+    write_json(artifact_path, artifact)
+
+
+def break_agent_artifact_binding_policy_false_for_produced(worktree: Path) -> None:
+    agent_path = awg_first_produced_agent_file(worktree)
+    agent = load_json(agent_path)
+
+    artifact_type = agent["produces"][0]
+    artifact_path = worktree / "registry" / "artifacts" / artifact_type / "artifact.json"
+
+    artifact = load_json(artifact_path)
+    artifact["binding"] = {
+        "producerRequired": False,
+        "reason": "Invalid because this artifact is produced.",
+    }
+    write_json(artifact_path, artifact)
+
 def break_artifact_missing_schema(worktree: Path) -> None:
     schema_path = awg_first_artifact_schema_file(worktree)
     schema_path.unlink()
@@ -5591,6 +5654,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_schema_required_headings_drift,
             "artifact.schema.json does not match expected schema",
+        ),
+        (
+            "failure",
+            "agent artifact binding validation fails when required artifact contract is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
+            break_agent_artifact_binding_unknown_required_artifact,
+            "requiredArtifacts missing artifact contract",
+        ),
+        (
+            "failure",
+            "agent artifact binding validation fails when artifact is unproduced without policy",
+            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
+            break_agent_artifact_binding_unproduced_required_artifact,
+            "artifact contract is not produced by any agent",
+        ),
+        (
+            "failure",
+            "agent artifact binding validation fails when binding policy has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
+            break_agent_artifact_binding_policy_invalid_type,
+            "binding must be an object when present",
+        ),
+        (
+            "failure",
+            "agent artifact binding validation fails when future artifact binding reason is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
+            break_agent_artifact_binding_policy_missing_reason,
+            "binding.reason must be a non-empty string",
+        ),
+        (
+            "failure",
+            "agent artifact binding validation fails when produced artifact opts out",
+            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
+            break_agent_artifact_binding_policy_false_for_produced,
+            "binding.producerRequired is false but artifact is produced",
         ),
         (
             "failure",

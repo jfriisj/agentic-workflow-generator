@@ -20,5 +20,9 @@
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
   },
-  "type": "ArchitectureDecision"
-}
+  "type": "ArchitectureDecision",
+  "binding": {
+    "producerRequired": false,
+    "reason": "Registered for future workflow expansion; no current agent produces this artifact."
+  }
+}\n
