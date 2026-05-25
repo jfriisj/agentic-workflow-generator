@@ -1760,6 +1760,88 @@ def mutate_resolution_agent_string_field(
 
 
 
+
+def semantic_resolution_targets(data: dict[str, Any]) -> list[Any]:
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+    return targets
+
+
+def semantic_first_present_resolution_target(data: dict[str, Any]) -> dict[str, Any]:
+    for target in semantic_resolution_targets(data):
+        if isinstance(target, dict) and target.get("missing") is False:
+            return target
+    raise RuntimeError("expected at least one non-missing target before mutation")
+
+
+def semantic_first_missing_resolution_target(data: dict[str, Any]) -> dict[str, Any]:
+    for target in semantic_resolution_targets(data):
+        if isinstance(target, dict) and target.get("missing") is True:
+            return target
+    raise RuntimeError("expected at least one missing target before mutation")
+
+
+def break_resolution_semantic_missing_target_enabled_true(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    target = semantic_first_missing_resolution_target(data)
+    target["enabled"] = True
+
+    write_json(path, data)
+
+
+def break_resolution_semantic_missing_target_adapter_path_non_null(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    target = semantic_first_missing_resolution_target(data)
+    target["adapterPath"] = "registry/targets/missing/adapter.json"
+
+    write_json(path, data)
+
+
+def break_resolution_semantic_present_target_enabled_false(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    target = semantic_first_present_resolution_target(data)
+    target["enabled"] = False
+
+    write_json(path, data)
+
+
+def break_resolution_semantic_present_target_adapter_path_null(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    target = semantic_first_present_resolution_target(data)
+    target["adapterPath"] = None
+
+    write_json(path, data)
+
+
+def break_resolution_semantic_duplicate_target_name(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = semantic_resolution_targets(data)
+    if len(targets) < 2:
+        raise RuntimeError("resolution targets must contain at least two targets before mutation")
+
+    first = targets[0]
+    second = targets[1]
+    if not isinstance(first, dict) or not isinstance(second, dict):
+        raise RuntimeError("resolution targets[0] and targets[1] must be objects before mutation")
+
+    name = first.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise RuntimeError("resolution targets[0].name must be a non-empty string before mutation")
+
+    second["name"] = name
+    write_json(path, data)
+
 def break_resolution_target_adapter_path_parent_reference(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -4020,6 +4102,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_target_adapter_path_absolute,
             "targets[0].adapterPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when missing target is enabled",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_semantic_missing_target_enabled_true,
+            "must have enabled=false when missing=true",
+        ),
+        (
+            "failure",
+            "resolution validation fails when missing target has adapterPath",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_semantic_missing_target_adapter_path_non_null,
+            "adapterPath must be null when missing=true",
+        ),
+        (
+            "failure",
+            "resolution validation fails when present target is disabled",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_semantic_present_target_enabled_false,
+            "must have enabled=true when missing=false",
+        ),
+        (
+            "failure",
+            "resolution validation fails when present target adapterPath is null",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_semantic_present_target_adapter_path_null,
+            "adapterPath must be a non-empty string when missing=false",
+        ),
+        (
+            "failure",
+            "resolution validation fails when resolution target name is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_semantic_duplicate_target_name,
+            "targets[1].name is duplicated",
         ),
         (
             "failure",
