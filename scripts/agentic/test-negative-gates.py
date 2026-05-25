@@ -255,6 +255,23 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_summary_target_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("output manifest summary must be an object before mutation")
+
+    current_count = summary.get("targetCount")
+    if not isinstance(current_count, int):
+        raise RuntimeError("summary.targetCount must be an integer before mutation")
+
+    summary["targetCount"] = current_count + 1
+    write_json(path, data)
+
+
+
 def break_output_manifest_summary_generated_file_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -481,6 +498,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary targetCount is wrong",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_summary_target_count,
+            "summary.targetCount",
         ),
         (
             "failure",
