@@ -1092,6 +1092,23 @@ def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
 
 
 
+def break_resolution_agent_missing_capabilities(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents:
+        raise RuntimeError("resolution agents must be a non-empty list before mutation")
+
+    first_agent = agents[0]
+    if not isinstance(first_agent, dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    first_agent.pop("capabilities", None)
+    write_json(path, data)
+
+
+
 def break_resolution_invalid_agent_entry_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -1551,6 +1568,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_absolute,
             "is unsafe",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent capabilities is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_missing_capabilities,
+            "capabilities must be a list",
         ),
         (
             "failure",
