@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 55,
-    "contentHash": "sha256:ddb81609600ed47399b9a8e072040cc04e2db06b81d62820153bc7be9e174d7d",
+    "contentHash": "sha256:62dffcaff5b9b115e1b7a99dd45090bcff26668c34252c41dfb64ea0ed725229",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -208,8 +208,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:d3166aff7c90e536bec4598846c1f5e2af59e0ff911845250897b1d7661fb4df",
-        "sizeBytes": 169369
+        "sha256": "sha256:d48f805fd2b1e0ce9909ea005305728ea147660795316948554d565be14203e1",
+        "sizeBytes": 172609
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -253,8 +253,8 @@
       },
       {
         "path": "scripts/agentic/validate-profile-registry.py",
-        "sha256": "sha256:e64563243c2694eeb50ed2a79465c64abbb41fe0c8be1af265c55c60b8683cb7",
-        "sizeBytes": 3159
+        "sha256": "sha256:d7e34598b6bce2fce4e3e49a7725b35df793dacd91d84fbd2206c2cfe9b3d186",
+        "sizeBytes": 6445
       },
       {
         "path": "scripts/agentic/validate-registry-references.py",
