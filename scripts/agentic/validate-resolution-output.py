@@ -49,6 +49,53 @@ def has_non_empty_list(resolution: dict[str, Any], key: str) -> bool:
     return isinstance(value, list) and bool(value)
 
 
+def is_plain_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def validate_summary_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    summary = resolution.get("summary")
+
+    if not isinstance(summary, dict):
+        return [f"{RESOLUTION_PATH}: summary must be an object"]
+
+    integer_fields = [
+        "agentCount",
+        "targetCount",
+        "availableSkillCount",
+        "producedArtifactBindingCount",
+        "errorCount",
+    ]
+
+    for field in integer_fields:
+        value = summary.get(field)
+        if not is_plain_int(value):
+            errors.append(f"{RESOLUTION_PATH}: summary.{field} must be an integer")
+
+    summary_errors = summary.get("errors")
+    if not isinstance(summary_errors, list):
+        errors.append(f"{RESOLUTION_PATH}: summary.errors must be an empty list")
+    elif summary_errors:
+        errors.append(f"{RESOLUTION_PATH}: summary.errors must be empty")
+
+    error_count = summary.get("errorCount")
+    if is_plain_int(error_count) and error_count != 0:
+        errors.append(f"{RESOLUTION_PATH}: summary.errorCount must be 0")
+
+    agents = resolution.get("agents")
+    agent_count = summary.get("agentCount")
+    if isinstance(agents, list) and is_plain_int(agent_count) and agent_count != len(agents):
+        errors.append(f"{RESOLUTION_PATH}: summary.agentCount must match agents length")
+
+    targets = resolution.get("targets")
+    target_count = summary.get("targetCount")
+    if isinstance(targets, list) and is_plain_int(target_count) and target_count != len(targets):
+        errors.append(f"{RESOLUTION_PATH}: summary.targetCount must match targets length")
+
+    return errors
+
+
 def validate_agent_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     agents = resolution.get("agents")
@@ -177,6 +224,7 @@ def main() -> int:
         if not has_non_empty_list(resolution, required_key):
             errors.append(f"{RESOLUTION_PATH}: expected non-empty '{required_key}' collection")
 
+    errors.extend(validate_summary_resolution(resolution))
     errors.extend(validate_agent_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
 

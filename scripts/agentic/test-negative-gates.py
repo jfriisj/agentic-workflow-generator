@@ -1699,6 +1699,222 @@ def break_resolution_output(worktree: Path) -> None:
     write_json(path, data)
 
 
+
+def break_resolution_missing_summary(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data.pop("summary", None)
+    write_json(path, data)
+
+
+def break_resolution_invalid_summary_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    data["summary"] = "not-an-object"
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_agent_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("agentCount", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_agent_count_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["agentCount"] = "not-an-integer"
+    write_json(path, data)
+
+
+def break_resolution_summary_wrong_agent_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    agent_count = summary.get("agentCount")
+    if not isinstance(agent_count, int) or isinstance(agent_count, bool):
+        raise RuntimeError("summary.agentCount must be an integer before mutation")
+
+    summary["agentCount"] = agent_count + 1
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_target_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("targetCount", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_target_count_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["targetCount"] = "not-an-integer"
+    write_json(path, data)
+
+
+def break_resolution_summary_wrong_target_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    target_count = summary.get("targetCount")
+    if not isinstance(target_count, int) or isinstance(target_count, bool):
+        raise RuntimeError("summary.targetCount must be an integer before mutation")
+
+    summary["targetCount"] = target_count + 1
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_available_skill_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("availableSkillCount", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_available_skill_count_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["availableSkillCount"] = "not-an-integer"
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_produced_artifact_binding_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("producedArtifactBindingCount", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_produced_artifact_binding_count_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["producedArtifactBindingCount"] = "not-an-integer"
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_error_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("errorCount", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_error_count_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["errorCount"] = "not-an-integer"
+    write_json(path, data)
+
+
+def break_resolution_summary_nonzero_error_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["errorCount"] = 1
+    write_json(path, data)
+
+
+def break_resolution_summary_missing_errors(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary.pop("errors", None)
+    write_json(path, data)
+
+
+def break_resolution_summary_invalid_errors_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["errors"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_resolution_summary_nonempty_errors(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("resolution summary must be an object before mutation")
+
+    summary["errors"] = ["synthetic resolution summary error"]
+    write_json(path, data)
+
 def break_lockfile(worktree: Path) -> None:
     path = worktree / ".agentic" / "agentic-lock.json"
     data = load_json(path)
@@ -2336,6 +2552,132 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_output,
             "missingCapabilities must be empty",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_missing_summary,
+            "summary must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_invalid_summary_type,
+            "summary must be an object",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary agentCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_agent_count,
+            "summary.agentCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary agentCount has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_agent_count_type,
+            "summary.agentCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary agentCount is wrong",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_wrong_agent_count,
+            "summary.agentCount must match agents length",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary targetCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_target_count,
+            "summary.targetCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary targetCount has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_target_count_type,
+            "summary.targetCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary targetCount is wrong",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_wrong_target_count,
+            "summary.targetCount must match targets length",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary availableSkillCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_available_skill_count,
+            "summary.availableSkillCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary availableSkillCount has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_available_skill_count_type,
+            "summary.availableSkillCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary producedArtifactBindingCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_produced_artifact_binding_count,
+            "summary.producedArtifactBindingCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary producedArtifactBindingCount has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_produced_artifact_binding_count_type,
+            "summary.producedArtifactBindingCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errorCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_error_count,
+            "summary.errorCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errorCount has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_error_count_type,
+            "summary.errorCount must be an integer",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errorCount is non-zero",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_nonzero_error_count,
+            "summary.errorCount must be 0",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errors is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_missing_errors,
+            "summary.errors must be an empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errors has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_invalid_errors_type,
+            "summary.errors must be an empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when summary errors is non-empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_summary_nonempty_errors,
+            "summary.errors must be empty",
         ),
         (
             "failure",
