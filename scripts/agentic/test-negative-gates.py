@@ -2963,6 +2963,116 @@ def first_producing_agent_registry_file(worktree: Path) -> Path:
     raise RuntimeError("expected at least one agent with artifact references")
 
 
+
+def first_artifact_contract_file(worktree: Path) -> Path:
+    contracts = sorted((worktree / "registry" / "artifacts").glob("*/artifact.json"))
+    if not contracts:
+        raise RuntimeError("expected at least one artifact contract")
+    return contracts[0]
+
+
+def mutate_first_artifact_contract(worktree: Path, mutator: Callable[[dict[str, Any]], None]) -> None:
+    path = first_artifact_contract_file(worktree)
+    data = load_json(path)
+    mutator(data)
+    write_json(path, data)
+
+
+def break_artifact_type_folder_mismatch(worktree: Path) -> None:
+    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("type", "DifferentType"))
+
+
+def break_artifact_path_pattern_parent_reference(worktree: Path) -> None:
+    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("pathPattern", "../agent-output/unsafe/*.md"))
+
+
+def break_artifact_path_pattern_absolute(worktree: Path) -> None:
+    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("pathPattern", "/tmp/agent-output/*.md"))
+
+
+def break_artifact_required_heading_empty_entry(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        headings = data.get("requiredHeadings")
+        if not isinstance(headings, list) or not headings:
+            raise RuntimeError("requiredHeadings must be a non-empty list before mutation")
+        headings[0] = ""
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_required_heading_duplicate(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        headings = data.get("requiredHeadings")
+        if not isinstance(headings, list) or not headings:
+            raise RuntimeError("requiredHeadings must be a non-empty list before mutation")
+        headings.append(headings[0])
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_allowed_status_empty_entry(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        statuses = data.get("allowedStatuses")
+        if not isinstance(statuses, list) or not statuses:
+            raise RuntimeError("allowedStatuses must be a non-empty list before mutation")
+        statuses[0] = ""
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_allowed_status_duplicate(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        statuses = data.get("allowedStatuses")
+        if not isinstance(statuses, list) or not statuses:
+            raise RuntimeError("allowedStatuses must be a non-empty list before mutation")
+        statuses.append(statuses[0])
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_status_not_object(worktree: Path) -> None:
+    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("status", "not-an-object"))
+
+
+def break_artifact_status_pattern_missing(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        status = data.get("status")
+        if not isinstance(status, dict):
+            raise RuntimeError("status must be an object before mutation")
+        status.pop("pattern", None)
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_status_pattern_empty(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        status = data.get("status")
+        if not isinstance(status, dict):
+            raise RuntimeError("status must be an object before mutation")
+        status["pattern"] = ""
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_status_pattern_mismatch(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        status = data.get("status")
+        if not isinstance(status, dict):
+            raise RuntimeError("status must be an object before mutation")
+        status["pattern"] = "PASS|FAIL"
+
+    mutate_first_artifact_contract(worktree, mutate)
+
+
+def break_artifact_status_heading_not_required(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        headings = data.get("requiredHeadings")
+        if not isinstance(headings, list):
+            raise RuntimeError("requiredHeadings must be a list before mutation")
+        data["requiredHeadings"] = [heading for heading in headings if heading != "## Status"]
+
+    mutate_first_artifact_contract(worktree, mutate)
+
 def break_agent_registry_unknown_capability_reference(worktree: Path) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
@@ -4628,6 +4738,90 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
             break_agent_registry_empty_default_permission_profile,
             "defaultPermissionProfile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "artifact validation fails when type does not match folder",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_type_folder_mismatch,
+            "does not match folder",
+        ),
+        (
+            "failure",
+            "artifact validation fails when pathPattern contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_path_pattern_parent_reference,
+            "pathPattern must be a safe relative path",
+        ),
+        (
+            "failure",
+            "artifact validation fails when pathPattern is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_path_pattern_absolute,
+            "pathPattern must be a safe relative path",
+        ),
+        (
+            "failure",
+            "artifact validation fails when required heading entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_required_heading_empty_entry,
+            "requiredHeadings[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "artifact validation fails when required heading is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_required_heading_duplicate,
+            "requiredHeadings",
+        ),
+        (
+            "failure",
+            "artifact validation fails when allowed status entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_allowed_status_empty_entry,
+            "allowedStatuses[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "artifact validation fails when allowed status is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_allowed_status_duplicate,
+            "allowedStatuses",
+        ),
+        (
+            "failure",
+            "artifact validation fails when status is not object",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_status_not_object,
+            "status must be an object",
+        ),
+        (
+            "failure",
+            "artifact validation fails when status pattern is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_status_pattern_missing,
+            "status.pattern must be a non-empty string",
+        ),
+        (
+            "failure",
+            "artifact validation fails when status pattern is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_status_pattern_empty,
+            "status.pattern must be a non-empty string",
+        ),
+        (
+            "failure",
+            "artifact validation fails when status pattern differs from allowedStatuses",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_status_pattern_mismatch,
+            "status.pattern must match allowedStatuses",
+        ),
+        (
+            "failure",
+            "artifact validation fails when status heading is not required",
+            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
+            break_artifact_status_heading_not_required,
+            "status.heading must be included in requiredHeadings",
         ),
         (
             "failure",
