@@ -58,6 +58,57 @@ def extract_capabilities(skill: dict[str, Any]) -> list[str]:
     return normalized
 
 
+
+def validate_provides_field(skill_json: Path, skill: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    provides = skill.get("provides")
+
+    if not isinstance(provides, list) or not provides:
+        return [f"{skill_json}: provides must be a non-empty list"]
+
+    seen_capabilities: set[str] = set()
+
+    for index, capability in enumerate(provides):
+        if not isinstance(capability, str) or not capability.strip():
+            errors.append(f"{skill_json}: provides[{index}] must be a non-empty string")
+            continue
+
+        if capability in seen_capabilities:
+            errors.append(f"{skill_json}: provides[{index}] is duplicated")
+
+        seen_capabilities.add(capability)
+
+    return errors
+
+
+def validate_global_capability_uniqueness(skill_dirs: list[Path]) -> list[str]:
+    errors: list[str] = []
+    capability_sources: dict[str, Path] = {}
+
+    for skill_dir in skill_dirs:
+        skill_json = skill_dir / "skill.json"
+        if not skill_json.is_file():
+            continue
+
+        try:
+            skill = load_json(skill_json)
+        except Exception:
+            continue
+
+        local_capabilities = sorted(set(extract_capabilities(skill)))
+
+        for capability in local_capabilities:
+            existing_source = capability_sources.get(capability)
+            if existing_source is not None and existing_source != skill_json:
+                errors.append(
+                    f"{skill_json}: capability '{capability}' is already provided by {existing_source}"
+                )
+                continue
+
+            capability_sources[capability] = skill_json
+
+    return errors
+
 def validate_skill_dir(skill_dir: Path) -> list[str]:
     errors: list[str] = []
     skill_json = skill_dir / "skill.json"
@@ -77,11 +128,20 @@ def validate_skill_dir(skill_dir: Path) -> list[str]:
         return [f"{skill_json}: {exc}"]
 
     name = skill.get("name")
-    if name is not None:
-        if not isinstance(name, str) or not name.strip():
-            errors.append(f"{skill_json}: name must be a non-empty string when present")
-        elif name != folder_name:
-            errors.append(f"{skill_json}: name '{name}' does not match folder '{folder_name}'")
+    if not isinstance(name, str) or not name.strip():
+        errors.append(f"{skill_json}: name must be a non-empty string")
+    elif name != folder_name:
+        errors.append(f"{skill_json}: name '{name}' does not match folder '{folder_name}'")
+
+    description = skill.get("description")
+    if description is not None and not isinstance(description, str):
+        errors.append(f"{skill_json}: description must be a string when present")
+
+    version = skill.get("version")
+    if version is not None and (not isinstance(version, str) or not version.strip()):
+        errors.append(f"{skill_json}: version must be a non-empty string when present")
+
+    errors.extend(validate_provides_field(skill_json, skill))
 
     capabilities = extract_capabilities(skill)
     if not capabilities:
@@ -113,6 +173,8 @@ def main() -> int:
 
     for skill_dir in skill_dirs:
         errors.extend(validate_skill_dir(skill_dir))
+
+    errors.extend(validate_global_capability_uniqueness(skill_dirs))
 
     if errors:
         print(f"FAIL: Skill registry validation found {len(errors)} error(s).")

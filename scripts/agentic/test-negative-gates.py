@@ -2978,6 +2978,105 @@ def mutate_first_artifact_contract(worktree: Path, mutator: Callable[[dict[str, 
     write_json(path, data)
 
 
+
+def first_skill_json_file(worktree: Path) -> Path:
+    skill_files = sorted((worktree / "registry" / "skills").glob("*/skill.json"))
+    if not skill_files:
+        raise RuntimeError("expected at least one skill registry file")
+    return skill_files[0]
+
+
+def first_two_skill_json_files(worktree: Path) -> tuple[Path, Path]:
+    skill_files = sorted((worktree / "registry" / "skills").glob("*/skill.json"))
+    if len(skill_files) < 2:
+        raise RuntimeError("expected at least two skill registry files")
+    return skill_files[0], skill_files[1]
+
+
+def break_skill_registry_missing_name(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data.pop("name", None)
+    write_json(path, data)
+
+
+def break_skill_registry_missing_provides(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data.pop("provides", None)
+    write_json(path, data)
+
+
+def break_skill_registry_invalid_provides_type(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["provides"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_skill_registry_empty_provides(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["provides"] = []
+    write_json(path, data)
+
+
+def break_skill_registry_empty_provides_entry(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+
+    provides = data.get("provides")
+    if not isinstance(provides, list) or not provides:
+        raise RuntimeError("skill provides must be a non-empty list before mutation")
+
+    provides[0] = ""
+    write_json(path, data)
+
+
+def break_skill_registry_duplicate_provides_entry(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+
+    provides = data.get("provides")
+    if not isinstance(provides, list) or not provides:
+        raise RuntimeError("skill provides must be a non-empty list before mutation")
+
+    provides.append(provides[0])
+    write_json(path, data)
+
+
+def break_skill_registry_duplicate_global_capability(worktree: Path) -> None:
+    first_path, second_path = first_two_skill_json_files(worktree)
+
+    first = load_json(first_path)
+    second = load_json(second_path)
+
+    first_provides = first.get("provides")
+    if not isinstance(first_provides, list) or not first_provides:
+        raise RuntimeError("first skill provides must be a non-empty list before mutation")
+
+    second_provides = second.get("provides")
+    if not isinstance(second_provides, list):
+        second_provides = []
+        second["provides"] = second_provides
+
+    second_provides.append(first_provides[0])
+    write_json(second_path, second)
+
+
+def break_skill_registry_invalid_description_type(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["description"] = {"not": "a-string"}
+    write_json(path, data)
+
+
+def break_skill_registry_empty_version(worktree: Path) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["version"] = ""
+    write_json(path, data)
+
 def break_artifact_type_folder_mismatch(worktree: Path) -> None:
     mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("type", "DifferentType"))
 
@@ -4822,6 +4921,69 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
             break_artifact_status_heading_not_required,
             "status.heading must be included in requiredHeadings",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when name is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_missing_name,
+            "name must be a non-empty string",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when provides is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_missing_provides,
+            "provides must be a non-empty list",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when provides has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_invalid_provides_type,
+            "provides must be a non-empty list",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when provides is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_empty_provides,
+            "provides must be a non-empty list",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when provides entry is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_empty_provides_entry,
+            "provides[0] must be a non-empty string",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when provides entry is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_duplicate_provides_entry,
+            "provides[",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when capability is provided by multiple skills",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_duplicate_global_capability,
+            "is already provided by",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when description has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_invalid_description_type,
+            "description must be a string when present",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when version is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_empty_version,
+            "version must be a non-empty string when present",
         ),
         (
             "failure",
