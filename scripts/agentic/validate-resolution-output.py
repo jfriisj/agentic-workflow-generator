@@ -53,6 +53,72 @@ def is_plain_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def validate_target_semantics_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    targets = resolution.get("targets")
+
+    if not isinstance(targets, list):
+        return errors
+
+    seen_target_names: set[str] = set()
+
+    for index, target in enumerate(targets):
+        if not isinstance(target, dict):
+            continue
+
+        name = target.get("name")
+        if isinstance(name, str) and name.strip():
+            if name in seen_target_names:
+                errors.append(f"{RESOLUTION_PATH}: targets[{index}].name is duplicated")
+            seen_target_names.add(name)
+
+        enabled = target.get("enabled")
+        missing = target.get("missing")
+        adapter_path = target.get("adapterPath")
+
+        if not isinstance(enabled, bool):
+            errors.append(f"{RESOLUTION_PATH}: targets[{index}].enabled must be a boolean")
+
+        if not isinstance(missing, bool):
+            errors.append(f"{RESOLUTION_PATH}: targets[{index}].missing must be a boolean")
+            continue
+
+        if missing:
+            if enabled is not False:
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}] must have enabled=false when missing=true"
+                )
+
+            if adapter_path is not None:
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be null when missing=true"
+                )
+        else:
+            if enabled is not True:
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}] must have enabled=true when missing=false"
+                )
+
+            if not isinstance(adapter_path, str) or not adapter_path.strip():
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a non-empty string when missing=false"
+                )
+            elif not is_safe_relative_path(adapter_path):
+                errors.append(
+                    f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a safe relative path"
+                )
+
+    summary = resolution.get("summary")
+    if isinstance(summary, dict):
+        target_count = summary.get("targetCount")
+        if is_plain_int(target_count) and target_count != len(targets):
+            errors.append(
+                f"{RESOLUTION_PATH}: summary.targetCount must match targets length"
+            )
+
+    return errors
+
+
 def validate_summary_resolution(resolution: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     summary = resolution.get("summary")
@@ -500,6 +566,7 @@ def main() -> int:
     errors.extend(validate_agent_identity_resolution(resolution))
     errors.extend(validate_agent_produces_resolution(resolution))
     errors.extend(validate_target_resolution(resolution))
+    errors.extend(validate_target_semantics_resolution(resolution))
 
     errors.extend(walk_for_errors(resolution))
 
