@@ -96,6 +96,11 @@ def validate_summary_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def is_safe_relative_path(value: str) -> bool:
+    path = Path(value)
+    return not path.is_absolute() and ".." not in path.parts
+
+
 def validate_project_string_field(
     project: dict[str, Any],
     field: str,
@@ -297,6 +302,11 @@ def validate_agent_produces_string_field(
             f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}].{field} "
             "must be a non-empty string"
         )
+    elif field in {"contractPath", "pathPattern"} and not is_safe_relative_path(value):
+        errors.append(
+            f"{RESOLUTION_PATH}: agents[{agent_index}].produces[{produce_index}].{field} "
+            "must be a safe relative path"
+        )
 
 
 def validate_agent_produces_string_list_field(
@@ -361,6 +371,10 @@ def validate_agent_identity_resolution(resolution: dict[str, Any]) -> list[str]:
         if not isinstance(registry_path, str) or not registry_path.strip():
             errors.append(
                 f"{RESOLUTION_PATH}: agents[{agent_index}].registryPath must be a non-empty string"
+            )
+        elif not is_safe_relative_path(registry_path):
+            errors.append(
+                f"{RESOLUTION_PATH}: agents[{agent_index}].registryPath must be a safe relative path"
             )
 
     return errors

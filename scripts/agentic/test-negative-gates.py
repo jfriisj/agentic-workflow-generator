@@ -1758,6 +1758,70 @@ def mutate_resolution_agent_string_field(
     write_json(path, data)
 
 
+
+def break_resolution_agent_registry_path_parent_reference(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "registryPath", "empty")
+
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    agents[0]["registryPath"] = "../registry/agents/unsafe/agent.json"
+    write_json(path, data)
+
+
+def break_resolution_agent_registry_path_absolute(worktree: Path) -> None:
+    mutate_resolution_agent_string_field(worktree, "registryPath", "empty")
+
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents or not isinstance(agents[0], dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    agents[0]["registryPath"] = "/tmp/unsafe/agent.json"
+    write_json(path, data)
+
+
+def break_resolution_produce_contract_path_parent_reference(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+    produce["contractPath"] = "../registry/artifacts/unsafe/artifact.json"
+    write_json(path, data)
+
+
+def break_resolution_produce_contract_path_absolute(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+    produce["contractPath"] = "/tmp/unsafe/artifact.json"
+    write_json(path, data)
+
+
+def break_resolution_produce_path_pattern_parent_reference(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+    produce["pathPattern"] = "../agent-output/unsafe/*.md"
+    write_json(path, data)
+
+
+def break_resolution_produce_path_pattern_absolute(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    _, _, _, produce = first_resolution_produce(data)
+    produce["pathPattern"] = "/tmp/agent-output/unsafe/*.md"
+    write_json(path, data)
+
 def break_resolution_agent_missing_role(worktree: Path) -> None:
     mutate_resolution_agent_string_field(worktree, "role", "missing")
 
@@ -3862,6 +3926,48 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_duplicate_agent_name,
             "agents[1].name is duplicated",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_registry_path_parent_reference,
+            "agents[0].registryPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when agent registryPath is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_agent_registry_path_absolute,
+            "agents[0].registryPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_contract_path_parent_reference,
+            "contractPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce contractPath is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_contract_path_absolute,
+            "contractPath must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce pathPattern contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_path_pattern_parent_reference,
+            "pathPattern must be a safe relative path",
+        ),
+        (
+            "failure",
+            "resolution validation fails when produce pathPattern is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_produce_path_pattern_absolute,
+            "pathPattern must be a safe relative path",
         ),
         (
             "failure",
