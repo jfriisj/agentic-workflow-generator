@@ -145,6 +145,10 @@ def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
             errors.append(f"{RESOLUTION_PATH}: targets[{index}] must be an object")
             continue
 
+        name = target.get("name")
+        if not isinstance(name, str) or not name.strip():
+            errors.append(f"{RESOLUTION_PATH}: targets[{index}].name must be a non-empty string")
+
     return errors
 
 
