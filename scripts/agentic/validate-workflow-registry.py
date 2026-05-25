@@ -7,6 +7,7 @@ from typing import Any
 
 ROOT = Path.cwd()
 WORKFLOWS_DIR = ROOT / "registry" / "workflows"
+AGENTS_DIR = ROOT / "registry" / "agents"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -21,6 +22,63 @@ def load_json(path: Path) -> dict[str, Any]:
 
     return data
 
+
+
+def expected_workflow_name(path: Path) -> str:
+    suffix = ".workflow.json"
+    name = path.name
+
+    if not name.endswith(suffix):
+        return path.stem
+
+    return name[: -len(suffix)]
+
+
+def collect_agent_names() -> set[str]:
+    agent_names: set[str] = set()
+
+    for path in sorted(AGENTS_DIR.glob("*/agent.json")):
+        try:
+            agent = load_json(path)
+        except Exception:
+            continue
+
+        name = agent.get("name")
+        if isinstance(name, str) and name.strip():
+            agent_names.add(name)
+
+    return agent_names
+
+
+def workflow_state_objects(workflow: dict[str, Any]) -> list[dict[str, Any]]:
+    states = workflow.get("states")
+
+    if not isinstance(states, list):
+        return []
+
+    return [state for state in states if isinstance(state, dict)]
+
+
+def state_name(state: dict[str, Any]) -> str | None:
+    raw_name = state.get("name") or state.get("id")
+    if isinstance(raw_name, str) and raw_name.strip():
+        return raw_name.strip()
+
+    return None
+
+
+def terminal_state_names_from_objects(states: list[dict[str, Any]]) -> set[str]:
+    terminal_names: set[str] = set()
+
+    for state in states:
+        name = state_name(state)
+        if name is None:
+            continue
+
+        if state.get("terminal") is True:
+            terminal_names.add(name)
+
+    return terminal_names
 
 def state_names_from_workflow(workflow: dict[str, Any]) -> set[str]:
     states = workflow.get("states", [])
@@ -87,7 +145,7 @@ def transition_pairs(workflow: dict[str, Any]) -> list[tuple[str, str]]:
     return pairs
 
 
-def validate_workflow_file(path: Path) -> list[str]:
+def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
     errors: list[str] = []
 
     try:
@@ -96,35 +154,102 @@ def validate_workflow_file(path: Path) -> list[str]:
         return [f"{path}: {exc}"]
 
     workflow_name = workflow.get("name") or workflow.get("id")
+    expected_name = expected_workflow_name(path)
+
     if not isinstance(workflow_name, str) or not workflow_name.strip():
         errors.append(f"{path}: workflow must declare name or id as a non-empty string")
+    elif workflow_name != expected_name:
+        errors.append(f"{path}: workflow name '{workflow_name}' does not match file name '{expected_name}'")
 
-    states = state_names_from_workflow(workflow)
+    fail_closed = workflow.get("failClosed")
+    if not isinstance(fail_closed, bool):
+        errors.append(f"{path}: failClosed must be a boolean")
+
+    raw_states = workflow.get("states")
+    if not isinstance(raw_states, list) or not raw_states:
+        errors.append(f"{path}: states must be a non-empty list")
+        return errors
+
+    state_objects = workflow_state_objects(workflow)
+
+    if len(state_objects) != len(raw_states):
+        errors.append(f"{path}: states entries must be objects")
+
+    state_names: list[str] = []
+    terminal_names_from_states = terminal_state_names_from_objects(state_objects)
+
+    for index, state in enumerate(raw_states):
+        if not isinstance(state, dict):
+            continue
+
+        name = state_name(state)
+        if name is None:
+            errors.append(f"{path}: states[{index}].name must be a non-empty string")
+            continue
+
+        if name in state_names:
+            errors.append(f"{path}: states[{index}].name '{name}' is duplicated")
+
+        state_names.append(name)
+
+        is_terminal = state.get("terminal") is True
+
+        if is_terminal:
+            if "agent" in state:
+                errors.append(f"{path}: terminal state '{name}' must not declare agent")
+            if "gate" in state:
+                errors.append(f"{path}: terminal state '{name}' must not declare gate")
+            continue
+
+        agent = state.get("agent")
+        if not isinstance(agent, str) or not agent.strip():
+            errors.append(f"{path}: non-terminal state '{name}' must declare agent")
+        elif agent not in agent_names:
+            errors.append(f"{path}: state '{name}' references unknown agent '{agent}'")
+
+        gate = state.get("gate")
+        if not isinstance(gate, str) or not gate.strip():
+            errors.append(f"{path}: non-terminal state '{name}' must declare gate")
+
+    states = set(state_names)
     if not states:
         errors.append(f"{path}: workflow must declare at least one state")
         return errors
 
     start_state = workflow.get("startState") or workflow.get("initialState")
-    if start_state is not None:
-        if not isinstance(start_state, str) or not start_state.strip():
-            errors.append(f"{path}: startState must be a non-empty string when present")
-        elif start_state not in states:
-            errors.append(f"{path}: startState '{start_state}' is not declared in states")
+    if start_state is None:
+        errors.append(f"{path}: startState must be declared")
+    elif not isinstance(start_state, str) or not start_state.strip():
+        errors.append(f"{path}: startState must be a non-empty string")
+    elif start_state not in states:
+        errors.append(f"{path}: startState '{start_state}' is not declared in states")
+    elif start_state in terminal_names_from_states:
+        errors.append(f"{path}: startState '{start_state}' must not be terminal")
 
-    terminal_states = workflow.get("terminalStates", [])
-    if terminal_states is None:
-        terminal_states = []
-
-    if not isinstance(terminal_states, list):
-        errors.append(f"{path}: terminalStates must be a list when present")
+    terminal_states = workflow.get("terminalStates")
+    if not isinstance(terminal_states, list) or not terminal_states:
+        errors.append(f"{path}: terminalStates must be a non-empty list")
     else:
-        for terminal_state in terminal_states:
+        seen_terminal_states: set[str] = set()
+
+        for index, terminal_state in enumerate(terminal_states):
             if not isinstance(terminal_state, str) or not terminal_state.strip():
-                errors.append(f"{path}: terminalStates entries must be non-empty strings")
+                errors.append(f"{path}: terminalStates[{index}] must be a non-empty string")
                 continue
+
+            if terminal_state in seen_terminal_states:
+                errors.append(f"{path}: terminalStates[{index}] '{terminal_state}' is duplicated")
+
+            seen_terminal_states.add(terminal_state)
 
             if terminal_state not in states:
                 errors.append(f"{path}: terminalState '{terminal_state}' is not declared in states")
+            elif terminal_state not in terminal_names_from_states:
+                errors.append(f"{path}: terminalState '{terminal_state}' must reference a terminal state")
+
+        undeclared_terminal_names = sorted(terminal_names_from_states - seen_terminal_states)
+        for terminal_name in undeclared_terminal_names:
+            errors.append(f"{path}: terminal state '{terminal_name}' must be listed in terminalStates")
 
     for source, target in transition_pairs(workflow):
         if source not in states:
@@ -144,9 +269,10 @@ def main() -> int:
         return 0
 
     errors: list[str] = []
+    agent_names = collect_agent_names()
 
     for workflow_file in workflow_files:
-        errors.extend(validate_workflow_file(workflow_file))
+        errors.extend(validate_workflow_file(workflow_file, agent_names))
 
     if errors:
         print(f"FAIL: Workflow registry validation found {len(errors)} error(s).")

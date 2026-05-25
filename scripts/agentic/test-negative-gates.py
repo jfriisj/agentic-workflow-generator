@@ -2993,6 +2993,160 @@ def first_two_skill_json_files(worktree: Path) -> tuple[Path, Path]:
     return skill_files[0], skill_files[1]
 
 
+
+def awg_first_workflow_registry_file(worktree: Path) -> Path:
+    workflow_files = sorted((worktree / "registry" / "workflows").glob("*.workflow.json"))
+    if not workflow_files:
+        raise RuntimeError("expected at least one workflow registry file")
+    return workflow_files[0]
+
+
+def awg_mutate_first_workflow(worktree: Path, mutator) -> None:
+    path = awg_first_workflow_registry_file(worktree)
+    data = load_json(path)
+    mutator(data)
+    write_json(path, data)
+
+
+def break_workflow_registry_name_file_mismatch(worktree: Path) -> None:
+    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
+
+
+def break_workflow_registry_fail_closed_invalid_type(worktree: Path) -> None:
+    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("failClosed", "true"))
+
+
+def break_workflow_registry_states_invalid_type(worktree: Path) -> None:
+    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("states", "not-a-list"))
+
+
+def break_workflow_registry_duplicate_state_name(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        if not isinstance(states, list) or len(states) < 2:
+            raise RuntimeError("workflow states must contain at least two entries before mutation")
+        if not isinstance(states[0], dict) or not isinstance(states[1], dict):
+            raise RuntimeError("workflow states must be objects before mutation")
+        states[1]["name"] = states[0]["name"]
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_start_state_missing(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data.pop("startState", None)
+        data.pop("initialState", None)
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_start_state_terminal(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        terminal_states = data.get("terminalStates")
+        if not isinstance(terminal_states, list) or not terminal_states:
+            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
+        data["startState"] = terminal_states[0]
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_terminal_states_empty(worktree: Path) -> None:
+    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("terminalStates", []))
+
+
+def break_workflow_registry_duplicate_terminal_state(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        terminal_states = data.get("terminalStates")
+        if not isinstance(terminal_states, list) or not terminal_states:
+            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
+        terminal_states.append(terminal_states[0])
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_terminal_state_not_marked_terminal(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        terminal_states = data.get("terminalStates")
+        states = data.get("states")
+        if not isinstance(terminal_states, list) or not terminal_states:
+            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        target_name = terminal_states[0]
+        for state in states:
+            if isinstance(state, dict) and state.get("name") == target_name:
+                state.pop("terminal", None)
+                return
+
+        raise RuntimeError("could not find terminal state before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_non_terminal_missing_agent(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        for state in states:
+            if isinstance(state, dict) and state.get("terminal") is not True:
+                state.pop("agent", None)
+                return
+
+        raise RuntimeError("could not find non-terminal state before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_non_terminal_unknown_agent(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        for state in states:
+            if isinstance(state, dict) and state.get("terminal") is not True:
+                state["agent"] = "MissingAgent"
+                return
+
+        raise RuntimeError("could not find non-terminal state before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_non_terminal_missing_gate(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        for state in states:
+            if isinstance(state, dict) and state.get("terminal") is not True:
+                state.pop("gate", None)
+                return
+
+        raise RuntimeError("could not find non-terminal state before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_terminal_state_declares_agent(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        for state in states:
+            if isinstance(state, dict) and state.get("terminal") is True:
+                state["agent"] = "QA"
+                return
+
+        raise RuntimeError("could not find terminal state before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
@@ -4984,6 +5138,97 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-skills"],
             break_skill_registry_empty_version,
             "version must be a non-empty string when present",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when name does not match file",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_name_file_mismatch,
+            "does not match file name",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when failClosed has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_fail_closed_invalid_type,
+            "failClosed must be a boolean",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when states has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_states_invalid_type,
+            "states must be a non-empty list",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when state name is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_duplicate_state_name,
+            "is duplicated",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when startState is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_start_state_missing,
+            "startState must be declared",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when startState is terminal",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_start_state_terminal,
+            "must not be terminal",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminalStates is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_terminal_states_empty,
+            "terminalStates must be a non-empty list",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminalState is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_duplicate_terminal_state,
+            "terminalStates",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminalState is not marked terminal",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_terminal_state_not_marked_terminal,
+            "must reference a terminal state",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when non-terminal state has no agent",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_non_terminal_missing_agent,
+            "must declare agent",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when non-terminal state references unknown agent",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_non_terminal_unknown_agent,
+            "references unknown agent",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when non-terminal state has no gate",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_non_terminal_missing_gate,
+            "must declare gate",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminal state declares agent",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_terminal_state_declares_agent,
+            "must not declare agent",
         ),
         (
             "failure",
