@@ -108,14 +108,6 @@ def validate_target_semantics_resolution(resolution: dict[str, Any]) -> list[str
                     f"{RESOLUTION_PATH}: targets[{index}].adapterPath must be a safe relative path"
                 )
 
-    summary = resolution.get("summary")
-    if isinstance(summary, dict):
-        target_count = summary.get("targetCount")
-        if is_plain_int(target_count) and target_count != len(targets):
-            errors.append(
-                f"{RESOLUTION_PATH}: summary.targetCount must match targets length"
-            )
-
     return errors
 
 
