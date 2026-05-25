@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 48,
-    "contentHash": "sha256:1ce2ca7ac668ef7cac196f65869774a5140f7884bea9a90577719eeddb15f5f4",
+    "fileCount": 49,
+    "contentHash": "sha256:bb89b5f42cf822aef378f2f1ae8088edd61c6f13a7823a26f447c1d6d74162c9",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -180,6 +180,11 @@
         "path": "scripts/agentic/generate-vscode-copilot.py",
         "sha256": "sha256:b344068214fef05df652193e1de014d95c1e3f101b05289e593131f7b020c309",
         "sizeBytes": 7654
+      },
+      {
+        "path": "scripts/agentic/install-git-hooks.sh",
+        "sha256": "sha256:c9a3e0949938c159846b1570b77f9694852f5447f02c7be352efdb78984cd576",
+        "sizeBytes": 559
       },
       {
         "path": "scripts/agentic/report-capability-coverage.py",

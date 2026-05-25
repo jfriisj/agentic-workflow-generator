@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "== Agentic pre-push hook =="
+scripts/agentic/agentic-gen.sh doctor-strict
