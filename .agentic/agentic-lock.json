@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 54,
-    "contentHash": "sha256:c621283fb3417d3fe015b36ee62660fbe7b85bcb9520a3b747d3e25b478954a9",
+    "contentHash": "sha256:7969eba3958ad45c3bdabac0999fd5e1a727d80ad75db8b0eded57360ddaa751",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -108,8 +108,8 @@
       },
       {
         "path": "registry/skills/code-review-clean-code/SKILL.md",
-        "sha256": "sha256:6b90fc7735ed3f8ea26b5f996d6f9231b008dbe6dcd03bc5977d242aec8ca4b8",
-        "sizeBytes": 970
+        "sha256": "sha256:fcb0450d64e1559bd33f7008672391d5d2ec65c9ec2e2381bc03f814d97c7c0d",
+        "sizeBytes": 589
       },
       {
         "path": "registry/skills/code-review-clean-code/skill.json",
@@ -203,8 +203,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:ab8a2167a935bad6a1095404d9c57d9cfe7ceb52fa97b12d6ab428caa4ff0b16",
-        "sizeBytes": 8160
+        "sha256": "sha256:a42274b35fd7ea5c75f679aa58b130bf0b09f157f12ca9f5e863b983eec22170",
+        "sizeBytes": 8889
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
