@@ -538,6 +538,15 @@ def break_output_manifest_missing_target_name(worktree: Path) -> None:
 
 
 
+def break_output_manifest_invalid_summary_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    data["summary"] = "not-an-object"
+    write_json(path, data)
+
+
+
 def break_output_manifest_missing_summary(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1240,6 +1249,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_missing_target_name,
             "missing non-empty name",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_invalid_summary_type,
+            "expected summary object",
         ),
         (
             "failure",
