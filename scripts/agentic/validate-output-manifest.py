@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-EXPECTED_SCHEMA_VERSION = "0.1.0"
-
 from __future__ import annotations
+
+EXPECTED_SCHEMA_VERSION = "0.1.0"
 
 import hashlib
 import json
