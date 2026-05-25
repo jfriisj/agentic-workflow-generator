@@ -11,12 +11,6 @@
     ],
     "architectureProfile": "platform-neutral-workflow-compiler"
   },
-  "generator": {
-    "name": "agentic-gen",
-    "version": "0.1.0",
-    "mode": "compiler",
-    "runtimeExecution": false
-  },
   "workflow": {
     "profile": "orchestrated-delivery",
     "startState": "Requirements",
@@ -26,192 +20,69 @@
     ],
     "failClosed": true
   },
-  "summary": {
-    "agentCount": 7,
-    "skillCount": 4,
-    "targetAdapterCount": 2,
-    "enabledTargetCount": 2,
-    "errorCount": 0
-  },
-  "targets": [
-    {
-      "name": "vscode-copilot",
-      "enabled": true,
-      "priority": 1,
-      "adapterPath": "registry/targets/vscode-copilot/adapter.json",
-      "supportedFeatures": {
-        "agents": true,
-        "skills": true,
-        "handoffs": true,
-        "permissionProfiles": "partial",
-        "runtimeContext": "instruction-reference",
-        "toolRestrictions": "partial"
-      }
-    },
-    {
-      "name": "opencode",
-      "enabled": true,
-      "priority": 2,
-      "adapterPath": "registry/targets/opencode/adapter.json",
-      "supportedFeatures": {
-        "agents": true,
-        "skills": true,
-        "handoffs": "instruction-only",
-        "permissionProfiles": true,
-        "runtimeContext": "instruction-reference",
-        "toolRestrictions": true
-      }
-    },
-    {
-      "name": "codex",
-      "enabled": false,
-      "priority": 3,
-      "adapterPath": null,
-      "supportedFeatures": {}
-    },
-    {
-      "name": "claude-code",
-      "enabled": false,
-      "priority": 4,
-      "adapterPath": null,
-      "supportedFeatures": {}
-    }
-  ],
   "agents": [
     {
       "name": "Orchestrator",
       "role": "workflow-state-machine",
-      "permissionProfile": "read-only",
-      "resolvedCapabilities": [
-        {
-          "capability": "workflow.route",
-          "skill": "workflow-routing",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/workflow-routing/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 1800
-          }
-        },
-        {
-          "capability": "workflow.validate-state",
-          "skill": "workflow-routing",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/workflow-routing/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 1800
-          }
-        },
-        {
-          "capability": "workflow.handoff",
-          "skill": "workflow-routing",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/workflow-routing/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 1800
-          }
-        }
+      "registryPath": "registry/agents/Orchestrator/agent.json",
+      "capabilities": [
+        "workflow.route",
+        "workflow.validate-state",
+        "workflow.handoff"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "workflow.route",
+        "workflow.validate-state",
+        "workflow.handoff"
+      ],
       "produces": []
     },
     {
       "name": "Requirements",
       "role": "requirements-analysis",
-      "permissionProfile": "read-only",
-      "resolvedCapabilities": [
-        {
-          "capability": "requirements.elicit",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "requirements.define-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/Requirements/agent.json",
+      "capabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
+      ],
       "produces": []
     },
     {
       "name": "Architect",
       "role": "architecture-design",
-      "permissionProfile": "read-only",
-      "resolvedCapabilities": [
-        {
-          "capability": "architecture.design",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "architecture.evaluate-tradeoffs",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/Architect/agent.json",
+      "capabilities": [
+        "architecture.design",
+        "architecture.evaluate-tradeoffs"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "architecture.design",
+        "architecture.evaluate-tradeoffs"
+      ],
       "produces": []
     },
     {
       "name": "Implementer",
       "role": "implementation",
-      "permissionProfile": "implementation",
-      "resolvedCapabilities": [
-        {
-          "capability": "implementation.code",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "implementation.refactor",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "implementation.update-tests",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/Implementer/agent.json",
+      "capabilities": [
+        "implementation.code",
+        "implementation.refactor",
+        "implementation.update-tests"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "implementation.code",
+        "implementation.refactor",
+        "implementation.update-tests"
+      ],
       "produces": [
         {
           "type": "ImplementationReport",
@@ -238,40 +109,18 @@
     {
       "name": "TestRunner",
       "role": "validation",
-      "permissionProfile": "test-runner",
-      "resolvedCapabilities": [
-        {
-          "capability": "test.run",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "test.report",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "test.diagnose-failure",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/TestRunner/agent.json",
+      "capabilities": [
+        "test.run",
+        "test.report",
+        "test.diagnose-failure"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "test.run",
+        "test.report",
+        "test.diagnose-failure"
+      ],
       "produces": [
         {
           "type": "TestReport",
@@ -298,40 +147,18 @@
     {
       "name": "CodeReviewer",
       "role": "code-quality-gate",
-      "permissionProfile": "read-only",
-      "resolvedCapabilities": [
-        {
-          "capability": "review.clean-code",
-          "skill": "code-review-clean-code",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/code-review-clean-code/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 1800
-          }
-        },
-        {
-          "capability": "review.tests",
-          "skill": "code-review-tests",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/code-review-tests/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 1600
-          }
-        },
-        {
-          "capability": "review.security",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/CodeReviewer/agent.json",
+      "capabilities": [
+        "review.clean-code",
+        "review.tests",
+        "review.security"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "review.clean-code",
+        "review.tests",
+        "review.security"
+      ],
       "produces": [
         {
           "type": "CodeReview",
@@ -357,30 +184,16 @@
     {
       "name": "QA",
       "role": "quality-assurance",
-      "permissionProfile": "read-only",
-      "resolvedCapabilities": [
-        {
-          "capability": "qa.verify-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        },
-        {
-          "capability": "qa.validate-evidence",
-          "skill": "mvp-core-capabilities",
-          "version": "0.1.0",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json",
-          "contentPath": "SKILL.md",
-          "contextBudget": {
-            "maxTokens": 2400
-          }
-        }
+      "registryPath": "registry/agents/QA/agent.json",
+      "capabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
       ],
-      "unresolvedCapabilities": [],
+      "resolvedCapabilities": [],
+      "missingCapabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
+      ],
       "produces": [
         {
           "type": "QAReport",
@@ -405,325 +218,59 @@
       ]
     }
   ],
-  "capabilityIndex": {
-    "review.clean-code": [
-      {
-        "skill": "code-review-clean-code",
-        "version": "0.1.0",
-        "path": "registry/skills/code-review-clean-code/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "CodeReviewer"
-        ],
-        "contextBudget": {
-          "maxTokens": 1800
-        }
-      }
-    ],
-    "review.tests": [
-      {
-        "skill": "code-review-tests",
-        "version": "0.1.0",
-        "path": "registry/skills/code-review-tests/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "CodeReviewer",
-          "TestRunner"
-        ],
-        "contextBudget": {
-          "maxTokens": 1600
-        }
-      }
-    ],
-    "requirements.elicit": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "requirements.define-acceptance-criteria": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "architecture.design": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "architecture.evaluate-tradeoffs": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "implementation.code": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "implementation.refactor": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "implementation.update-tests": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "test.run": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "test.report": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "test.diagnose-failure": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "qa.verify-acceptance-criteria": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "qa.validate-evidence": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "review.security": [
-      {
-        "skill": "mvp-core-capabilities",
-        "version": "0.1.0",
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Requirements",
-          "Architect",
-          "Implementer",
-          "TestRunner",
-          "CodeReviewer",
-          "QA"
-        ],
-        "contextBudget": {
-          "maxTokens": 2400
-        }
-      }
-    ],
-    "workflow.route": [
-      {
-        "skill": "workflow-routing",
-        "version": "0.1.0",
-        "path": "registry/skills/workflow-routing/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Orchestrator"
-        ],
-        "contextBudget": {
-          "maxTokens": 1800
-        }
-      }
-    ],
-    "workflow.validate-state": [
-      {
-        "skill": "workflow-routing",
-        "version": "0.1.0",
-        "path": "registry/skills/workflow-routing/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Orchestrator"
-        ],
-        "contextBudget": {
-          "maxTokens": 1800
-        }
-      }
-    ],
-    "workflow.handoff": [
-      {
-        "skill": "workflow-routing",
-        "version": "0.1.0",
-        "path": "registry/skills/workflow-routing/skill.json",
-        "contentPath": "SKILL.md",
-        "allowedAgents": [
-          "Orchestrator"
-        ],
-        "contextBudget": {
-          "maxTokens": 1800
-        }
-      }
+  "targets": [
+    {
+      "name": "vscode-copilot",
+      "enabled": true,
+      "adapterPath": "registry/targets/vscode-copilot/adapter.json",
+      "missing": false
+    },
+    {
+      "name": "opencode",
+      "enabled": true,
+      "adapterPath": "registry/targets/opencode/adapter.json",
+      "missing": false
+    },
+    {
+      "name": "codex",
+      "enabled": false,
+      "adapterPath": null,
+      "missing": true
+    },
+    {
+      "name": "claude-code",
+      "enabled": false,
+      "adapterPath": null,
+      "missing": true
+    }
+  ],
+  "summary": {
+    "agentCount": 7,
+    "targetCount": 4,
+    "availableSkillCount": 4,
+    "producedArtifactBindingCount": 4,
+    "errorCount": 20,
+    "errors": [
+      "Agent Orchestrator has unresolved capability: workflow.route",
+      "Agent Orchestrator has unresolved capability: workflow.validate-state",
+      "Agent Orchestrator has unresolved capability: workflow.handoff",
+      "Agent Requirements has unresolved capability: requirements.elicit",
+      "Agent Requirements has unresolved capability: requirements.define-acceptance-criteria",
+      "Agent Architect has unresolved capability: architecture.design",
+      "Agent Architect has unresolved capability: architecture.evaluate-tradeoffs",
+      "Agent Implementer has unresolved capability: implementation.code",
+      "Agent Implementer has unresolved capability: implementation.refactor",
+      "Agent Implementer has unresolved capability: implementation.update-tests",
+      "Agent TestRunner has unresolved capability: test.run",
+      "Agent TestRunner has unresolved capability: test.report",
+      "Agent TestRunner has unresolved capability: test.diagnose-failure",
+      "Agent CodeReviewer has unresolved capability: review.clean-code",
+      "Agent CodeReviewer has unresolved capability: review.tests",
+      "Agent CodeReviewer has unresolved capability: review.security",
+      "Agent QA has unresolved capability: qa.verify-acceptance-criteria",
+      "Agent QA has unresolved capability: qa.validate-evidence",
+      "Missing target adapter: registry/targets/codex/adapter.json",
+      "Missing target adapter: registry/targets/claude-code/adapter.json"
     ]
-  },
-  "errors": []
+  }
 }

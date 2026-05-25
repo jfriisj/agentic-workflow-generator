@@ -20,7 +20,7 @@ Usage:
 
 Commands:
   validate   Validate .agentic/agentic.json against its JSON Schema.
-  resolve    Resolve agents, targets, capabilities, and skills.
+  resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
   lock       Generate deterministic .agentic/agentic-lock.json.
   validate-artifacts
              Validate registered artifact contracts and existing artifact files.
@@ -55,7 +55,6 @@ validate_json_files() {
 check_scripts() {
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
-  require_file "scripts/agentic/enrich-resolution-artifacts.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
   require_file "scripts/agentic/generate-opencode.py"
   require_file "scripts/agentic/generate-lockfile.py"
@@ -66,7 +65,6 @@ check_scripts() {
   bash -n "scripts/agentic/agentic-gen.sh"
 
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
-  python -m py_compile "scripts/agentic/enrich-resolution-artifacts.py"
   python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
   python -m py_compile "scripts/agentic/generate-opencode.py"
   python -m py_compile "scripts/agentic/generate-lockfile.py"
@@ -98,18 +96,13 @@ generate_target() {
   esac
 }
 
-resolve_and_enrich() {
-  python scripts/agentic/resolve-agentic-config.py
-  python scripts/agentic/enrich-resolution-artifacts.py
-}
-
 run_pipeline() {
   local target="$1"
 
   check_scripts
   validate_json_files
   scripts/agentic/validate-agentic-config.sh
-  resolve_and_enrich
+  python scripts/agentic/resolve-agentic-config.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
   python scripts/agentic/validate-agent-artifact-bindings.py
@@ -172,7 +165,7 @@ case "$COMMAND" in
     scripts/agentic/validate-agentic-config.sh
     ;;
   resolve)
-    resolve_and_enrich
+    python scripts/agentic/resolve-agentic-config.py
     ;;
   lock)
     python scripts/agentic/generate-lockfile.py
@@ -184,7 +177,7 @@ case "$COMMAND" in
     python scripts/agentic/validate-agent-artifact-bindings.py
     ;;
   generate)
-    resolve_and_enrich
+    python scripts/agentic/resolve-agentic-config.py
     python scripts/agentic/generate-lockfile.py
     generate_target "$TARGET"
     ;;

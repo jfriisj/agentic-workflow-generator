@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Any
-
 
 ROOT = Path.cwd()
 CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
@@ -14,13 +12,10 @@ OUTPUT_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
 
 
 def load_json(path: Path) -> dict[str, Any]:
-    try:
-        with path.open("r", encoding="utf-8") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        raise SystemExit(f"ERROR: File not found: {path}")
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"ERROR: Invalid JSON in {path}: {exc}")
+    if not path.is_file():
+        raise FileNotFoundError(f"Required file not found: {path}")
+    with path.open("r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 def write_json(path: Path, data: dict[str, Any]) -> None:
@@ -30,209 +25,191 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
         file.write("\n")
 
 
-def load_registry_skills() -> dict[str, dict[str, Any]]:
+def registry_agent_path(agent_name: str) -> Path:
+    return REGISTRY_PATH / "agents" / agent_name / "agent.json"
+
+
+def registry_target_path(target_name: str) -> Path:
+    return REGISTRY_PATH / "targets" / target_name / "adapter.json"
+
+
+def registry_artifact_path(artifact_type: str) -> Path:
+    return REGISTRY_PATH / "artifacts" / artifact_type / "artifact.json"
+
+
+def load_artifact_metadata(artifact_type: str) -> dict[str, Any]:
+    artifact_path = registry_artifact_path(artifact_type)
+    contract = load_json(artifact_path)
+
+    return {
+        "type": artifact_type,
+        "contractPath": str(artifact_path.relative_to(ROOT)),
+        "pathPattern": contract.get("pathPattern"),
+        "allowedStatuses": contract.get("allowedStatuses", []),
+        "requiredHeadings": contract.get("requiredHeadings", []),
+    }
+
+
+def load_available_skills() -> dict[str, dict[str, Any]]:
     skills: dict[str, dict[str, Any]] = {}
 
     for skill_file in sorted((REGISTRY_PATH / "skills").glob("*/skill.json")):
         skill = load_json(skill_file)
-        name = skill.get("name")
-
-        if not name:
-            raise SystemExit(f"ERROR: Skill has no name: {skill_file}")
-
-        if name in skills:
-            raise SystemExit(f"ERROR: Duplicate skill name: {name}")
-
-        skill["_registryPath"] = str(skill_file.relative_to(ROOT))
+        name = skill.get("name") or skill_file.parent.name
+        skill["_path"] = str(skill_file.relative_to(ROOT))
         skills[name] = skill
 
     return skills
 
 
-def load_target_adapters() -> dict[str, dict[str, Any]]:
-    adapters: dict[str, dict[str, Any]] = {}
-
-    for adapter_file in sorted((REGISTRY_PATH / "targets").glob("*/adapter.json")):
-        adapter = load_json(adapter_file)
-        name = adapter.get("name")
-
-        if not name:
-            raise SystemExit(f"ERROR: Target adapter has no name: {adapter_file}")
-
-        if name in adapters:
-            raise SystemExit(f"ERROR: Duplicate target adapter name: {name}")
-
-        adapter["_registryPath"] = str(adapter_file.relative_to(ROOT))
-        adapters[name] = adapter
-
-    return adapters
+def capabilities_for_skill(skill: dict[str, Any]) -> list[str]:
+    capabilities = skill.get("capabilities", [])
+    if not isinstance(capabilities, list):
+        return []
+    return [str(capability) for capability in capabilities]
 
 
-def build_capability_index(skills: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    index: dict[str, list[dict[str, Any]]] = {}
-
-    for skill_name, skill in skills.items():
-        for capability in skill.get("provides", []):
-            index.setdefault(capability, []).append(
-                {
-                    "skill": skill_name,
-                    "version": skill.get("version"),
-                    "path": skill.get("_registryPath"),
-                    "contentPath": skill.get("contentPath"),
-                    "allowedAgents": skill.get("allowedAgents", []),
-                    "contextBudget": skill.get("contextBudget", {})
-                }
-            )
-
-    return index
-
-
-def resolve_agent_capabilities(
-    config: dict[str, Any],
-    capability_index: dict[str, list[dict[str, Any]]]
-) -> tuple[list[dict[str, Any]], list[str]]:
-    resolved_agents: list[dict[str, Any]] = []
-    errors: list[str] = []
-
-    for agent in config.get("agents", []):
-        agent_name = agent.get("name")
-        requested_capabilities = agent.get("capabilities", [])
-        resolved_capabilities: list[dict[str, Any]] = []
-
-        for capability in requested_capabilities:
-            candidates = capability_index.get(capability, [])
-
-            allowed_candidates = [
-                candidate
-                for candidate in candidates
-                if not candidate.get("allowedAgents")
-                or agent_name in candidate.get("allowedAgents", [])
-            ]
-
-            if not candidates:
-                errors.append(
-                    f"Agent '{agent_name}' requires capability '{capability}', "
-                    f"but no skill provides it."
-                )
-                continue
-
-            if not allowed_candidates:
-                errors.append(
-                    f"Agent '{agent_name}' requires capability '{capability}', "
-                    f"but no providing skill allows this agent."
-                )
-                continue
-
-            if len(allowed_candidates) > 1:
-                errors.append(
-                    f"Agent '{agent_name}' capability '{capability}' resolved to multiple skills: "
-                    + ", ".join(candidate["skill"] for candidate in allowed_candidates)
-                )
-                continue
-
-            resolved = allowed_candidates[0]
-            resolved_capabilities.append(
-                {
-                    "capability": capability,
-                    "skill": resolved["skill"],
-                    "version": resolved["version"],
-                    "skillPath": resolved["path"],
-                    "contentPath": resolved["contentPath"],
-                    "contextBudget": resolved["contextBudget"]
-                }
-            )
-
-        resolved_agents.append(
-            {
-                "name": agent_name,
-                "role": agent.get("role"),
-                "permissionProfile": agent.get("permissionProfile"),
-                "resolvedCapabilities": resolved_capabilities,
-                "unresolvedCapabilities": [
-                    capability
-                    for capability in requested_capabilities
-                    if capability not in [
-                        item["capability"] for item in resolved_capabilities
-                    ]
-                ]
+def resolve_capability(
+    capability: str,
+    available_skills: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    for skill_name in sorted(available_skills):
+        skill = available_skills[skill_name]
+        if capability in capabilities_for_skill(skill):
+            return {
+                "capability": capability,
+                "skill": skill_name,
+                "skillPath": skill["_path"],
             }
-        )
-
-    return resolved_agents, errors
+    return None
 
 
-def validate_targets(
-    config: dict[str, Any],
-    adapters: dict[str, dict[str, Any]]
-) -> tuple[list[dict[str, Any]], list[str]]:
-    resolved_targets: list[dict[str, Any]] = []
-    errors: list[str] = []
+def resolve_agent(
+    config_agent: dict[str, Any],
+    available_skills: dict[str, dict[str, Any]],
+    errors: list[str],
+) -> dict[str, Any]:
+    agent_name = config_agent["name"]
+    agent_file = registry_agent_path(agent_name)
 
-    for target in config.get("targets", []):
-        target_name = target.get("name")
-        enabled = target.get("enabled", False)
+    registry_agent: dict[str, Any] | None = None
+    if not agent_file.is_file():
+        errors.append(f"Missing registry agent definition: {agent_file.relative_to(ROOT)}")
+    else:
+        registry_agent = load_json(agent_file)
 
-        adapter = adapters.get(target_name)
+    resolved_capabilities: list[dict[str, Any]] = []
+    missing_capabilities: list[str] = []
 
-        if enabled and adapter is None:
-            errors.append(
-                f"Target '{target_name}' is enabled, but no adapter exists in registry."
-            )
-            continue
+    for capability in config_agent.get("capabilities", []):
+        resolved = resolve_capability(capability, available_skills)
+        if resolved is None:
+            missing_capabilities.append(capability)
+            errors.append(f"Agent {agent_name} has unresolved capability: {capability}")
+        else:
+            resolved_capabilities.append(resolved)
 
-        resolved_targets.append(
-            {
-                "name": target_name,
-                "enabled": enabled,
-                "priority": target.get("priority"),
-                "adapterPath": adapter.get("_registryPath") if adapter else None,
-                "supportedFeatures": adapter.get("supportedFeatures", {}) if adapter else {}
-            }
-        )
+    produces: list[dict[str, Any]] = []
 
-    return resolved_targets, errors
+    if registry_agent is not None:
+        raw_produces = registry_agent.get("produces", [])
+
+        if raw_produces is None:
+            raw_produces = []
+
+        if not isinstance(raw_produces, list):
+            errors.append(f"{agent_file.relative_to(ROOT)}: produces must be a list")
+        else:
+            for artifact_type in raw_produces:
+                if not isinstance(artifact_type, str) or not artifact_type.strip():
+                    errors.append(f"{agent_file.relative_to(ROOT)}: produces entries must be non-empty strings")
+                    continue
+
+                artifact_file = registry_artifact_path(artifact_type)
+                if not artifact_file.is_file():
+                    errors.append(
+                        f"Agent {agent_name} produces missing artifact contract: "
+                        f"{artifact_file.relative_to(ROOT)}"
+                    )
+                    continue
+
+                produces.append(load_artifact_metadata(artifact_type))
+
+    return {
+        "name": agent_name,
+        "role": config_agent.get("role"),
+        "registryPath": str(agent_file.relative_to(ROOT)),
+        "capabilities": config_agent.get("capabilities", []),
+        "resolvedCapabilities": resolved_capabilities,
+        "missingCapabilities": missing_capabilities,
+        "produces": produces,
+    }
+
+
+def resolve_target(target: dict[str, Any], errors: list[str]) -> dict[str, Any]:
+    target_name = target["name"]
+    adapter_file = registry_target_path(target_name)
+
+    if not adapter_file.is_file():
+        errors.append(f"Missing target adapter: {adapter_file.relative_to(ROOT)}")
+        return {
+            "name": target_name,
+            "enabled": target.get("enabled", False),
+            "adapterPath": None,
+            "missing": True,
+        }
+
+    return {
+        "name": target_name,
+        "enabled": target.get("enabled", False),
+        "adapterPath": str(adapter_file.relative_to(ROOT)),
+        "missing": False,
+    }
 
 
 def main() -> int:
     config = load_json(CONFIG_PATH)
-    skills = load_registry_skills()
-    adapters = load_target_adapters()
-    capability_index = build_capability_index(skills)
+    available_skills = load_available_skills()
+    errors: list[str] = []
 
-    resolved_agents, capability_errors = resolve_agent_capabilities(config, capability_index)
-    resolved_targets, target_errors = validate_targets(config, adapters)
+    resolved_agents = [
+        resolve_agent(config_agent, available_skills, errors)
+        for config_agent in config.get("agents", [])
+    ]
 
-    errors = capability_errors + target_errors
+    resolved_targets = [
+        resolve_target(target, errors)
+        for target in config.get("targets", [])
+    ]
+
+    produced_binding_count = sum(len(agent.get("produces", [])) for agent in resolved_agents)
 
     resolution = {
         "project": config.get("project", {}),
-        "generator": config.get("generator", {}),
         "workflow": config.get("workflow", {}),
-        "summary": {
-            "agentCount": len(config.get("agents", [])),
-            "skillCount": len(skills),
-            "targetAdapterCount": len(adapters),
-            "enabledTargetCount": len(
-                [target for target in config.get("targets", []) if target.get("enabled")]
-            ),
-            "errorCount": len(errors)
-        },
-        "targets": resolved_targets,
         "agents": resolved_agents,
-        "capabilityIndex": capability_index,
-        "errors": errors
+        "targets": resolved_targets,
+        "summary": {
+            "agentCount": len(resolved_agents),
+            "targetCount": len(resolved_targets),
+            "availableSkillCount": len(available_skills),
+            "producedArtifactBindingCount": produced_binding_count,
+            "errorCount": len(errors),
+            "errors": errors,
+        },
     }
 
     write_json(OUTPUT_PATH, resolution)
 
     if errors:
-        print(f"FAIL: Resolution completed with {len(errors)} error(s).")
+        print(f"FAIL: Agentic config resolved with {len(errors)} error(s).")
         for error in errors:
             print(f"  - {error}")
-        print(f"Wrote partial resolution to: {OUTPUT_PATH}")
+        print(f"Wrote resolution to: {OUTPUT_PATH}")
         return 1
 
     print("PASS: Agentic config resolved successfully.")
+    print(f"PASS: Resolved {produced_binding_count} produced artifact binding(s).")
     print(f"Wrote resolution to: {OUTPUT_PATH}")
     return 0
 
