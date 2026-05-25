@@ -464,6 +464,19 @@ def break_output_manifest_empty_owned_paths(worktree: Path) -> None:
 
 
 
+def break_output_manifest_invalid_target_entry_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    targets[0] = "not-an-object"
+    write_json(path, data)
+
+
+
 def break_output_manifest_missing_owned_paths(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1149,6 +1162,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_empty_owned_paths,
             "expected non-empty ownedPaths list",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when target entry is invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_invalid_target_entry_type,
+            "expected object",
         ),
         (
             "failure",
