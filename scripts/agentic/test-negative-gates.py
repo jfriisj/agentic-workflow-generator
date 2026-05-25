@@ -235,6 +235,14 @@ def break_cleanup_manifest_parent_path(worktree: Path) -> None:
 
 
 
+def break_output_manifest_unsupported_schema_version(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+    data["schemaVersion"] = "999.0.0"
+    write_json(path, data)
+
+
+
 def break_output_manifest_schema_version(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -428,6 +436,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_schema_version,
             "schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when schemaVersion is unsupported",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_unsupported_schema_version,
+            "Unsupported output manifest schemaVersion",
         ),
         (
             "failure",

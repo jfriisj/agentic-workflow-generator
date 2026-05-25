@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+EXPECTED_SCHEMA_VERSION = "0.1.0"
+
 from __future__ import annotations
 
 import hashlib
@@ -203,8 +205,20 @@ def validate_target_ownership(
         errors.append(f"target {target_name}: declared generated file is outside owned paths: {path}")
 
 
+def validate_schema_version(data: dict[str, object]) -> list[str]:
+    version = data.get("schemaVersion")
+    if version != EXPECTED_SCHEMA_VERSION:
+        return [
+            f"Unsupported output manifest schemaVersion: {version!r}; "
+            f"expected {EXPECTED_SCHEMA_VERSION!r}"
+        ]
+    return []
+
+
+
 def main() -> int:
     errors: list[str] = []
+    errors.extend(validate_schema_version(data))
 
     try:
         manifest = load_json(MANIFEST_PATH)
