@@ -193,6 +193,27 @@ def break_cleanup_generated_dry_run(worktree: Path) -> None:
 
 
 
+def break_cleanup_manifest_parent_path(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("first manifest target must be an object before mutation")
+
+    owned_paths = first_target.get("ownedPaths")
+    if not isinstance(owned_paths, list):
+        raise RuntimeError("first manifest target ownedPaths must be a list before mutation")
+
+    owned_paths.append("../outside-repo")
+    write_json(path, data)
+
+
+
 def break_output_manifest_schema_version(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -318,6 +339,13 @@ def main() -> int:
             break_cleanup_generated_apply,
             "Removed unmanaged generated file",
             assert_cleanup_apply_removed_file,
+        ),
+        (
+            "failure",
+            "cleanup dry-run rejects parent-directory ownedPath",
+            ["scripts/agentic/agentic-gen.sh", "cleanup-generated", "--dry-run"],
+            break_cleanup_manifest_parent_path,
+            "Unsafe ownedPath",
         ),
         (
             "failure",
