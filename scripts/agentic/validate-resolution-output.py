@@ -44,16 +44,9 @@ def walk_for_errors(value: Any, path: str = "$") -> list[str]:
     return errors
 
 
-def has_non_empty_collection(resolution: dict[str, Any], key: str) -> bool:
+def has_non_empty_list(resolution: dict[str, Any], key: str) -> bool:
     value = resolution.get(key)
-
-    if isinstance(value, list):
-        return bool(value)
-
-    if isinstance(value, dict):
-        return bool(value)
-
-    return False
+    return isinstance(value, list) and bool(value)
 
 
 def validate_agent_resolution(resolution: dict[str, Any]) -> list[str]:
@@ -150,7 +143,7 @@ def main() -> int:
         return 1
 
     for required_key in ["agents", "targets"]:
-        if not has_non_empty_collection(resolution, required_key):
+        if not has_non_empty_list(resolution, required_key):
             errors.append(f"{RESOLUTION_PATH}: expected non-empty '{required_key}' collection")
 
     errors.extend(validate_agent_resolution(resolution))
