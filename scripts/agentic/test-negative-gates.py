@@ -1092,6 +1092,31 @@ def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
 
 
 
+def break_resolution_resolved_capability_empty_capability(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    agents = data.get("agents")
+    if not isinstance(agents, list) or not agents:
+        raise RuntimeError("resolution agents must be a non-empty list before mutation")
+
+    first_agent = agents[0]
+    if not isinstance(first_agent, dict):
+        raise RuntimeError("resolution agents[0] must be an object before mutation")
+
+    resolved = first_agent.get("resolvedCapabilities")
+    if not isinstance(resolved, list) or not resolved:
+        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+
+    first_resolved = resolved[0]
+    if not isinstance(first_resolved, dict):
+        raise RuntimeError("resolvedCapabilities[0] must be an object before mutation")
+
+    first_resolved["capability"] = ""
+    write_json(path, data)
+
+
+
 def break_resolution_resolved_capability_missing_capability(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -1682,6 +1707,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_absolute,
             "is unsafe",
+        ),
+        (
+            "failure",
+            "resolution validation fails when resolvedCapability capability is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_resolved_capability_empty_capability,
+            "resolvedCapabilities[0].capability must be a non-empty string",
         ),
         (
             "failure",
