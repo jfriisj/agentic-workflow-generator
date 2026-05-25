@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 27,
-    "contentHash": "sha256:5a7403bae2e4b7d7bdfe47fb6798b1c5b9ea41150486b76da2c394a831450104",
+    "fileCount": 30,
+    "contentHash": "sha256:67f38f68813f1f276798f0388306478f500ab01f8861ae74fb35634c4b857b3a",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -60,6 +60,16 @@
         "path": "registry/agents/TestRunner/agent.json",
         "sha256": "sha256:01169b498e3765da2cb06a85b560dc85c638749ec3eea666fc5c87df3c3d798d",
         "sizeBytes": 635
+      },
+      {
+        "path": "registry/artifacts/CodeReview/artifact.json",
+        "sha256": "sha256:bf3b476b884d3bc241378855b5a139fd1bf27b8da4f2b3768300418f5568d039",
+        "sizeBytes": 473
+      },
+      {
+        "path": "registry/artifacts/CodeReview/artifact.schema.json",
+        "sha256": "sha256:c737668a209d0f97a64d48278e1b18a156426f9c98626dbf6e8c24146cc998c2",
+        "sizeBytes": 1244
       },
       {
         "path": "registry/profiles/microservice-platform.profile.json",
@@ -123,8 +133,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:a5800912fd25ed596a91a35a57be58943195ef660b4ba6991c6387aa0b7d5396",
-        "sizeBytes": 4864
+        "sha256": "sha256:bf1e8819abfabc9a55472fb0297ec67303ce063e3c51c478cdc12b6f184ff25a",
+        "sizeBytes": 5261
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",
@@ -150,6 +160,11 @@
         "path": "scripts/agentic/validate-agentic-config.sh",
         "sha256": "sha256:2ed371300a068135772fe40f7b1b745faecdd46e31dc44fa2f0e384ce0493fd0",
         "sizeBytes": 1048
+      },
+      {
+        "path": "scripts/agentic/validate-artifacts.py",
+        "sha256": "sha256:e7b22c4379e9df1ac5e06ce41d2f109d7d28569ab59e1aa3c4ae88defd09688b",
+        "sizeBytes": 3646
       }
     ]
   }

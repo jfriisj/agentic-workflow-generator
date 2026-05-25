@@ -1,0 +1,23 @@
+{
+  "type": "CodeReview",
+  "description": "Artifact contract for code review gate output.",
+  "pathPattern": "agent-output/code-review/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "requiredHeadings": [
+    "# Code Review",
+    "## Status",
+    "## Summary",
+    "## Evidence Reviewed",
+    "## Findings",
+    "## Required Fixes",
+    "## Handoff Target"
+  ]
+}
