@@ -332,6 +332,10 @@ case "$COMMAND" in
   validate-manifest)
     python scripts/agentic/validate-output-manifest.py
     ;;
+
+  cleanup-generated)
+    python scripts/agentic/cleanup-generated-output.py "${@:2}"
+    ;;
   validate-artifacts)
     python scripts/agentic/validate-artifacts.py
     ;;
