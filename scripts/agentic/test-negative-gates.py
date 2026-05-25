@@ -256,6 +256,33 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
 
 
 
+def break_output_manifest_empty_generated_files(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    first_target["generatedFiles"] = []
+    first_target["generatedFileCount"] = 0
+
+    summary = data.get("summary")
+    if isinstance(summary, dict):
+        total_files = 0
+        for target in targets:
+            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+                total_files += len(target["generatedFiles"])
+        summary["generatedFileCount"] = total_files
+
+    write_json(path, data)
+
+
+
 def break_output_manifest_missing_generated_files(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -906,6 +933,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when target generatedFiles is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_empty_generated_files,
+            "expected non-empty generatedFiles list",
         ),
         (
             "failure",
