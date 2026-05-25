@@ -1,0 +1,278 @@
+{
+  "$schema": "./schemas/agentic.schema.json",
+  "project": {
+    "name": "agentic-workflow-generator",
+    "type": "agentic-generator",
+    "description": "A platform-neutral generator/compiler for agentic software delivery workflows.",
+    "languageProfiles": ["typescript"],
+    "runtimeProfiles": ["node"],
+    "architectureProfile": "platform-neutral-workflow-compiler"
+  },
+  "generator": {
+    "name": "agentic-gen",
+    "version": "0.1.0",
+    "mode": "compiler",
+    "runtimeExecution": false
+  },
+  "targets": [
+    {
+      "name": "vscode-copilot",
+      "enabled": true,
+      "priority": 1
+    },
+    {
+      "name": "opencode",
+      "enabled": true,
+      "priority": 2
+    },
+    {
+      "name": "codex",
+      "enabled": false,
+      "priority": 3
+    },
+    {
+      "name": "claude-code",
+      "enabled": false,
+      "priority": 4
+    }
+  ],
+  "workflow": {
+    "profile": "orchestrated-delivery",
+    "startState": "Requirements",
+    "terminalStates": ["Done", "Blocked"],
+    "failClosed": true
+  },
+  "permissionProfiles": [
+    {
+      "name": "read-only",
+      "read": true,
+      "write": false,
+      "edit": false,
+      "bash": "deny"
+    },
+    {
+      "name": "implementation",
+      "read": true,
+      "write": true,
+      "edit": true,
+      "bash": "allow"
+    },
+    {
+      "name": "test-runner",
+      "read": true,
+      "write": true,
+      "edit": true,
+      "bash": "limited"
+    }
+  ],
+  "agents": [
+    {
+      "name": "Orchestrator",
+      "role": "workflow-state-machine",
+      "description": "Owns workflow routing, state transitions, gate interpretation, and handoffs.",
+      "permissionProfile": "read-only",
+      "capabilities": [
+        "workflow.route",
+        "workflow.validate-state",
+        "workflow.handoff"
+      ],
+      "mustNot": [
+        "Implement product code",
+        "Override gates without evidence",
+        "Perform domain-specific review"
+      ]
+    },
+    {
+      "name": "Requirements",
+      "role": "requirements-analysis",
+      "description": "Clarifies scope, requirements, constraints, assumptions, and acceptance criteria.",
+      "permissionProfile": "read-only",
+      "capabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
+      ],
+      "mustNot": [
+        "Design implementation details",
+        "Approve release"
+      ]
+    },
+    {
+      "name": "Architect",
+      "role": "architecture-design",
+      "description": "Designs system structure, boundaries, interfaces, and architectural decisions.",
+      "permissionProfile": "read-only",
+      "capabilities": [
+        "architecture.design",
+        "architecture.evaluate-tradeoffs"
+      ],
+      "mustNot": [
+        "Implement product code",
+        "Skip quality gates"
+      ]
+    },
+    {
+      "name": "Implementer",
+      "role": "implementation",
+      "description": "Implements approved work according to requirements, plan, and architecture.",
+      "permissionProfile": "implementation",
+      "capabilities": [
+        "implementation.code",
+        "implementation.refactor",
+        "implementation.update-tests"
+      ],
+      "mustNot": [
+        "Change workflow routing",
+        "Self-approve implementation"
+      ]
+    },
+    {
+      "name": "TestRunner",
+      "role": "validation",
+      "description": "Runs tests and produces validation evidence.",
+      "permissionProfile": "test-runner",
+      "capabilities": [
+        "test.run",
+        "test.report",
+        "test.diagnose-failure"
+      ],
+      "mustNot": [
+        "Approve code quality",
+        "Change requirements"
+      ]
+    },
+    {
+      "name": "CodeReviewer",
+      "role": "code-quality-gate",
+      "description": "Reviews implementation for maintainability, correctness, tests, and safety.",
+      "permissionProfile": "read-only",
+      "capabilities": [
+        "review.clean-code",
+        "review.tests",
+        "review.security"
+      ],
+      "mustNot": [
+        "Implement feature behavior",
+        "Approve release",
+        "Change workflow routing"
+      ]
+    },
+    {
+      "name": "QA",
+      "role": "quality-assurance",
+      "description": "Checks whether the completed work satisfies acceptance criteria and required evidence.",
+      "permissionProfile": "read-only",
+      "capabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
+      ],
+      "mustNot": [
+        "Implement product code",
+        "Override failed tests"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "name": "requirements-review",
+      "owner": "Requirements",
+      "requiredCapabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
+      ],
+      "requiredArtifacts": [
+        {
+          "type": "Requirements",
+          "pathPattern": "agent-output/requirements/*.md"
+        }
+      ],
+      "passRoute": "Architect",
+      "failRoute": "Requirements",
+      "blockedRoute": "Orchestrator",
+      "blocking": true
+    },
+    {
+      "name": "implementation-complete",
+      "owner": "Implementer",
+      "requiredCapabilities": [
+        "implementation.code",
+        "implementation.update-tests"
+      ],
+      "requiredArtifacts": [
+        {
+          "type": "ImplementationReport",
+          "pathPattern": "agent-output/implementation/*.md"
+        }
+      ],
+      "passRoute": "TestRunner",
+      "failRoute": "Implementer",
+      "blockedRoute": "Orchestrator",
+      "blocking": true
+    },
+    {
+      "name": "test-review",
+      "owner": "TestRunner",
+      "requiredCapabilities": [
+        "test.run",
+        "test.report"
+      ],
+      "requiredArtifacts": [
+        {
+          "type": "TestReport",
+          "pathPattern": "agent-output/test/*.md"
+        }
+      ],
+      "passRoute": "CodeReviewer",
+      "failRoute": "Implementer",
+      "blockedRoute": "Orchestrator",
+      "blocking": true
+    },
+    {
+      "name": "code-review",
+      "owner": "CodeReviewer",
+      "requiredCapabilities": [
+        "review.clean-code",
+        "review.tests"
+      ],
+      "requiredArtifacts": [
+        {
+          "type": "CodeReview",
+          "pathPattern": "agent-output/code-review/*.md"
+        }
+      ],
+      "passRoute": "QA",
+      "failRoute": "Implementer",
+      "blockedRoute": "Orchestrator",
+      "blocking": true
+    },
+    {
+      "name": "qa-review",
+      "owner": "QA",
+      "requiredCapabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
+      ],
+      "requiredArtifacts": [
+        {
+          "type": "QAReport",
+          "pathPattern": "agent-output/qa/*.md"
+        }
+      ],
+      "passRoute": "Done",
+      "failRoute": "Implementer",
+      "blockedRoute": "Orchestrator",
+      "blocking": true
+    }
+  ],
+  "runtimeContext": {
+    "enabled": true,
+    "outputDirectory": ".runtime/context",
+    "resolutionDirectory": ".runtime/resolution",
+    "failIfMissing": true
+  },
+  "validation": {
+    "failClosed": true,
+    "requireLockfile": true,
+    "requireArtifacts": true,
+    "requireEvidence": true
+  }
+}

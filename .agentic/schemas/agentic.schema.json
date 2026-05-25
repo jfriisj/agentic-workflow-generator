@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/agentic.schema.json",
+  "title": "Agentic Workflow Generator Configuration",
+  "type": "object",
+  "required": [
+    "project",
+    "generator",
+    "targets",
+    "workflow",
+    "permissionProfiles",
+    "agents",
+    "gates",
+    "runtimeContext",
+    "validation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "description",
+        "languageProfiles",
+        "runtimeProfiles",
+        "architectureProfile"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languageProfiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "runtimeProfiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "architectureProfile": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "mode",
+        "runtimeExecution"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["compiler", "generator"]
+        },
+        "runtimeExecution": {
+          "type": "boolean"
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "enabled",
+          "priority"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "vscode-copilot",
+              "opencode",
+              "codex",
+              "claude-code"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "required": [
+        "profile",
+        "startState",
+        "terminalStates",
+        "failClosed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "type": "string"
+        },
+        "startState": {
+          "type": "string"
+        },
+        "terminalStates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failClosed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "permissionProfiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "read",
+          "write",
+          "edit",
+          "bash"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "write": {
+            "type": "boolean"
+          },
+          "edit": {
+            "type": "boolean"
+          },
+          "bash": {
+            "type": "string",
+            "enum": ["deny", "limited", "allow"]
+          }
+        }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "role",
+          "description",
+          "permissionProfile",
+          "capabilities",
+          "mustNot"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "permissionProfile": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mustNot": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "owner",
+          "requiredCapabilities",
+          "requiredArtifacts",
+          "passRoute",
+          "failRoute",
+          "blockedRoute",
+          "blocking"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "requiredCapabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requiredArtifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "pathPattern"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "pathPattern": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "passRoute": {
+            "type": "string"
+          },
+          "failRoute": {
+            "type": "string"
+          },
+          "blockedRoute": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "runtimeContext": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "outputDirectory",
+        "resolutionDirectory",
+        "failIfMissing"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "outputDirectory": {
+          "type": "string"
+        },
+        "resolutionDirectory": {
+          "type": "string"
+        },
+        "failIfMissing": {
+          "type": "boolean"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "failClosed",
+        "requireLockfile",
+        "requireArtifacts",
+        "requireEvidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "failClosed": {
+          "type": "boolean"
+        },
+        "requireLockfile": {
+          "type": "boolean"
+        },
+        "requireArtifacts": {
+          "type": "boolean"
+        },
+        "requireEvidence": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
