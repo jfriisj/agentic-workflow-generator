@@ -14,6 +14,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
   scripts/agentic/agentic-gen.sh validate-targets
+  scripts/agentic/agentic-gen.sh validate-skills
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -33,6 +34,8 @@ Commands:
              Validate that agent produces bindings point to registered artifact contracts.
   validate-targets
              Validate registered target adapters.
+  validate-skills
+             Validate registered skill definitions.
   generate   Generate target-specific output.
   check      Run syntax checks for scripts and JSON files.
   all        Run check, validate, resolve, lock, validate artifacts, and generate.
@@ -71,6 +74,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-agent-registry.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
   require_file "scripts/agentic/validate-target-adapters.py"
+  require_file "scripts/agentic/validate-skill-registry.py"
 
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
@@ -83,6 +87,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-agent-registry.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
   python -m py_compile "scripts/agentic/validate-target-adapters.py"
+  python -m py_compile "scripts/agentic/validate-skill-registry.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -116,6 +121,7 @@ run_pipeline() {
   validate_json_files
   scripts/agentic/validate-agentic-config.sh
   python scripts/agentic/validate-target-adapters.py
+  python scripts/agentic/validate-skill-registry.py
   python scripts/agentic/resolve-agentic-config.py
   python scripts/agentic/generate-lockfile.py
   python scripts/agentic/validate-artifacts.py
@@ -221,6 +227,9 @@ case "$COMMAND" in
     ;;
   validate-targets)
     python scripts/agentic/validate-target-adapters.py
+    ;;
+  validate-skills)
+    python scripts/agentic/validate-skill-registry.py
     ;;
   generate)
     python scripts/agentic/resolve-agentic-config.py
