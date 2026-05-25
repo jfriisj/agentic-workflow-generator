@@ -4657,6 +4657,114 @@ def break_profile_version_empty(worktree: Path) -> None:
     data["version"] = ""
     write_json(path, data)
 
+
+def break_lockfile_missing_input_file_entry(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic-lock.json"
+    data = load_json(path)
+
+    inputs = data.get("inputs")
+    if not isinstance(inputs, dict):
+        raise RuntimeError("lockfile inputs must be an object for this test")
+
+    files = inputs.get("files")
+    if not isinstance(files, list) or not files:
+        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+
+    files.pop()
+    inputs["fileCount"] = len(files)
+    write_json(path, data)
+
+
+def break_lockfile_input_hash_drift(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic-lock.json"
+    data = load_json(path)
+
+    inputs = data.get("inputs")
+    if not isinstance(inputs, dict):
+        raise RuntimeError("lockfile inputs must be an object for this test")
+
+    files = inputs.get("files")
+    if not isinstance(files, list) or not files:
+        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+
+    first = files[0]
+    if not isinstance(first, dict):
+        raise RuntimeError("lockfile inputs.files[0] must be an object for this test")
+
+    first["sha256"] = "sha256:" + "0" * 64
+    write_json(path, data)
+
+
+def break_lockfile_input_size_drift(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic-lock.json"
+    data = load_json(path)
+
+    inputs = data.get("inputs")
+    if not isinstance(inputs, dict):
+        raise RuntimeError("lockfile inputs must be an object for this test")
+
+    files = inputs.get("files")
+    if not isinstance(files, list) or not files:
+        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+
+    first = files[0]
+    if not isinstance(first, dict):
+        raise RuntimeError("lockfile inputs.files[0] must be an object for this test")
+
+    size_bytes = first.get("sizeBytes")
+    if not isinstance(size_bytes, int):
+        raise RuntimeError("lockfile inputs.files[0].sizeBytes must be an integer for this test")
+
+    first["sizeBytes"] = size_bytes + 1
+    write_json(path, data)
+
+
+def break_lockfile_file_count_drift(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic-lock.json"
+    data = load_json(path)
+
+    inputs = data.get("inputs")
+    if not isinstance(inputs, dict):
+        raise RuntimeError("lockfile inputs must be an object for this test")
+
+    file_count = inputs.get("fileCount")
+    if not isinstance(file_count, int):
+        raise RuntimeError("lockfile inputs.fileCount must be an integer for this test")
+
+    inputs["fileCount"] = file_count + 1
+    write_json(path, data)
+
+
+def break_lockfile_content_hash_drift(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic-lock.json"
+    data = load_json(path)
+
+    inputs = data.get("inputs")
+    if not isinstance(inputs, dict):
+        raise RuntimeError("lockfile inputs must be an object for this test")
+
+    inputs["contentHash"] = "sha256:" + "0" * 64
+    write_json(path, data)
+
+
+def break_lockfile_untracked_registry_input(worktree: Path) -> None:
+    path = worktree / "registry" / "skills" / "SyntheticLockfileSkill" / "skill.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "name": "SyntheticLockfileSkill",
+                "description": "Synthetic skill used to prove lockfile input coverage.",
+                "version": "0.0.0",
+                "provides": ["synthetic.lockfile.coverage"],
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
 def break_lockfile(worktree: Path) -> None:
     path = worktree / ".agentic" / "agentic-lock.json"
     data = load_json(path)
@@ -7098,6 +7206,48 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
             break_agent_artifact_binding_policy_false_for_produced,
             "binding.producerRequired is false but artifact is produced",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when input file entry is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_missing_input_file_entry,
+            "missing input file in lockfile",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when input file hash drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_input_hash_drift,
+            "sha256 drift for input file",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when input file size drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_input_size_drift,
+            "sizeBytes drift for input file",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when file count drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_file_count_drift,
+            "lockfile content drift detected",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when content hash drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_content_hash_drift,
+            "lockfile content drift detected",
+        ),
+        (
+            "failure",
+            "lockfile validation fails when new registry input is not tracked",
+            ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
+            break_lockfile_untracked_registry_input,
+            "missing input file in lockfile",
         ),
         (
             "failure",
