@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 48,
-    "contentHash": "sha256:5c7eee00302ee2ca11d0ac8fe9fd4d494d5888100d8f43fbcfd0d62c8060a0ff",
+    "contentHash": "sha256:d9618b71f6fce58f8f884863dbe567f7eb4dc600590225f68abce072bd815fb3",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -163,8 +163,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:29edf15a58d46470f5353ade93eb5102e791904e6ff78a4258f729603328f54f",
-        "sizeBytes": 10929
+        "sha256": "sha256:96ad340cced093276fdd957469199f8a1b76b05a0bf5e4575943f3fdd6d8b5f0",
+        "sizeBytes": 11586
       },
       {
         "path": "scripts/agentic/generate-lockfile.py",

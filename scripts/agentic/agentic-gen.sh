@@ -29,6 +29,7 @@ Usage:
   scripts/agentic/agentic-gen.sh verify [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh verify-quiet [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh status
+  scripts/agentic/agentic-gen.sh doctor
 
 Commands:
   validate   Validate .agentic/agentic.json against its JSON Schema.
@@ -66,6 +67,7 @@ Commands:
   verify-quiet
              Run verify with full output written to a log file.
   status     Show generated files and git status.
+  doctor     Run verify-quiet, negative gate tests, and git status.
 USAGE
 }
 
@@ -217,6 +219,32 @@ run_quiet_verify() {
   echo "Log: $log_path"
 }
 
+
+run_doctor() {
+  echo "== Agentic doctor =="
+  echo ""
+
+  echo "== Happy path verification =="
+  run_quiet_verify "all" || return 1
+  echo ""
+
+  echo "== Negative gate tests =="
+  scripts/agentic/test-negative-gates.py || return 1
+  echo ""
+
+  echo "== Git status =="
+  local status_output
+  status_output="$(git status --short)"
+
+  if [[ -n "$status_output" ]]; then
+    echo "$status_output"
+    echo ""
+    echo "WARN: Working tree has uncommitted changes."
+  else
+    echo "PASS: Working tree is clean."
+  fi
+}
+
 show_status() {
   echo "Generated VS Code agents:"
   find .github/agents -name "*.agent.md" -print 2>/dev/null | sort || true
@@ -317,6 +345,9 @@ case "$COMMAND" in
     ;;
   verify-quiet)
     run_quiet_verify "$TARGET"
+    ;;
+  doctor)
+    run_doctor
     ;;
   status)
     show_status
