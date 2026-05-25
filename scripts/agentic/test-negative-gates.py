@@ -371,6 +371,31 @@ def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
 
 
 
+def break_output_manifest_generated_file_absolute_path(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+
+    first_target = targets[0]
+    if not isinstance(first_target, dict):
+        raise RuntimeError("output manifest first target must be an object before mutation")
+
+    generated_files = first_target.get("generatedFiles")
+    if not isinstance(generated_files, list) or not generated_files:
+        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+
+    first_entry = generated_files[0]
+    if not isinstance(first_entry, dict):
+        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+
+    first_entry["path"] = "/tmp/agentic-generated-file-test.md"
+    write_json(path, data)
+
+
+
 def break_output_manifest_generated_file_parent_path(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -750,6 +775,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_duplicate_generated_file_path,
             "duplicate generated file path",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when generated file path is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_generated_file_absolute_path,
+            "missing or unsafe path",
         ),
         (
             "failure",
