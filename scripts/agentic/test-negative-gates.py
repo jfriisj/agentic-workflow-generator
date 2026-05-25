@@ -1092,6 +1092,19 @@ def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
 
 
 
+def break_resolution_target_entry_type(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    targets = data.get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+
+    targets[0] = "not-an-object"
+    write_json(path, data)
+
+
+
 def break_resolution_invalid_targets_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -1909,6 +1922,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_absolute,
             "is unsafe",
+        ),
+        (
+            "failure",
+            "resolution validation fails when target entry has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_target_entry_type,
+            "targets[0] must be an object",
         ),
         (
             "failure",

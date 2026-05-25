@@ -133,6 +133,21 @@ def validate_agent_resolution(resolution: dict[str, Any]) -> list[str]:
     return errors
 
 
+def validate_target_resolution(resolution: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    targets = resolution.get("targets")
+
+    if not isinstance(targets, list) or not targets:
+        return [f"{RESOLUTION_PATH}: expected non-empty 'targets' collection"]
+
+    for index, target in enumerate(targets):
+        if not isinstance(target, dict):
+            errors.append(f"{RESOLUTION_PATH}: targets[{index}] must be an object")
+            continue
+
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -147,6 +162,7 @@ def main() -> int:
             errors.append(f"{RESOLUTION_PATH}: expected non-empty '{required_key}' collection")
 
     errors.extend(validate_agent_resolution(resolution))
+    errors.extend(validate_target_resolution(resolution))
 
     errors.extend(walk_for_errors(resolution))
 
