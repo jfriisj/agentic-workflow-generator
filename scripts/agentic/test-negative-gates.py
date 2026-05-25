@@ -633,6 +633,19 @@ def break_output_manifest_summary_target_count(worktree: Path) -> None:
 
 
 
+def break_output_manifest_summary_missing_generated_file_count(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError("output manifest summary must be an object before mutation")
+
+    summary.pop("generatedFileCount", None)
+    write_json(path, data)
+
+
+
 def break_output_manifest_summary_generated_file_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1311,6 +1324,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_summary_target_count,
             "summary.targetCount",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when summary generatedFileCount is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_summary_missing_generated_file_count,
+            "summary.generatedFileCount",
         ),
         (
             "failure",
