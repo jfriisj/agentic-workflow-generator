@@ -2938,6 +2938,100 @@ def first_profile_file(worktree: Path) -> Path:
     return profiles[0]
 
 
+
+def first_agent_registry_file(worktree: Path) -> Path:
+    agent_files = sorted((worktree / "registry" / "agents").glob("*/agent.json"))
+    if not agent_files:
+        raise RuntimeError("expected at least one agent registry file")
+    return agent_files[0]
+
+
+def first_producing_agent_registry_file(worktree: Path) -> Path:
+    agent_files = sorted((worktree / "registry" / "agents").glob("*/agent.json"))
+
+    for path in agent_files:
+        data = load_json(path)
+        produces = data.get("produces")
+        required_artifacts = data.get("requiredArtifacts")
+
+        if isinstance(produces, list) and produces:
+            return path
+
+        if isinstance(required_artifacts, list) and required_artifacts:
+            return path
+
+    raise RuntimeError("expected at least one agent with artifact references")
+
+
+def break_agent_registry_unknown_capability_reference(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    capabilities = data.get("capabilities")
+    if not isinstance(capabilities, list):
+        capabilities = []
+        data["capabilities"] = capabilities
+
+    capabilities.append("does.not.exist")
+    write_json(path, data)
+
+
+def break_agent_registry_duplicate_capability(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    capabilities = data.get("capabilities")
+    if not isinstance(capabilities, list) or not capabilities:
+        raise RuntimeError("agent capabilities must be a non-empty list before mutation")
+
+    capabilities.append(capabilities[0])
+    write_json(path, data)
+
+
+def break_agent_registry_missing_required_artifact_reference(worktree: Path) -> None:
+    path = first_producing_agent_registry_file(worktree)
+    data = load_json(path)
+
+    required_artifacts = data.get("requiredArtifacts")
+    if not isinstance(required_artifacts, list):
+        required_artifacts = []
+        data["requiredArtifacts"] = required_artifacts
+
+    required_artifacts.append("DoesNotExist")
+    write_json(path, data)
+
+
+def break_agent_registry_required_artifacts_invalid_type(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    data["requiredArtifacts"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_agent_registry_empty_version(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    data["version"] = ""
+    write_json(path, data)
+
+
+def break_agent_registry_missing_default_permission_profile(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    data.pop("defaultPermissionProfile", None)
+    write_json(path, data)
+
+
+def break_agent_registry_empty_default_permission_profile(worktree: Path) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+
+    data["defaultPermissionProfile"] = ""
+    write_json(path, data)
+
 def break_profile_workflow_reference(worktree: Path) -> None:
     path = first_profile_file(worktree)
     data = load_json(path)
@@ -4485,6 +4579,55 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
             break_profile_version_empty,
             "version must be a non-empty string when present",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when capability is not provided by skill",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_unknown_capability_reference,
+            "capabilities entry 'does.not.exist' must be provided by a registered skill",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when capability is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_duplicate_capability,
+            "capabilities entry",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when required artifact is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_missing_required_artifact_reference,
+            "requiredArtifacts missing artifact contract",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when requiredArtifacts has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_required_artifacts_invalid_type,
+            "requiredArtifacts must be a list when present",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when version is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_empty_version,
+            "version must be a non-empty string",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when defaultPermissionProfile is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_missing_default_permission_profile,
+            "defaultPermissionProfile must be a non-empty string",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when defaultPermissionProfile is empty",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_empty_default_permission_profile,
+            "defaultPermissionProfile must be a non-empty string",
         ),
         (
             "failure",
