@@ -276,6 +276,31 @@ def break_target_adapter_owned_paths(worktree: Path) -> None:
 
 
 
+def break_target_adapter_owned_path_parent_reference(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
+    data = load_json(path)
+
+    owned_paths = data.get("ownedPaths")
+    if not isinstance(owned_paths, list):
+        raise RuntimeError("ownedPaths must be a list before mutation")
+
+    owned_paths.append("../outside-repo")
+    write_json(path, data)
+
+
+def break_target_adapter_owned_path_absolute(worktree: Path) -> None:
+    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
+    data = load_json(path)
+
+    owned_paths = data.get("ownedPaths")
+    if not isinstance(owned_paths, list):
+        raise RuntimeError("ownedPaths must be a list before mutation")
+
+    owned_paths.append("/tmp/agentic-danger-test")
+    write_json(path, data)
+
+
+
 def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
     data = load_json(path)
@@ -409,6 +434,20 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
             break_target_adapter_owned_path_overlap,
             "ownedPaths overlap between targets",
+        ),
+        (
+            "failure",
+            "target adapter semantic validation fails when ownedPaths contains parent reference",
+            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            break_target_adapter_owned_path_parent_reference,
+            "is unsafe",
+        ),
+        (
+            "failure",
+            "target adapter semantic validation fails when ownedPaths is absolute",
+            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            break_target_adapter_owned_path_absolute,
+            "is unsafe",
         ),
         (
             "failure",
