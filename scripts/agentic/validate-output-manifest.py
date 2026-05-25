@@ -311,7 +311,7 @@ def main() -> int:
         summary_errors = summary.get("errors")
         if error_count != 0:
             errors.append(f"summary.errorCount must be 0, got {error_count!r}")
-        if summary_errors not in ([], None):
+        if summary_errors != []:
             errors.append("summary.errors must be empty")
 
     if errors:
