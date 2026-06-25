@@ -36,6 +36,11 @@ SCHEMA_TARGETS = [
         "profile",
     ),
     (
+        ".agentic/schemas/registry/bundle.schema.json",
+        "registry/bundles/*.bundle.json",
+        "bundle",
+    ),
+    (
         ".agentic/schemas/registry/artifact.schema.json",
         "registry/artifacts/*/artifact.json",
         "artifact",

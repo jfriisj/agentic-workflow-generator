@@ -22,6 +22,7 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-skills
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
+  scripts/agentic/agentic-gen.sh validate-bundles
   scripts/agentic/agentic-gen.sh validate-references
   scripts/agentic/agentic-gen.sh validate-registry-schemas
   scripts/agentic/agentic-gen.sh coverage
@@ -61,6 +62,8 @@ Commands:
              Validate registered workflow definitions.
   validate-profiles
              Validate registered profile definitions.
+  validate-bundles
+             Validate registered bundle definitions.
   validate-references
              Validate cross-references between config and registry files.
   validate-registry-schemas
@@ -117,6 +120,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-skill-registry.py"
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
+  require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
@@ -138,6 +142,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-skill-registry.py"
   python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   python -m py_compile "scripts/agentic/validate-profile-registry.py"
+  python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
   python -m py_compile "scripts/agentic/validate-registry-schemas.py"
   python -m py_compile "scripts/agentic/report-capability-coverage.py"
@@ -177,6 +182,7 @@ run_pipeline() {
   python scripts/agentic/validate-skill-registry.py || return 1
   python scripts/agentic/validate-workflow-registry.py || return 1
   python scripts/agentic/validate-profile-registry.py || return 1
+  python scripts/agentic/validate-bundle-registry.py || return 1
   python scripts/agentic/validate-registry-references.py || return 1
   python scripts/agentic/validate-registry-schemas.py || return 1
   python scripts/agentic/report-capability-coverage.py || return 1
@@ -360,6 +366,9 @@ case "$COMMAND" in
     ;;
   validate-profiles)
     python scripts/agentic/validate-profile-registry.py
+    ;;
+  validate-bundles)
+    python scripts/agentic/validate-bundle-registry.py
     ;;
   validate-references)
     python scripts/agentic/validate-registry-references.py

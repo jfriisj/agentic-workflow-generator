@@ -3775,6 +3775,83 @@ def break_workflow_gate_artifact_missing_transition_status(worktree: Path) -> No
     ]
     write_json(path, data)
 
+def awg_first_bundle_file(worktree: Path) -> Path:
+    bundle_paths = sorted((worktree / "registry" / "bundles").glob("*.bundle.json"))
+
+    if not bundle_paths:
+        raise RuntimeError("expected at least one bundle registry file")
+
+    return bundle_paths[0]
+
+
+def awg_mutate_first_bundle(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
+    path = awg_first_bundle_file(worktree)
+    data = load_json(path)
+    mutate(data)
+    write_json(path, data)
+
+
+def break_bundle_registry_name_mismatch(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["name"] = "wrong-name"
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_workflow(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["workflow"] = "missing-workflow"
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_profile(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["profile"] = "missing-profile"
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_agent(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        agents = data.get("agents")
+        if not isinstance(agents, list):
+            raise RuntimeError("bundle agents must be a list before mutation")
+        agents.append("MissingAgent")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_skill(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        skills = data.get("skills")
+        if not isinstance(skills, list):
+            raise RuntimeError("bundle skills must be a list before mutation")
+        skills.append("missing-skill")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_artifact(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        artifacts = data.get("artifacts")
+        if not isinstance(artifacts, list):
+            raise RuntimeError("bundle artifacts must be a list before mutation")
+        artifacts.append("MissingArtifact")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_missing_target(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        targets = data.get("targets")
+        if not isinstance(targets, list):
+            raise RuntimeError("bundle targets must be a list before mutation")
+        targets.append("missing-target")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
 
 
 
@@ -6000,6 +6077,55 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_gate_artifact_missing_transition_status,
             "workflow state 'Requirements' transition event 'pass' is not allowed by produced artifact 'Requirements' statuses",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when name does not match file",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_name_mismatch,
+            "bundle name 'wrong-name' does not match file name 'orchestrated-delivery'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when workflow is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_workflow,
+            "bundle workflow references missing workflow 'missing-workflow'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when profile is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_profile,
+            "bundle profile references missing profile 'missing-profile'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when agent is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_agent,
+            "bundle agents references missing agent 'MissingAgent'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when skill is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_skill,
+            "bundle skills references missing skill 'missing-skill'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when artifact is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_artifact,
+            "bundle artifacts references missing artifact 'MissingArtifact'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when target is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_missing_target,
+            "bundle targets references missing target 'missing-target'",
         ),
         (
             "failure",

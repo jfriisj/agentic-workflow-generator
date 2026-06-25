@@ -1,0 +1,34 @@
+{
+  "name": "orchestrated-delivery",
+  "description": "Default orchestrated delivery bundle with workflow, agents, skills, artifacts, profiles, and targets.",
+  "version": "0.1.0",
+  "profile": "microservice-platform",
+  "workflow": "orchestrated-delivery",
+  "agents": [
+    "Architect",
+    "CodeReviewer",
+    "Implementer",
+    "Orchestrator",
+    "QA",
+    "Requirements",
+    "TestRunner"
+  ],
+  "skills": [
+    "code-review-clean-code",
+    "code-review-tests",
+    "mvp-core-capabilities",
+    "workflow-routing"
+  ],
+  "artifacts": [
+    "ArchitectureDecision",
+    "CodeReview",
+    "ImplementationReport",
+    "QAReport",
+    "Requirements",
+    "TestReport"
+  ],
+  "targets": [
+    "opencode",
+    "vscode-copilot"
+  ]
+}
