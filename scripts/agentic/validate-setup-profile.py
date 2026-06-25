@@ -224,6 +224,158 @@ def validate_answers(profile_path: Path, profile: dict[str, Any], setup: dict[st
         errors.append(f"{profile_path}: answers reference unknown setup questions: {extra_answers}")
 
 
+def build_expected_selected_from_answers(
+    profile_path: Path,
+    profile: dict[str, Any],
+    setup: dict[str, Any],
+    errors: list[str],
+) -> dict[str, Any] | None:
+    final_recommendation = setup.get("finalRecommendation")
+    if not isinstance(final_recommendation, dict):
+        errors.append(f"{profile_path}: referenced setup finalRecommendation must be an object")
+        return None
+
+    expected: dict[str, Any] = {
+        "bundle": final_recommendation.get("bundle"),
+        "profile": final_recommendation.get("profile"),
+        "workflow": final_recommendation.get("workflow"),
+        "agents": final_recommendation.get("agents"),
+        "skills": final_recommendation.get("skills"),
+        "artifacts": final_recommendation.get("artifacts"),
+        "targets": final_recommendation.get("targets"),
+    }
+
+    for field in ("bundle", "profile", "workflow"):
+        if not isinstance(expected[field], str) or not expected[field].strip():
+            errors.append(f"{profile_path}: referenced setup finalRecommendation.{field} must be a non-empty string")
+            return None
+
+    for field in ("agents", "skills", "artifacts", "targets"):
+        value = expected[field]
+        if not isinstance(value, list) or not value:
+            errors.append(f"{profile_path}: referenced setup finalRecommendation.{field} must be a non-empty list")
+            return None
+
+        seen: set[str] = set()
+        for index, item in enumerate(value):
+            if not isinstance(item, str) or not item.strip():
+                errors.append(f"{profile_path}: referenced setup finalRecommendation.{field}[{index}] must be a non-empty string")
+                return None
+            if item in seen:
+                errors.append(f"{profile_path}: referenced setup finalRecommendation.{field}[{index}] '{item}' is duplicated")
+            seen.add(item)
+
+        expected[field] = list(value)
+
+    setup_questions = setup.get("questions")
+    answers = profile.get("answers")
+    if not isinstance(setup_questions, list) or not isinstance(answers, list):
+        return expected
+
+    questions_by_id = {
+        question.get("id"): question
+        for question in setup_questions
+        if isinstance(question, dict) and isinstance(question.get("id"), str)
+    }
+
+    scalar_sources: dict[str, str] = {}
+
+    for answer in answers:
+        if not isinstance(answer, dict):
+            continue
+
+        question_id = answer.get("question")
+        selected = answer.get("selected")
+        if not isinstance(question_id, str) or not isinstance(selected, str):
+            continue
+
+        question = questions_by_id.get(question_id)
+        if not isinstance(question, dict):
+            continue
+
+        options = question.get("options")
+        if not isinstance(options, list):
+            continue
+
+        selected_option = next(
+            (
+                option
+                for option in options
+                if isinstance(option, dict) and option.get("value") == selected
+            ),
+            None,
+        )
+        if not isinstance(selected_option, dict):
+            continue
+
+        recommends = selected_option.get("recommends", {})
+        if not isinstance(recommends, dict):
+            errors.append(f"{profile_path}: setup question '{question_id}' option '{selected}' recommends must be an object")
+            continue
+
+        for field in ("bundle", "profile", "workflow"):
+            if field not in recommends:
+                continue
+
+            recommended_value = recommends.get(field)
+            if not isinstance(recommended_value, str) or not recommended_value.strip():
+                errors.append(f"{profile_path}: setup question '{question_id}' option '{selected}' recommends.{field} must be a non-empty string")
+                continue
+
+            previous_source = scalar_sources.get(field)
+            if previous_source is not None and expected[field] != recommended_value:
+                errors.append(
+                    f"{profile_path}: conflicting setup recommends.{field} from {previous_source} and "
+                    f"{question_id}={selected}"
+                )
+                continue
+
+            expected[field] = recommended_value
+            scalar_sources[field] = f"{question_id}={selected}"
+
+        for field in ("agents", "skills", "artifacts", "targets"):
+            if field not in recommends:
+                continue
+
+            recommended_values = recommends.get(field)
+            if not isinstance(recommended_values, list) or not recommended_values:
+                errors.append(f"{profile_path}: setup question '{question_id}' option '{selected}' recommends.{field} must be a non-empty list")
+                continue
+
+            clean_values: list[str] = []
+            seen_values: set[str] = set()
+            for index, item in enumerate(recommended_values):
+                if not isinstance(item, str) or not item.strip():
+                    errors.append(
+                        f"{profile_path}: setup question '{question_id}' option '{selected}' "
+                        f"recommends.{field}[{index}] must be a non-empty string"
+                    )
+                    continue
+
+                if item in seen_values:
+                    errors.append(
+                        f"{profile_path}: setup question '{question_id}' option '{selected}' "
+                        f"recommends.{field}[{index}] '{item}' is duplicated"
+                    )
+
+                seen_values.add(item)
+                clean_values.append(item)
+
+            current_values = expected.get(field)
+            if isinstance(current_values, list):
+                extra_values = sorted(set(clean_values) - set(current_values))
+                if extra_values:
+                    errors.append(
+                        f"{profile_path}: setup question '{question_id}' option '{selected}' recommends.{field} "
+                        f"contains values outside the current selection: {extra_values}"
+                    )
+                    continue
+
+            expected[field] = clean_values
+
+    return expected
+
+
 def validate_selected(profile_path: Path, profile: dict[str, Any], setup: dict[str, Any], registries: dict[str, set[str]], errors: list[str]) -> None:
     selected = profile.get("selected")
     if not isinstance(selected, dict):
@@ -256,20 +408,20 @@ def validate_selected(profile_path: Path, profile: dict[str, Any], setup: dict[s
     if isinstance(default_bundle, str) and bundle is not None and bundle != default_bundle:
         errors.append(f"{profile_path}: selected bundle '{bundle}' must match setup defaultBundle '{default_bundle}'")
 
-    final_recommendation = setup.get("finalRecommendation")
-    if isinstance(final_recommendation, dict):
-        expected_bundle = final_recommendation.get("bundle")
-        expected_profile = final_recommendation.get("profile")
-        expected_workflow = final_recommendation.get("workflow")
-
-        if isinstance(expected_bundle, str) and bundle is not None and bundle != expected_bundle:
-            errors.append(f"{profile_path}: selected bundle '{bundle}' must match setup finalRecommendation bundle '{expected_bundle}'")
-
-        if isinstance(expected_profile, str) and profile_name is not None and profile_name != expected_profile:
-            errors.append(f"{profile_path}: selected profile '{profile_name}' must match setup finalRecommendation profile '{expected_profile}'")
-
-        if isinstance(expected_workflow, str) and workflow is not None and workflow != expected_workflow:
-            errors.append(f"{profile_path}: selected workflow '{workflow}' must match setup finalRecommendation workflow '{expected_workflow}'")
+    expected_selected = build_expected_selected_from_answers(profile_path, profile, setup, errors)
+    if expected_selected is not None:
+        for field, actual_value in (
+            ("bundle", bundle),
+            ("profile", profile_name),
+            ("workflow", workflow),
+            ("agents", agents),
+            ("skills", skills),
+            ("artifacts", artifacts),
+            ("targets", targets),
+        ):
+            expected_value = expected_selected.get(field)
+            if actual_value is not None and expected_value is not None and actual_value != expected_value:
+                errors.append(f"{profile_path}: selected {field} must match selected setup answer recommends")
 
 
 def validate_policy(profile_path: Path, profile: dict[str, Any], errors: list[str]) -> None:

@@ -137,7 +137,7 @@ def existing_config_or_default() -> dict[str, Any]:
     }
 
 
-def materialize_targets(existing_targets: list[Any], bundle_targets: list[str]) -> list[dict[str, Any]]:
+def materialize_targets(existing_targets: list[Any], target_names: list[str]) -> list[dict[str, Any]]:
     existing_by_name: dict[str, dict[str, Any]] = {}
 
     for item in existing_targets:
@@ -145,20 +145,13 @@ def materialize_targets(existing_targets: list[Any], bundle_targets: list[str]) 
             existing_by_name[item["name"]] = dict(item)
 
     result: list[dict[str, Any]] = []
-    seen: set[str] = set()
 
-    ordered_names = list(existing_by_name)
-    for target in bundle_targets:
-        if target not in ordered_names:
-            ordered_names.append(target)
-
-    for index, target in enumerate(ordered_names, start=1):
-        item = existing_by_name.get(target, {"name": target, "enabled": False, "priority": index})
-        item["enabled"] = target in bundle_targets
-        if not isinstance(item.get("priority"), int):
-            item["priority"] = index
+    for index, target in enumerate(target_names, start=1):
+        item = existing_by_name.get(target, {"name": target, "enabled": True, "priority": index})
+        item["name"] = target
+        item["enabled"] = True
+        item["priority"] = index
         result.append(item)
-        seen.add(target)
 
     return result
 
@@ -362,6 +355,163 @@ def materialize_answer(
     }
 
 
+def selected_option_for_answer(setup_path: Path, setup: dict[str, Any], answer: dict[str, str]) -> dict[str, Any]:
+    question_id = answer["question"]
+    selected = answer["selected"]
+
+    questions = setup.get("questions")
+    if not isinstance(questions, list) or not questions:
+        raise ValueError(f"{setup_path}: questions must be a non-empty list")
+
+    for index, question in enumerate(questions):
+        if not isinstance(question, dict):
+            raise ValueError(f"{setup_path}: questions[{index}] must be an object")
+
+        if question.get("id") != question_id:
+            continue
+
+        options = question.get("options")
+        if not isinstance(options, list) or not options:
+            raise ValueError(f"{setup_path}: question '{question_id}' options must be a non-empty list")
+
+        for option_index, option in enumerate(options):
+            if not isinstance(option, dict):
+                raise ValueError(f"{setup_path}: question '{question_id}' options[{option_index}] must be an object")
+
+            if option.get("value") == selected:
+                return option
+
+        raise ValueError(f"{setup_path}: question '{question_id}' selected option '{selected}' does not exist")
+
+    raise ValueError(f"{setup_path}: answer references unknown setup question '{question_id}'")
+
+
+def require_recommends(option: dict[str, Any], setup_path: Path, question_id: str, selected: str) -> dict[str, Any]:
+    recommends = option.get("recommends", {})
+
+    if not isinstance(recommends, dict):
+        raise ValueError(f"{setup_path}: question '{question_id}' option '{selected}' recommends must be an object")
+
+    return recommends
+
+
+def require_optional_recommend_string(
+    recommends: dict[str, Any],
+    field: str,
+    setup_path: Path,
+    question_id: str,
+    selected: str,
+) -> str | None:
+    if field not in recommends:
+        return None
+
+    value = recommends.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{setup_path}: question '{question_id}' option '{selected}' recommends.{field} must be a non-empty string")
+
+    return value
+
+
+def require_optional_recommend_string_list(
+    recommends: dict[str, Any],
+    field: str,
+    setup_path: Path,
+    question_id: str,
+    selected: str,
+) -> list[str] | None:
+    if field not in recommends:
+        return None
+
+    value = recommends.get(field)
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{setup_path}: question '{question_id}' option '{selected}' recommends.{field} must be a non-empty list")
+
+    result: list[str] = []
+    seen: set[str] = set()
+
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(
+                f"{setup_path}: question '{question_id}' option '{selected}' recommends.{field}[{index}] "
+                "must be a non-empty string"
+            )
+
+        if item in seen:
+            raise ValueError(f"{setup_path}: question '{question_id}' option '{selected}' recommends.{field}[{index}] '{item}' is duplicated")
+
+        seen.add(item)
+        result.append(item)
+
+    return result
+
+
+def materialize_selected(setup_path: Path, setup: dict[str, Any], default_bundle: str, answers: list[dict[str, str]]) -> dict[str, Any]:
+    final_recommendation = setup.get("finalRecommendation")
+    if not isinstance(final_recommendation, dict):
+        raise ValueError(f"{setup_path}: finalRecommendation must be an object")
+
+    selected: dict[str, Any] = {
+        "bundle": require_string(final_recommendation, "bundle", setup_path),
+        "profile": require_string(final_recommendation, "profile", setup_path),
+        "workflow": require_string(final_recommendation, "workflow", setup_path),
+        "agents": require_string_list(final_recommendation, "agents", setup_path),
+        "skills": require_string_list(final_recommendation, "skills", setup_path),
+        "artifacts": require_string_list(final_recommendation, "artifacts", setup_path),
+        "targets": require_string_list(final_recommendation, "targets", setup_path),
+    }
+
+    if selected["bundle"] != default_bundle:
+        raise ValueError(
+            f"{setup_path}: finalRecommendation bundle '{selected['bundle']}' must match defaultBundle '{default_bundle}'"
+        )
+
+    scalar_sources: dict[str, str] = {}
+
+    for answer in answers:
+        question_id = answer["question"]
+        answer_selected = answer["selected"]
+        option = selected_option_for_answer(setup_path, setup, answer)
+        recommends = require_recommends(option, setup_path, question_id, answer_selected)
+
+        for field in ("bundle", "profile", "workflow"):
+            recommended_value = require_optional_recommend_string(recommends, field, setup_path, question_id, answer_selected)
+            if recommended_value is None:
+                continue
+
+            previous_source = scalar_sources.get(field)
+            if previous_source is not None and selected[field] != recommended_value:
+                raise ValueError(
+                    f"{setup_path}: conflicting recommends.{field} from {previous_source} and "
+                    f"{question_id}={answer_selected}"
+                )
+
+            selected[field] = recommended_value
+            scalar_sources[field] = f"{question_id}={answer_selected}"
+
+        for field in ("agents", "skills", "artifacts", "targets"):
+            recommended_values = require_optional_recommend_string_list(recommends, field, setup_path, question_id, answer_selected)
+            if recommended_values is None:
+                continue
+
+            current_values = selected[field]
+            if not isinstance(current_values, list):
+                raise ValueError(f"{setup_path}: selected.{field} must be a list before applying recommends")
+
+            extra_values = sorted(set(recommended_values) - set(current_values))
+            if extra_values:
+                raise ValueError(
+                    f"{setup_path}: question '{question_id}' option '{answer_selected}' recommends.{field} "
+                    f"contains values outside the current selection: {extra_values}"
+                )
+
+            selected[field] = recommended_values
+
+    if selected["bundle"] != default_bundle:
+        raise ValueError(f"{setup_path}: selected bundle '{selected['bundle']}' must match defaultBundle '{default_bundle}'")
+
+    return selected
+
+
 def materialize_setup_profile(setup_name: str, answer_overrides: dict[str, str] | None = None) -> dict[str, Any]:
     setup_path, setup = load_setup(setup_name)
 
@@ -385,31 +535,13 @@ def materialize_setup_profile(setup_name: str, answer_overrides: dict[str, str] 
     if unused_overrides:
         raise ValueError(f"{setup_path}: --answer references unknown setup question(s): {unused_overrides}")
 
-    final_recommendation = setup.get("finalRecommendation")
-    if not isinstance(final_recommendation, dict):
-        raise ValueError(f"{setup_path}: finalRecommendation must be an object")
-
-    selected_bundle = require_string(final_recommendation, "bundle", setup_path)
-    if selected_bundle != default_bundle:
-        raise ValueError(
-            f"{setup_path}: finalRecommendation bundle '{selected_bundle}' must match defaultBundle '{default_bundle}'"
-        )
-
     return {
         "$schema": "./schemas/setup-profile.schema.json",
         "schemaVersion": "0.1.0",
         "mode": mode,
         "setup": setup_name,
         "answers": answers,
-        "selected": {
-            "bundle": selected_bundle,
-            "profile": require_string(final_recommendation, "profile", setup_path),
-            "workflow": require_string(final_recommendation, "workflow", setup_path),
-            "agents": require_string_list(final_recommendation, "agents", setup_path),
-            "skills": require_string_list(final_recommendation, "skills", setup_path),
-            "artifacts": require_string_list(final_recommendation, "artifacts", setup_path),
-            "targets": require_string_list(final_recommendation, "targets", setup_path),
-        },
+        "selected": materialize_selected(setup_path, setup, default_bundle, answers),
         "policy": {
             "failFast": True,
             "fallbackAllowed": False,
@@ -434,12 +566,32 @@ def validate_setup_profile() -> None:
         raise ValueError("setup profile validation failed:\n" + result.stdout.rstrip())
 
 
-def materialize_config(bundle_name: str) -> dict[str, Any]:
+def materialize_config(
+    bundle_name: str,
+    selected_workflow: str | None = None,
+    selected_agents: list[str] | None = None,
+    selected_targets: list[str] | None = None,
+) -> dict[str, Any]:
     bundle_path, bundle = load_bundle(bundle_name)
 
-    workflow_name = require_string(bundle, "workflow", bundle_path)
+    bundle_workflow = require_string(bundle, "workflow", bundle_path)
     bundle_targets = require_string_list(bundle, "targets", bundle_path)
     bundle_agents = require_string_list(bundle, "agents", bundle_path)
+
+    workflow_name = selected_workflow or bundle_workflow
+    target_names = selected_targets or bundle_targets
+    agent_names = selected_agents or bundle_agents
+
+    if workflow_name != bundle_workflow:
+        raise ValueError(f"{bundle_path}: selected workflow '{workflow_name}' must match bundle workflow '{bundle_workflow}'")
+
+    extra_targets = sorted(set(target_names) - set(bundle_targets))
+    if extra_targets:
+        raise ValueError(f"{bundle_path}: selected targets are not included in bundle targets: {extra_targets}")
+
+    extra_agents = sorted(set(agent_names) - set(bundle_agents))
+    if extra_agents:
+        raise ValueError(f"{bundle_path}: selected agents are not included in bundle agents: {extra_agents}")
 
     workflow = load_workflow(workflow_name)
 
@@ -449,7 +601,7 @@ def materialize_config(bundle_name: str) -> dict[str, Any]:
         "$schema": existing.get("$schema", "./schemas/agentic.schema.json"),
         "project": existing["project"],
         "generator": existing["generator"],
-        "targets": materialize_targets(existing.get("targets", []), bundle_targets),
+        "targets": materialize_targets(existing.get("targets", []), target_names),
         "workflow": {
             "profile": workflow_name,
             "startState": require_string(workflow, "startState", ROOT / "registry" / "workflows" / f"{workflow_name}.workflow.json"),
@@ -457,7 +609,7 @@ def materialize_config(bundle_name: str) -> dict[str, Any]:
             "failClosed": bool(workflow.get("failClosed", True)),
         },
         "permissionProfiles": existing["permissionProfiles"],
-        "agents": materialize_agents(bundle_agents),
+        "agents": materialize_agents(agent_names),
         "gates": materialize_gates(workflow),
         "runtimeContext": existing["runtimeContext"],
         "validation": existing["validation"],
@@ -510,7 +662,15 @@ def main() -> int:
                 raise ValueError(f"{SETUP_PROFILE_PATH}: selected must be an object")
 
             bundle = require_string(selected, "bundle", SETUP_PROFILE_PATH)
-            config = materialize_config(bundle)
+            workflow = require_string(selected, "workflow", SETUP_PROFILE_PATH)
+            agents = require_string_list(selected, "agents", SETUP_PROFILE_PATH)
+            targets = require_string_list(selected, "targets", SETUP_PROFILE_PATH)
+            config = materialize_config(
+                bundle,
+                selected_workflow=workflow,
+                selected_agents=agents,
+                selected_targets=targets,
+            )
             write_json(CONFIG_PATH, config)
 
             print(f"PASS: Initialized .agentic/setup-profile.json from guided setup '{args.setup}'.")

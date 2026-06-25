@@ -4161,6 +4161,35 @@ def break_setup_profile_selected_missing_skill(worktree: Path) -> None:
     awg_mutate_setup_profile(worktree, mutate)
 
 
+def break_setup_profile_selected_targets_drift_from_answer_recommends(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        answers = data.get("answers")
+        if not isinstance(answers, list):
+            raise RuntimeError("setup profile answers must be a list before mutation")
+
+        found = False
+        for answer in answers:
+            if isinstance(answer, dict) and answer.get("question") == "target-platforms":
+                answer["selected"] = "opencode-only"
+                answer["classification"] = "compatible"
+                answer["reason"] = (
+                    "Compatible when the project only needs OpenCode generated output; "
+                    "VS Code Copilot can be added later by selecting the combined target option."
+                )
+                found = True
+
+        if not found:
+            raise RuntimeError("setup profile target-platforms answer must exist before mutation")
+
+        selected = data.get("selected")
+        if not isinstance(selected, dict):
+            raise RuntimeError("setup profile selected must be an object before mutation")
+
+        selected["targets"] = ["opencode", "vscode-copilot"]
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
 def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         setup_name = data.get("setup")
@@ -6728,6 +6757,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
             break_setup_profile_selected_missing_skill,
             "selected skills references missing skill 'missing-skill'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when selected targets drift from answer recommends",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_selected_targets_drift_from_answer_recommends,
+            "selected targets must match selected setup answer recommends",
         ),
         (
             "failure",

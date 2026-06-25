@@ -397,33 +397,21 @@
   ],
   "targets": [
     {
-      "name": "vscode-copilot",
-      "enabled": true,
-      "adapterPath": "registry/targets/vscode-copilot/adapter.json",
-      "missing": false
-    },
-    {
       "name": "opencode",
       "enabled": true,
       "adapterPath": "registry/targets/opencode/adapter.json",
       "missing": false
     },
     {
-      "name": "codex",
-      "enabled": false,
-      "adapterPath": null,
-      "missing": true
-    },
-    {
-      "name": "claude-code",
-      "enabled": false,
-      "adapterPath": null,
-      "missing": true
+      "name": "vscode-copilot",
+      "enabled": true,
+      "adapterPath": "registry/targets/vscode-copilot/adapter.json",
+      "missing": false
     }
   ],
   "summary": {
     "agentCount": 7,
-    "targetCount": 4,
+    "targetCount": 2,
     "availableSkillCount": 4,
     "producedArtifactBindingCount": 6,
     "errorCount": 0,

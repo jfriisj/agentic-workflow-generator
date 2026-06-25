@@ -20,24 +20,14 @@
   },
   "targets": [
     {
-      "name": "vscode-copilot",
+      "name": "opencode",
       "enabled": true,
       "priority": 1
     },
     {
-      "name": "opencode",
+      "name": "vscode-copilot",
       "enabled": true,
       "priority": 2
-    },
-    {
-      "name": "codex",
-      "enabled": false,
-      "priority": 3
-    },
-    {
-      "name": "claude-code",
-      "enabled": false,
-      "priority": 4
     }
   ],
   "workflow": {
