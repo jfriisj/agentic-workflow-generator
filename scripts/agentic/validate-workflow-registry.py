@@ -144,6 +144,30 @@ def transition_pairs(workflow: dict[str, Any]) -> list[tuple[str, str]]:
 
     return pairs
 
+def reachable_states(start_state: str, pairs: list[tuple[str, str]]) -> set[str]:
+    outgoing: dict[str, set[str]] = {}
+
+    for source, target in pairs:
+        outgoing.setdefault(source, set()).add(target)
+
+    reachable: set[str] = set()
+    stack = [start_state]
+
+    while stack:
+        current = stack.pop()
+
+        if current in reachable:
+            continue
+
+        reachable.add(current)
+
+        for target in sorted(outgoing.get(current, set()), reverse=True):
+            if target not in reachable:
+                stack.append(target)
+
+    return reachable
+
+
 
 def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
     errors: list[str] = []
@@ -225,6 +249,8 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
         return errors
 
     start_state = workflow.get("startState") or workflow.get("initialState")
+    valid_start_state: str | None = None
+
     if start_state is None:
         errors.append(f"{path}: startState must be declared")
     elif not isinstance(start_state, str) or not start_state.strip():
@@ -233,8 +259,12 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
         errors.append(f"{path}: startState '{start_state}' is not declared in states")
     elif start_state in terminal_names_from_states:
         errors.append(f"{path}: startState '{start_state}' must not be terminal")
+    else:
+        valid_start_state = start_state
 
     terminal_states = workflow.get("terminalStates")
+    declared_terminal_states: set[str] = set()
+
     if not isinstance(terminal_states, list) or not terminal_states:
         errors.append(f"{path}: terminalStates must be a non-empty list")
     else:
@@ -254,6 +284,8 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
                 errors.append(f"{path}: terminalState '{terminal_state}' is not declared in states")
             elif terminal_state not in terminal_names_from_states:
                 errors.append(f"{path}: terminalState '{terminal_state}' must reference a terminal state")
+            else:
+                declared_terminal_states.add(terminal_state)
 
         undeclared_terminal_names = sorted(terminal_names_from_states - seen_terminal_states)
         for terminal_name in undeclared_terminal_names:
@@ -290,14 +322,17 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
                 errors.append(f"{path}: {label}.on must be a non-empty string")
                 continue
 
-            if source not in states:
+            source_valid = source in states
+            target_valid = target in states
+
+            if not source_valid:
                 errors.append(f"{path}: transition source '{source}' is not declared in states")
             elif source in terminal_names_from_states:
                 errors.append(f"{path}: terminal state '{source}' must not have outgoing transition")
             else:
                 outgoing_sources.add(source)
 
-            if target not in states:
+            if not target_valid:
                 errors.append(f"{path}: transition target '{target}' is not declared in states")
 
             key = (source, event)
@@ -306,13 +341,25 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
 
             seen_transition_events.add(key)
 
-            if source in states and target in states:
+            if source_valid and target_valid and source not in terminal_names_from_states:
                 valid_transition_pairs.append((source, target))
 
     non_terminal_names = states - terminal_names_from_states
     for non_terminal_name in sorted(non_terminal_names):
         if non_terminal_name not in outgoing_sources:
             errors.append(f"{path}: non-terminal state '{non_terminal_name}' has no outgoing transition")
+
+    if valid_start_state is not None:
+        reachable = reachable_states(valid_start_state, valid_transition_pairs)
+
+        for name in sorted(states - reachable):
+            errors.append(f"{path}: state '{name}' is unreachable from startState '{valid_start_state}'")
+
+        for terminal_name in sorted(declared_terminal_states):
+            if terminal_name not in reachable:
+                errors.append(
+                    f"{path}: terminalState '{terminal_name}' is unreachable from startState '{valid_start_state}'"
+                )
 
     return errors
 

@@ -3621,6 +3621,80 @@ def break_workflow_registry_non_terminal_without_outgoing_transition(worktree: P
 
     awg_mutate_first_workflow(worktree, mutate)
 
+def break_workflow_registry_existing_route_unreachable(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        for transition in transitions:
+            if (
+                isinstance(transition, dict)
+                and transition.get("from") == "Requirements"
+                and transition.get("to") == "Architect"
+                and transition.get("on") == "pass"
+            ):
+                transition["to"] = "Blocked"
+                return
+
+        raise RuntimeError("expected Requirements pass transition before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_unreachable_non_terminal_with_outgoing(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        states = data.get("states")
+        transitions = data.get("transitions")
+
+        if not isinstance(states, list):
+            raise RuntimeError("workflow states must be a list before mutation")
+
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        template = next(
+            (
+                state
+                for state in states
+                if isinstance(state, dict)
+                and state.get("terminal") is not True
+                and isinstance(state.get("agent"), str)
+                and isinstance(state.get("gate"), str)
+            ),
+            None,
+        )
+
+        if template is None:
+            raise RuntimeError("expected a non-terminal state template before mutation")
+
+        new_state = dict(template)
+        new_state["name"] = "SecurityReview"
+        states.append(new_state)
+        transitions.append({"from": "SecurityReview", "to": "Blocked", "on": "fail"})
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_unreachable_terminal_state(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        for transition in transitions:
+            if (
+                isinstance(transition, dict)
+                and transition.get("to") == "Done"
+            ):
+                transition["to"] = "Blocked"
+                return
+
+        raise RuntimeError("expected transition to Done before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
 
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
@@ -5788,6 +5862,27 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_registry_non_terminal_without_outgoing_transition,
             "non-terminal state 'QA' has no outgoing transition",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when existing route makes state unreachable",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_existing_route_unreachable,
+            "state 'Architect' is unreachable from startState",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when added non-terminal state is unreachable",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_unreachable_non_terminal_with_outgoing,
+            "state 'SecurityReview' is unreachable from startState",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminalState is unreachable from startState",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_unreachable_terminal_state,
+            "terminalState 'Done' is unreachable from startState",
         ),
         (
             "failure",
