@@ -161,6 +161,14 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
     elif workflow_name != expected_name:
         errors.append(f"{path}: workflow name '{workflow_name}' does not match file name '{expected_name}'")
 
+    version = workflow.get("version")
+    if version is not None and (not isinstance(version, str) or not version.strip()):
+        errors.append(f"{path}: version must be a non-empty string when declared")
+
+    description = workflow.get("description")
+    if description is not None and not isinstance(description, str):
+        errors.append(f"{path}: description must be a string when declared")
+
     fail_closed = workflow.get("failClosed")
     if not isinstance(fail_closed, bool):
         errors.append(f"{path}: failClosed must be a boolean")
@@ -251,12 +259,60 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
         for terminal_name in undeclared_terminal_names:
             errors.append(f"{path}: terminal state '{terminal_name}' must be listed in terminalStates")
 
-    for source, target in transition_pairs(workflow):
-        if source not in states:
-            errors.append(f"{path}: transition source '{source}' is not declared in states")
+    raw_transitions = workflow.get("transitions")
+    valid_transition_pairs: list[tuple[str, str]] = []
+    outgoing_sources: set[str] = set()
+    seen_transition_events: set[tuple[str, str]] = set()
 
-        if target not in states:
-            errors.append(f"{path}: transition target '{target}' is not declared in states")
+    if not isinstance(raw_transitions, list) or not raw_transitions:
+        errors.append(f"{path}: transitions must be a non-empty list")
+    else:
+        for index, transition in enumerate(raw_transitions):
+            label = f"transitions[{index}]"
+
+            if not isinstance(transition, dict):
+                errors.append(f"{path}: {label} must be an object")
+                continue
+
+            source = transition.get("from")
+            target = transition.get("to")
+            event = transition.get("on")
+
+            if not isinstance(source, str) or not source.strip():
+                errors.append(f"{path}: {label}.from must be a non-empty string")
+                continue
+
+            if not isinstance(target, str) or not target.strip():
+                errors.append(f"{path}: {label}.to must be a non-empty string")
+                continue
+
+            if not isinstance(event, str) or not event.strip():
+                errors.append(f"{path}: {label}.on must be a non-empty string")
+                continue
+
+            if source not in states:
+                errors.append(f"{path}: transition source '{source}' is not declared in states")
+            elif source in terminal_names_from_states:
+                errors.append(f"{path}: terminal state '{source}' must not have outgoing transition")
+            else:
+                outgoing_sources.add(source)
+
+            if target not in states:
+                errors.append(f"{path}: transition target '{target}' is not declared in states")
+
+            key = (source, event)
+            if key in seen_transition_events:
+                errors.append(f"{path}: transition event '{event}' from state '{source}' is duplicated")
+
+            seen_transition_events.add(key)
+
+            if source in states and target in states:
+                valid_transition_pairs.append((source, target))
+
+    non_terminal_names = states - terminal_names_from_states
+    for non_terminal_name in sorted(non_terminal_names):
+        if non_terminal_name not in outgoing_sources:
+            errors.append(f"{path}: non-terminal state '{non_terminal_name}' has no outgoing transition")
 
     return errors
 

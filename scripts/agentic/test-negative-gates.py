@@ -3458,6 +3458,102 @@ def break_workflow_registry_terminal_state_declares_agent(worktree: Path) -> Non
 
     awg_mutate_first_workflow(worktree, mutate)
 
+def break_workflow_registry_missing_transitions(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data.pop("transitions", None)
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_transition_unknown_source(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list) or not transitions:
+            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
+
+        first = transitions[0]
+        if not isinstance(first, dict):
+            raise RuntimeError("workflow transition must be an object before mutation")
+
+        first["from"] = "UnknownState"
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_transition_unknown_target(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list) or not transitions:
+            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
+
+        first = transitions[0]
+        if not isinstance(first, dict):
+            raise RuntimeError("workflow transition must be an object before mutation")
+
+        first["to"] = "UnknownState"
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_terminal_outgoing_transition(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        transitions.append({"from": "Done", "to": "Blocked", "on": "fail"})
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_transition_duplicate_event(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list) or not transitions:
+            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
+
+        first = transitions[0]
+        if not isinstance(first, dict):
+            raise RuntimeError("workflow transition must be an object before mutation")
+
+        transitions.append(dict(first))
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_transition_missing_event(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list) or not transitions:
+            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
+
+        first = transitions[0]
+        if not isinstance(first, dict):
+            raise RuntimeError("workflow transition must be an object before mutation")
+
+        first.pop("on", None)
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_registry_non_terminal_without_outgoing_transition(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        data["transitions"] = [
+            transition
+            for transition in transitions
+            if not (
+                isinstance(transition, dict)
+                and transition.get("from") == "QA"
+            )
+        ]
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
@@ -5547,6 +5643,55 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_registry_terminal_state_declares_agent,
             "must not declare agent",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transitions are missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_missing_transitions,
+            "transitions must be a non-empty list",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transition source is unknown",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_transition_unknown_source,
+            "transition source 'UnknownState' is not declared in states",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transition target is unknown",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_transition_unknown_target,
+            "transition target 'UnknownState' is not declared in states",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when terminal state has outgoing transition",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_terminal_outgoing_transition,
+            "terminal state 'Done' must not have outgoing transition",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transition event is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_transition_duplicate_event,
+            "transition event 'pass' from state 'Requirements' is duplicated",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transition event is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_transition_missing_event,
+            "transitions[0].on must be a non-empty string",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when non-terminal state has no outgoing transition",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_registry_non_terminal_without_outgoing_transition,
+            "non-terminal state 'QA' has no outgoing transition",
         ),
         (
             "failure",

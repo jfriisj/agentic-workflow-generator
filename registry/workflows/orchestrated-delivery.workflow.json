@@ -48,5 +48,67 @@
     }
   ],
   "defaultFailureRoute": "Orchestrator",
-  "failClosed": true
+  "failClosed": true,
+  "transitions": [
+    {
+      "from": "Requirements",
+      "to": "Architect",
+      "on": "pass"
+    },
+    {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Implementer",
+      "on": "pass"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Implementer",
+      "to": "TestRunner",
+      "on": "pass"
+    },
+    {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "TestRunner",
+      "to": "CodeReviewer",
+      "on": "pass"
+    },
+    {
+      "from": "TestRunner",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "QA",
+      "on": "pass"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Done",
+      "on": "pass"
+    },
+    {
+      "from": "QA",
+      "to": "Blocked",
+      "on": "fail"
+    }
+  ]
 }

@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 60,
-    "contentHash": "sha256:2a0ec85b9cb68219a5c0a437a5dd97a01c9615365893bd813e54c6736061f792",
+    "contentHash": "sha256:e032adfa80db42dd65b57af55ff4647a31de1a0fe927fcaf33d6ceffc071d148",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -178,8 +178,8 @@
       },
       {
         "path": "registry/workflows/orchestrated-delivery.workflow.json",
-        "sha256": "sha256:02cc68aaf637ef183a777e76b4a20b446353012ed53a9175ffcea01bab5b698a",
-        "sizeBytes": 1091
+        "sha256": "sha256:9008b9baae6922010c2af57c5bf517628b8d1a8b7492ab42f319b8f6dfc03884",
+        "sizeBytes": 2116
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
@@ -228,8 +228,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:6fe6f5b56f5b446693be4dc3bae0a7c2635ca41c030b3dc370a8e98f6c6ed3b9",
-        "sizeBytes": 221158
+        "sha256": "sha256:f7ee6703e4f2006922bbdc67dcf97679d9a7bbc2080d1e24930ce338a2e4edc1",
+        "sizeBytes": 227068
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -313,8 +313,8 @@
       },
       {
         "path": "scripts/agentic/validate-workflow-registry.py",
-        "sha256": "sha256:1a5891bccda5465e452d638e4a971d067340ee630b823d98e57b6fd07a062933",
-        "sizeBytes": 9645
+        "sha256": "sha256:8392d4569909051ca8603447fbd5fd30ec7daf1b5cdd878dd0e3712e43d8d2bc",
+        "sizeBytes": 12102
       }
     ]
   }
