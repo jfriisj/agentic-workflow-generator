@@ -85,7 +85,7 @@ Commands:
   validate-generated
              Validate generated target output files.
   validate-init-idempotency
-             Validate init --bundle determinism for .agentic/agentic.json.
+             Validate init determinism for .agentic/agentic.json and guided setup profiles.
   test-negative
              Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.

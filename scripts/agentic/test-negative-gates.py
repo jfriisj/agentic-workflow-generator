@@ -394,6 +394,10 @@ def break_output_manifest_empty_generated_files(worktree: Path) -> None:
 
 
 
+def no_mutation(worktree: Path) -> None:
+    _ = worktree
+
+
 def break_init_idempotency_by_changing_init_script(worktree: Path) -> None:
     path = worktree / "scripts" / "agentic" / "init-from-bundle.py"
     text = path.read_text(encoding="utf-8")
@@ -4505,6 +4509,27 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--bundle", "orchestrated-delivery"],
             break_init_idempotency_by_changing_init_script,
             "Init from bundle is not idempotent",
+        ),
+        (
+            "failure",
+            "init idempotency validation fails when guided setup argument is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--guided"],
+            no_mutation,
+            "error: --guided requires --setup",
+        ),
+        (
+            "failure",
+            "init idempotency validation fails when setup is used without guided",
+            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--setup", "orchestrated-delivery-greenfield"],
+            no_mutation,
+            "error: --setup requires --guided",
+        ),
+        (
+            "failure",
+            "init idempotency validation fails when guided and bundle are combined",
+            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--guided", "--setup", "orchestrated-delivery-greenfield", "--bundle", "orchestrated-delivery"],
+            no_mutation,
+            "error: --guided cannot be combined with --bundle",
         ),
         (
             "failure",
