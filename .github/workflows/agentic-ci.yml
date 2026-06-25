@@ -1,0 +1,98 @@
+name: Agentic CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agentic-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate generator
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Show selected toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "== bash =="
+          command -v bash
+          bash --version | head -1
+
+          echo
+          echo "== git =="
+          command -v git
+          git --version
+
+          echo
+          echo "== python =="
+          command -v python
+          python --version
+
+          echo
+          echo "== node =="
+          command -v node
+          node --version
+
+          echo
+          echo "== npx =="
+          command -v npx
+          npx --version
+
+      - name: Validate environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts/agentic/agentic-gen.sh validate-environment
+
+      - name: Run strict doctor
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts/agentic/agentic-gen.sh doctor-strict
+
+      - name: Run negative gates explicitly
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts/agentic/agentic-gen.sh test-negative
+
+      - name: Verify clean working tree
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          STATUS="$(git status --short)"
+
+          if [[ -n "$STATUS" ]]; then
+            echo "$STATUS"
+            echo "::error::Working tree is not clean after CI validation."
+            exit 1
+          fi
+
+          echo "PASS: Working tree is clean."
