@@ -3855,6 +3855,94 @@ def break_bundle_registry_missing_target(worktree: Path) -> None:
 
 
 
+
+def awg_bundle_workflow_file(worktree: Path) -> Path:
+    paths = sorted((worktree / "registry" / "workflows").glob("*.workflow.json"))
+    if not paths:
+        raise RuntimeError("No workflow registry files found")
+    return paths[0]
+
+
+def awg_bundle_target_adapter_file(worktree: Path, target: str) -> Path:
+    path = worktree / "registry" / "targets" / target / "adapter.json"
+    if not path.is_file():
+        raise RuntimeError(f"Expected target adapter file not found: {path}")
+    return path
+
+
+def awg_bundle_profile_file(worktree: Path, profile: str) -> Path:
+    path = worktree / "registry" / "profiles" / f"{profile}.profile.json"
+    if not path.is_file():
+        raise RuntimeError(f"Expected profile file not found: {path}")
+    return path
+
+
+def break_bundle_registry_workflow_state_agent_not_in_bundle(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        agents = data.get("agents")
+        if not isinstance(agents, list):
+            raise RuntimeError("bundle agents must be a list before mutation")
+        if "Requirements" not in agents:
+            raise RuntimeError("bundle agents must contain Requirements before mutation")
+        agents.remove("Requirements")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_workflow_transition_outside_bundle_workflow(worktree: Path) -> None:
+    path = awg_bundle_workflow_file(worktree)
+    data = load_json(path)
+
+    transitions = data.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        raise RuntimeError("workflow transitions must be a non-empty list before mutation")
+
+    first_transition = transitions[0]
+    if not isinstance(first_transition, dict):
+        raise RuntimeError("workflow transition must be an object before mutation")
+
+    first_transition["to"] = "ExternalState"
+    write_json(path, data)
+
+
+def break_bundle_registry_agent_capability_missing_bundle_skill(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        skills = data.get("skills")
+        if not isinstance(skills, list):
+            raise RuntimeError("bundle skills must be a list before mutation")
+        if "mvp-core-capabilities" not in skills:
+            raise RuntimeError("bundle skills must contain mvp-core-capabilities before mutation")
+        skills.remove("mvp-core-capabilities")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_agent_produced_artifact_missing_from_bundle(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        artifacts = data.get("artifacts")
+        if not isinstance(artifacts, list):
+            raise RuntimeError("bundle artifacts must be a list before mutation")
+        if "Requirements" not in artifacts:
+            raise RuntimeError("bundle artifacts must contain Requirements before mutation")
+        artifacts.remove("Requirements")
+
+    awg_mutate_first_bundle(worktree, mutate)
+
+
+def break_bundle_registry_target_adapter_name_mismatch(worktree: Path) -> None:
+    path = awg_bundle_target_adapter_file(worktree, "opencode")
+    data = load_json(path)
+    data["name"] = "wrong-opencode"
+    write_json(path, data)
+
+
+def break_bundle_registry_profile_workflow_mismatch(worktree: Path) -> None:
+    path = awg_bundle_profile_file(worktree, "microservice-platform")
+    data = load_json(path)
+    data["workflow"] = "wrong-workflow"
+    write_json(path, data)
+
+
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
@@ -6126,6 +6214,48 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
             break_bundle_registry_missing_target,
             "bundle targets references missing target 'missing-target'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when workflow state agent is not included in bundle",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_workflow_state_agent_not_in_bundle,
+            "workflow 'orchestrated-delivery' state 'Requirements' uses agent 'Requirements' not included in bundle agents",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when workflow transition points outside bundle workflow",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_workflow_transition_outside_bundle_workflow,
+            "workflow transition[0] to state 'ExternalState' is not defined in bundle workflow 'orchestrated-delivery'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when agent capability is not covered by bundle skills",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_agent_capability_missing_bundle_skill,
+            "bundle agent 'Architect' capability 'architecture.design' is not provided by bundle skills",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when agent produced artifact is not included in bundle artifacts",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_agent_produced_artifact_missing_from_bundle,
+            "bundle agent 'Requirements' produces artifact 'Requirements' not included in bundle artifacts",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when target adapter does not match bundle target",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_target_adapter_name_mismatch,
+            "bundle target 'opencode' resolves to adapter named 'wrong-opencode'",
+        ),
+        (
+            "failure",
+            "bundle registry validation fails when profile workflow does not match bundle workflow",
+            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
+            break_bundle_registry_profile_workflow_mismatch,
+            "bundle profile 'microservice-platform' workflow 'wrong-workflow' does not match bundle workflow 'orchestrated-delivery'",
         ),
         (
             "failure",
