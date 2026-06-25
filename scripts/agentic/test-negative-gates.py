@@ -3719,6 +3719,63 @@ def break_workflow_registry_unreachable_terminal_state(worktree: Path) -> None:
 
     awg_mutate_first_workflow(worktree, mutate)
 
+def break_workflow_gate_agent_without_produced_artifact(worktree: Path) -> None:
+    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
+    data = load_json(path)
+    data["produces"] = []
+    write_json(path, data)
+
+
+def break_workflow_gate_agent_with_multiple_produced_artifacts(worktree: Path) -> None:
+    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
+    data = load_json(path)
+    data["produces"] = ["Requirements", "CodeReview"]
+    write_json(path, data)
+
+
+def break_workflow_gate_agent_references_missing_artifact_contract(worktree: Path) -> None:
+    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
+    data = load_json(path)
+    data["produces"] = ["MissingArtifact"]
+    write_json(path, data)
+
+
+def break_workflow_gate_transition_event_not_allowed_by_artifact(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        transitions = data.get("transitions")
+        if not isinstance(transitions, list):
+            raise RuntimeError("workflow transitions must be a list before mutation")
+
+        for transition in transitions:
+            if (
+                isinstance(transition, dict)
+                and transition.get("from") == "Requirements"
+                and transition.get("on") == "pass"
+            ):
+                transition["on"] = "approve"
+                return
+
+        raise RuntimeError("expected Requirements pass transition before mutation")
+
+    awg_mutate_first_workflow(worktree, mutate)
+
+
+def break_workflow_gate_artifact_missing_transition_status(worktree: Path) -> None:
+    path = worktree / "registry" / "artifacts" / "Requirements" / "artifact.json"
+    data = load_json(path)
+    statuses = data.get("allowedStatuses")
+
+    if not isinstance(statuses, list):
+        raise RuntimeError("artifact allowedStatuses must be a list before mutation")
+
+    data["allowedStatuses"] = [
+        status
+        for status in statuses
+        if not (isinstance(status, str) and status.upper() == "PASS")
+    ]
+    write_json(path, data)
+
+
 
 
 def break_skill_registry_missing_name(worktree: Path) -> None:
@@ -5908,6 +5965,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_registry_unreachable_terminal_state,
             "terminalState 'Done' is unreachable from startState",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when gated agent produces no artifact",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_gate_agent_without_produced_artifact,
+            "workflow state 'Requirements' gate 'requirements-review' requires agent 'Requirements' to produce exactly one artifact",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when gated agent produces multiple artifacts",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_gate_agent_with_multiple_produced_artifacts,
+            "workflow state 'Requirements' gate 'requirements-review' requires agent 'Requirements' to produce exactly one artifact",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when gated agent produced artifact contract is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_gate_agent_references_missing_artifact_contract,
+            "workflow state 'Requirements' gate 'requirements-review' references missing produced artifact contract 'MissingArtifact'",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when transition event is not allowed by produced artifact",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_gate_transition_event_not_allowed_by_artifact,
+            "workflow state 'Requirements' transition event 'approve' is not allowed by produced artifact 'Requirements' statuses",
+        ),
+        (
+            "failure",
+            "workflow registry validation fails when produced artifact is missing transition status",
+            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
+            break_workflow_gate_artifact_missing_transition_status,
+            "workflow state 'Requirements' transition event 'pass' is not allowed by produced artifact 'Requirements' statuses",
         ),
         (
             "failure",

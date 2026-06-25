@@ -167,6 +167,43 @@ def reachable_states(start_state: str, pairs: list[tuple[str, str]]) -> set[str]
 
     return reachable
 
+def load_agent_registry_by_name() -> dict[str, dict[str, Any]]:
+    agents: dict[str, dict[str, Any]] = {}
+
+    for agent_path in sorted((ROOT / "registry" / "agents").glob("*/agent.json")):
+        agent = load_json(agent_path)
+        name = agent.get("name")
+
+        if isinstance(name, str) and name.strip():
+            agents[name] = agent
+
+    return agents
+
+
+def load_artifact_contracts_by_type() -> dict[str, dict[str, Any]]:
+    artifacts: dict[str, dict[str, Any]] = {}
+
+    for artifact_path in sorted((ROOT / "registry" / "artifacts").glob("*/artifact.json")):
+        artifact = load_json(artifact_path)
+        artifact_type = artifact.get("type")
+
+        if isinstance(artifact_type, str) and artifact_type.strip():
+            artifacts[artifact_type] = artifact
+
+    return artifacts
+
+
+def normalized_statuses(values: object) -> set[str]:
+    if not isinstance(values, list):
+        return set()
+
+    return {
+        value.strip().lower()
+        for value in values
+        if isinstance(value, str) and value.strip()
+    }
+
+
 
 
 def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
@@ -202,6 +239,9 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
         errors.append(f"{path}: states must be a non-empty list")
         return errors
 
+    agent_registry = load_agent_registry_by_name()
+    artifact_contracts = load_artifact_contracts_by_type()
+
     state_objects = workflow_state_objects(workflow)
 
     if len(state_objects) != len(raw_states):
@@ -209,6 +249,8 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
 
     state_names: list[str] = []
     terminal_names_from_states = terminal_state_names_from_objects(state_objects)
+    non_terminal_state_agents: dict[str, str] = {}
+    non_terminal_state_gates: dict[str, str] = {}
 
     for index, state in enumerate(raw_states):
         if not isinstance(state, dict):
@@ -238,10 +280,14 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
             errors.append(f"{path}: non-terminal state '{name}' must declare agent")
         elif agent not in agent_names:
             errors.append(f"{path}: state '{name}' references unknown agent '{agent}'")
+        else:
+            non_terminal_state_agents[name] = agent
 
         gate = state.get("gate")
         if not isinstance(gate, str) or not gate.strip():
             errors.append(f"{path}: non-terminal state '{name}' must declare gate")
+        else:
+            non_terminal_state_gates[name] = gate
 
     states = set(state_names)
     if not states:
@@ -295,6 +341,7 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
     valid_transition_pairs: list[tuple[str, str]] = []
     outgoing_sources: set[str] = set()
     seen_transition_events: set[tuple[str, str]] = set()
+    transition_events_by_source: dict[str, set[str]] = {}
 
     if not isinstance(raw_transitions, list) or not raw_transitions:
         errors.append(f"{path}: transitions must be a non-empty list")
@@ -331,6 +378,7 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
                 errors.append(f"{path}: terminal state '{source}' must not have outgoing transition")
             else:
                 outgoing_sources.add(source)
+                transition_events_by_source.setdefault(source, set()).add(event)
 
             if not target_valid:
                 errors.append(f"{path}: transition target '{target}' is not declared in states")
@@ -348,6 +396,69 @@ def validate_workflow_file(path: Path, agent_names: set[str]) -> list[str]:
     for non_terminal_name in sorted(non_terminal_names):
         if non_terminal_name not in outgoing_sources:
             errors.append(f"{path}: non-terminal state '{non_terminal_name}' has no outgoing transition")
+
+    for state_name_value in sorted(non_terminal_names):
+        agent_name = non_terminal_state_agents.get(state_name_value)
+        gate_name = non_terminal_state_gates.get(state_name_value)
+
+        if agent_name is None or gate_name is None:
+            continue
+
+        agent = agent_registry.get(agent_name)
+        if not isinstance(agent, dict):
+            continue
+
+        produces = agent.get("produces")
+        if not isinstance(produces, list) or not produces:
+            errors.append(
+                f"{path}: workflow state '{state_name_value}' gate '{gate_name}' "
+                f"requires agent '{agent_name}' to produce exactly one artifact"
+            )
+            continue
+
+        produced_artifacts = [
+            artifact_type
+            for artifact_type in produces
+            if isinstance(artifact_type, str) and artifact_type.strip()
+        ]
+
+        if len(produced_artifacts) != 1:
+            errors.append(
+                f"{path}: workflow state '{state_name_value}' gate '{gate_name}' "
+                f"requires agent '{agent_name}' to produce exactly one artifact"
+            )
+            continue
+
+        artifact_type = produced_artifacts[0]
+        artifact = artifact_contracts.get(artifact_type)
+
+        if not isinstance(artifact, dict):
+            errors.append(
+                f"{path}: workflow state '{state_name_value}' gate '{gate_name}' "
+                f"references missing produced artifact contract '{artifact_type}'"
+            )
+            continue
+
+        allowed_statuses = normalized_statuses(artifact.get("allowedStatuses"))
+        if not allowed_statuses:
+            errors.append(
+                f"{path}: workflow state '{state_name_value}' gate '{gate_name}' "
+                f"produced artifact '{artifact_type}' must declare allowedStatuses"
+            )
+            continue
+
+        transition_events = {
+            event.strip().lower()
+            for event in transition_events_by_source.get(state_name_value, set())
+            if isinstance(event, str) and event.strip()
+        }
+
+        unsupported_events = sorted(transition_events - allowed_statuses)
+        for unsupported_event in unsupported_events:
+            errors.append(
+                f"{path}: workflow state '{state_name_value}' transition event '{unsupported_event}' "
+                f"is not allowed by produced artifact '{artifact_type}' statuses"
+            )
 
     if valid_start_state is not None:
         reachable = reachable_states(valid_start_state, valid_transition_pairs)
