@@ -9,6 +9,7 @@ usage() {
 Usage:
   scripts/agentic/agentic-gen.sh validate-environment
   scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
+  scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh validate-resolution
@@ -44,7 +45,7 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
 Commands:
   validate-environment
              Validate required local command-line tools fail-fast.
-  init      Initialize .agentic/agentic.json from a registered bundle.
+  init      Initialize .agentic/agentic.json from a registered bundle or guided setup.
   validate   Validate .agentic/agentic.json against its JSON Schema.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
   validate-resolution

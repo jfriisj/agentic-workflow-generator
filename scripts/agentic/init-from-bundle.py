@@ -3,12 +3,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path.cwd()
 CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
+SETUP_PROFILE_PATH = ROOT / ".agentic" / "setup-profile.json"
+SETUP_PROFILE_VALIDATOR = ROOT / "scripts" / "agentic" / "validate-setup-profile.py"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -54,6 +58,19 @@ def load_bundle(bundle_name: str) -> tuple[Path, dict[str, Any]]:
         raise ValueError(f"{path}: bundle name '{actual_name}' does not match requested bundle '{bundle_name}'")
 
     return path, bundle
+
+
+def load_setup(setup_name: str) -> tuple[Path, dict[str, Any]]:
+    path = ROOT / "registry" / "setups" / f"{setup_name}.setup.json"
+    if not path.is_file():
+        raise ValueError(f"Unknown setup '{setup_name}'")
+
+    setup = load_json(path)
+    actual_name = require_string(setup, "name", path)
+    if actual_name != setup_name:
+        raise ValueError(f"{path}: setup name '{actual_name}' does not match requested setup '{setup_name}'")
+
+    return path, setup
 
 
 def load_registry_object(path: Path, expected_name: str, label: str) -> dict[str, Any]:
@@ -259,6 +276,105 @@ def materialize_gates(workflow: dict[str, Any]) -> list[dict[str, Any]]:
     return gates
 
 
+def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: int) -> dict[str, str]:
+    question_id = require_string(question, "id", setup_path)
+    recommended = require_string_list(question, "recommended", setup_path)
+
+    selected = recommended[0]
+
+    options = question.get("options")
+    if not isinstance(options, list) or not options:
+        raise ValueError(f"{setup_path}: question '{question_id}' options must be a non-empty list")
+
+    option_values: set[str] = set()
+    for option_index, option in enumerate(options):
+        if not isinstance(option, dict):
+            raise ValueError(f"{setup_path}: question '{question_id}' options[{option_index}] must be an object")
+
+        option_value = option.get("value")
+        if not isinstance(option_value, str) or not option_value.strip():
+            raise ValueError(f"{setup_path}: question '{question_id}' options[{option_index}].value must be a non-empty string")
+
+        option_values.add(option_value)
+
+    if selected not in option_values:
+        raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' does not exist")
+
+    blocked = question.get("blocked")
+    if isinstance(blocked, list) and selected in blocked:
+        raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' is blocked")
+
+    return {
+        "question": question_id,
+        "selected": selected,
+    }
+
+
+def materialize_setup_profile(setup_name: str) -> dict[str, Any]:
+    setup_path, setup = load_setup(setup_name)
+
+    mode = require_string(setup, "mode", setup_path)
+    default_bundle = require_string(setup, "defaultBundle", setup_path)
+
+    questions = setup.get("questions")
+    if not isinstance(questions, list) or not questions:
+        raise ValueError(f"{setup_path}: questions must be a non-empty list")
+
+    answers: list[dict[str, str]] = []
+    for index, question in enumerate(questions):
+        if not isinstance(question, dict):
+            raise ValueError(f"{setup_path}: questions[{index}] must be an object")
+        answers.append(first_recommended_answer(setup_path, question, index))
+
+    final_recommendation = setup.get("finalRecommendation")
+    if not isinstance(final_recommendation, dict):
+        raise ValueError(f"{setup_path}: finalRecommendation must be an object")
+
+    selected_bundle = require_string(final_recommendation, "bundle", setup_path)
+    if selected_bundle != default_bundle:
+        raise ValueError(
+            f"{setup_path}: finalRecommendation bundle '{selected_bundle}' must match defaultBundle '{default_bundle}'"
+        )
+
+    return {
+        "$schema": "./schemas/setup-profile.schema.json",
+        "schemaVersion": "0.1.0",
+        "mode": mode,
+        "setup": setup_name,
+        "answers": answers,
+        "selected": {
+            "bundle": selected_bundle,
+            "profile": require_string(final_recommendation, "profile", setup_path),
+            "workflow": require_string(final_recommendation, "workflow", setup_path),
+            "agents": require_string_list(final_recommendation, "agents", setup_path),
+            "skills": require_string_list(final_recommendation, "skills", setup_path),
+            "artifacts": require_string_list(final_recommendation, "artifacts", setup_path),
+            "targets": require_string_list(final_recommendation, "targets", setup_path),
+        },
+        "policy": {
+            "failFast": True,
+            "fallbackAllowed": False,
+        },
+    }
+
+
+def validate_setup_profile() -> None:
+    if not SETUP_PROFILE_VALIDATOR.is_file():
+        raise ValueError(f"Required setup profile validator not found: {SETUP_PROFILE_VALIDATOR}")
+
+    result = subprocess.run(
+        [sys.executable, str(SETUP_PROFILE_VALIDATOR)],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        raise ValueError("setup profile validation failed:\n" + result.stdout.rstrip())
+
+
 def materialize_config(bundle_name: str) -> dict[str, Any]:
     bundle_path, bundle = load_bundle(bundle_name)
 
@@ -292,15 +408,47 @@ def materialize_config(bundle_name: str) -> dict[str, Any]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Initialize .agentic/agentic.json from a registered bundle.")
-    parser.add_argument("--bundle", required=True, help="Bundle name, for example: orchestrated-delivery")
-    return parser.parse_args()
+    parser = argparse.ArgumentParser(description="Initialize Agentic configuration from a registered bundle or guided setup.")
+    parser.add_argument("--bundle", help="Bundle name, for example: orchestrated-delivery")
+    parser.add_argument("--guided", action="store_true", help="Initialize from a guided setup recommendation.")
+    parser.add_argument("--setup", help="Guided setup name, for example: orchestrated-delivery-greenfield")
+    args = parser.parse_args()
+
+    if args.guided:
+        if args.bundle:
+            parser.error("--guided cannot be combined with --bundle")
+        if not args.setup:
+            parser.error("--guided requires --setup")
+    else:
+        if args.setup:
+            parser.error("--setup requires --guided")
+        if not args.bundle:
+            parser.error("one of --bundle or --guided --setup is required")
+
+    return args
 
 
 def main() -> int:
     args = parse_args()
 
     try:
+        if args.guided:
+            setup_profile = materialize_setup_profile(args.setup)
+            write_json(SETUP_PROFILE_PATH, setup_profile)
+            validate_setup_profile()
+
+            selected = setup_profile.get("selected")
+            if not isinstance(selected, dict):
+                raise ValueError(f"{SETUP_PROFILE_PATH}: selected must be an object")
+
+            bundle = require_string(selected, "bundle", SETUP_PROFILE_PATH)
+            config = materialize_config(bundle)
+            write_json(CONFIG_PATH, config)
+
+            print(f"PASS: Initialized .agentic/setup-profile.json from guided setup '{args.setup}'.")
+            print(f"PASS: Initialized .agentic/agentic.json from bundle '{bundle}'.")
+            return 0
+
         config = materialize_config(args.bundle)
         write_json(CONFIG_PATH, config)
     except Exception as exc:

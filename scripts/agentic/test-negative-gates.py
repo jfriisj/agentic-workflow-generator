@@ -6420,6 +6420,27 @@ def main() -> int:
         ),
         (
             "failure",
+            "guided init fails when setup is unknown",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "missing-setup"],
+            break_init_from_bundle_unknown_bundle,
+            "Unknown setup 'missing-setup'",
+        ),
+        (
+            "failure",
+            "guided init fails when setup argument is missing",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
+            break_init_from_bundle_unknown_bundle,
+            "--guided requires --setup",
+        ),
+        (
+            "failure",
+            "guided init fails when setup is used without guided mode",
+            ["scripts/agentic/agentic-gen.sh", "init", "--setup", "orchestrated-delivery-greenfield"],
+            break_init_from_bundle_unknown_bundle,
+            "--setup requires --guided",
+        ),
+        (
+            "failure",
             "bundle registry validation fails when name does not match file",
             ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
             break_bundle_registry_name_mismatch,
