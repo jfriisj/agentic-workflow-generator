@@ -133,7 +133,29 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": []
+      "produces": [
+        {
+          "type": "Requirements",
+          "contractPath": "registry/artifacts/Requirements/artifact.json",
+          "pathPattern": "agent-output/requirements/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Requirements",
+            "## Status",
+            "## Summary",
+            "## Scope",
+            "## Requirements",
+            "## Acceptance Criteria",
+            "## Assumptions",
+            "## Constraints",
+            "## Handoff Target"
+          ]
+        }
+      ]
     },
     {
       "name": "Architect",
@@ -156,7 +178,28 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": []
+      "produces": [
+        {
+          "type": "ArchitectureDecision",
+          "contractPath": "registry/artifacts/ArchitectureDecision/artifact.json",
+          "pathPattern": "agent-output/architecture-decision/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Architecture Decision",
+            "## Status",
+            "## Summary",
+            "## Context",
+            "## Decision",
+            "## Alternatives Considered",
+            "## Consequences",
+            "## Handoff Target"
+          ]
+        }
+      ]
     },
     {
       "name": "Implementer",
@@ -382,7 +425,7 @@
     "agentCount": 7,
     "targetCount": 4,
     "availableSkillCount": 4,
-    "producedArtifactBindingCount": 4,
+    "producedArtifactBindingCount": 6,
     "errorCount": 0,
     "errors": []
   }

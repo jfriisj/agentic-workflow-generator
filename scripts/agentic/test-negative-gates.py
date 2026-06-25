@@ -3146,9 +3146,34 @@ def awg_first_future_artifact_file(worktree: Path) -> Path:
     for artifact_path in sorted((worktree / "registry" / "artifacts").glob("*/artifact.json")):
         artifact = load_json(artifact_path)
         binding = artifact.get("binding")
+
         if isinstance(binding, dict) and binding.get("producerRequired") is False:
             return artifact_path
-    raise RuntimeError("expected at least one future/unbound artifact contract")
+
+    artifact_dir = worktree / "registry" / "artifacts" / "FutureArtifact"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    artifact_path = artifact_dir / "artifact.json"
+    write_json(
+        artifact_path,
+        {
+            "type": "FutureArtifact",
+            "pathPattern": "agent-output/future-artifact/*.md",
+            "allowedStatuses": ["PASS", "FAIL", "BLOCKED"],
+            "requiredHeadings": [
+                "# Future Artifact",
+                "## Status",
+                "## Summary",
+                "## Handoff Target",
+            ],
+            "binding": {
+                "producerRequired": False,
+                "reason": "Synthetic future artifact used by negative gate tests.",
+            },
+        },
+    )
+
+    return artifact_path
 
 
 def break_agent_artifact_binding_unknown_required_artifact(worktree: Path) -> None:

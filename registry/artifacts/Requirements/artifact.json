@@ -21,9 +21,5 @@
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
   },
-  "type": "Requirements",
-  "binding": {
-    "producerRequired": false,
-    "reason": "Registered for future workflow expansion; no current agent produces this artifact."
-  }
+  "type": "Requirements"
 }

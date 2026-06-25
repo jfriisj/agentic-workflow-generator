@@ -63,7 +63,25 @@ read-only
 
 ## Produced Artifacts
 
-This agent does not declare a produced artifact contract.
+When this agent completes work, it must produce output that matches the declared artifact contract.
+
+### Requirements
+
+- contract: `registry/artifacts/Requirements/artifact.json`
+- output path pattern: `agent-output/requirements/*.md`
+- allowed statuses: PASS, FAIL, BLOCKED
+
+Required headings:
+
+- # Requirements
+- ## Status
+- ## Summary
+- ## Scope
+- ## Requirements
+- ## Acceptance Criteria
+- ## Assumptions
+- ## Constraints
+- ## Handoff Target
 
 ## Output Expectations
 

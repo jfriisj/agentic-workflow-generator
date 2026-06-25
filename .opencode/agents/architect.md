@@ -63,7 +63,24 @@ read-only
 
 ## Produced Artifacts
 
-This agent does not declare a produced artifact contract.
+When this agent completes work, it must produce output that matches the declared artifact contract.
+
+### ArchitectureDecision
+
+- contract: `registry/artifacts/ArchitectureDecision/artifact.json`
+- output path pattern: `agent-output/architecture-decision/*.md`
+- allowed statuses: PASS, FAIL, BLOCKED
+
+Required headings:
+
+- # Architecture Decision
+- ## Status
+- ## Summary
+- ## Context
+- ## Decision
+- ## Alternatives Considered
+- ## Consequences
+- ## Handoff Target
 
 ## Output Expectations
 

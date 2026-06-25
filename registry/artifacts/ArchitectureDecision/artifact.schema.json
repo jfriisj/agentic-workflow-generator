@@ -9,8 +9,7 @@
     "pathPattern",
     "status",
     "allowedStatuses",
-    "requiredHeadings",
-    "binding"
+    "requiredHeadings"
   ],
   "additionalProperties": false,
   "properties": {
@@ -105,24 +104,6 @@
       "minItems": 8,
       "maxItems": 8,
       "uniqueItems": true
-    },
-    "binding": {
-      "type": "object",
-      "required": [
-        "producerRequired",
-        "reason"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "producerRequired": {
-          "type": "boolean",
-          "const": false
-        },
-        "reason": {
-          "type": "string",
-          "const": "Registered for future workflow expansion; no current agent produces this artifact."
-        }
-      }
     }
   }
 }
