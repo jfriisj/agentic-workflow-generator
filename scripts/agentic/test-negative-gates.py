@@ -4533,6 +4533,13 @@ def main() -> int:
         ),
         (
             "failure",
+            "init idempotency validation fails when no mode is selected",
+            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency"],
+            no_mutation,
+            "error: one of --bundle or --guided --setup is required",
+        ),
+        (
+            "failure",
             "generated output validation fails when generated agent file is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_output,
