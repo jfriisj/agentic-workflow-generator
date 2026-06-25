@@ -1,5 +1,7 @@
 # agentic-workflow-generator
 
+[![Agentic CI](https://github.com/jfriisj/agentic-workflow-generator/actions/workflows/agentic-ci.yml/badge.svg?branch=main)](https://github.com/jfriisj/agentic-workflow-generator/actions/workflows/agentic-ci.yml)
+
 A platform-neutral generator for agentic software delivery workflows.
 
 The project turns a declarative registry of agents, skills, workflows, bundles, artifacts, gates, and target adapters into generated configuration for coding-agent environments such as VS Code Copilot and OpenCode.
