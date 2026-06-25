@@ -6,15 +6,21 @@
   "answers": [
     {
       "question": "project-type",
-      "selected": "microservice-platform"
+      "selected": "microservice-platform",
+      "classification": "recommended",
+      "reason": "Recommended because this setup benefits from explicit requirements, architecture, implementation, review, QA, test, and orchestration states."
     },
     {
       "question": "delivery-style",
-      "selected": "orchestrated-delivery"
+      "selected": "orchestrated-delivery",
+      "classification": "recommended",
+      "reason": "Recommended because the workflow has explicit handoff states and artifact contracts from requirements through QA."
     },
     {
       "question": "target-platforms",
-      "selected": "opencode-and-vscode-copilot"
+      "selected": "opencode-and-vscode-copilot",
+      "classification": "recommended",
+      "reason": "Recommended because both target adapters are registered and the current bundle already supports both."
     }
   ],
   "selected": {

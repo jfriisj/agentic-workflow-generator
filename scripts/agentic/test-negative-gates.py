@@ -4161,6 +4161,32 @@ def break_setup_profile_selected_missing_skill(worktree: Path) -> None:
     awg_mutate_setup_profile(worktree, mutate)
 
 
+def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        answers = data.get("answers")
+        if not isinstance(answers, list) or not answers:
+            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+        first_answer = answers[0]
+        if not isinstance(first_answer, dict):
+            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+        first_answer["classification"] = "compatible"
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_answer_reason_drift(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        answers = data.get("answers")
+        if not isinstance(answers, list) or not answers:
+            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+        first_answer = answers[0]
+        if not isinstance(first_answer, dict):
+            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+        first_answer["reason"] = "Wrong reason."
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
 def break_setup_profile_fallback_allowed(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         policy = data.get("policy")
@@ -6631,6 +6657,20 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
             break_setup_profile_selected_missing_skill,
             "selected skills references missing skill 'missing-skill'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when answer classification drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_answer_classification_drift,
+            "classification 'compatible' must be 'recommended'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when answer reason drifts",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_answer_reason_drift,
+            "reason does not match setup option reason",
         ),
         (
             "failure",

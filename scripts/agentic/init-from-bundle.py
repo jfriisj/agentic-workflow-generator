@@ -286,7 +286,7 @@ def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: 
     if not isinstance(options, list) or not options:
         raise ValueError(f"{setup_path}: question '{question_id}' options must be a non-empty list")
 
-    option_values: set[str] = set()
+    options_by_value: dict[str, dict[str, Any]] = {}
     for option_index, option in enumerate(options):
         if not isinstance(option, dict):
             raise ValueError(f"{setup_path}: question '{question_id}' options[{option_index}] must be an object")
@@ -295,18 +295,35 @@ def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: 
         if not isinstance(option_value, str) or not option_value.strip():
             raise ValueError(f"{setup_path}: question '{question_id}' options[{option_index}].value must be a non-empty string")
 
-        option_values.add(option_value)
+        options_by_value[option_value] = option
 
-    if selected not in option_values:
+    selected_option = options_by_value.get(selected)
+    if selected_option is None:
         raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' does not exist")
 
     blocked = question.get("blocked")
     if isinstance(blocked, list) and selected in blocked:
         raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' is blocked")
 
+    compatible = question.get("compatible")
+    if selected in recommended:
+        classification = "recommended"
+    elif isinstance(compatible, list) and selected in compatible:
+        classification = "compatible"
+    else:
+        raise ValueError(
+            f"{setup_path}: question '{question_id}' selected option '{selected}' is neither recommended nor compatible"
+        )
+
+    reason = selected_option.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError(f"{setup_path}: question '{question_id}' option '{selected}' reason must be a non-empty string")
+
     return {
         "question": question_id,
         "selected": selected,
+        "classification": classification,
+        "reason": reason,
     }
 
 

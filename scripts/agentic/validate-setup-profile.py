@@ -152,6 +152,8 @@ def validate_answers(profile_path: Path, profile: dict[str, Any], setup: dict[st
 
         question_id = require_string(answer, "question", profile_path, errors)
         selected = require_string(answer, "selected", profile_path, errors)
+        classification = require_string(answer, "classification", profile_path, errors)
+        reason = require_string(answer, "reason", profile_path, errors)
 
         if question_id is None or selected is None:
             continue
@@ -172,18 +174,44 @@ def validate_answers(profile_path: Path, profile: dict[str, Any], setup: dict[st
             errors.append(f"{profile_path}: setup question '{question_id}' options must be a non-empty list")
             continue
 
-        option_values = {
-            option.get("value")
+        options_by_value = {
+            option.get("value"): option
             for option in options
             if isinstance(option, dict) and isinstance(option.get("value"), str) and option.get("value").strip()
         }
 
-        if selected not in option_values:
+        selected_option = options_by_value.get(selected)
+        if selected_option is None:
             errors.append(f"{profile_path}: answer for question '{question_id}' selects missing option '{selected}'")
+            continue
 
         blocked = question.get("blocked")
         if isinstance(blocked, list) and selected in blocked:
             errors.append(f"{profile_path}: answer for question '{question_id}' selects blocked option '{selected}'")
+
+        recommended = question.get("recommended")
+        compatible = question.get("compatible")
+
+        expected_classification: str | None = None
+        if isinstance(recommended, list) and selected in recommended:
+            expected_classification = "recommended"
+        elif isinstance(compatible, list) and selected in compatible:
+            expected_classification = "compatible"
+
+        if expected_classification is None:
+            errors.append(
+                f"{profile_path}: answer for question '{question_id}' selects option '{selected}' "
+                "which is neither recommended nor compatible"
+            )
+        elif classification != expected_classification:
+            errors.append(
+                f"{profile_path}: answer for question '{question_id}' classification '{classification}' "
+                f"must be '{expected_classification}'"
+            )
+
+        expected_reason = selected_option.get("reason")
+        if isinstance(expected_reason, str) and reason is not None and reason != expected_reason:
+            errors.append(f"{profile_path}: answer for question '{question_id}' reason does not match setup option reason")
 
     expected_questions = set(questions_by_id)
     missing_answers = sorted(expected_questions - answered_questions)
