@@ -4163,13 +4163,56 @@ def break_setup_profile_selected_missing_skill(worktree: Path) -> None:
 
 def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
+        setup_name = data.get("setup")
+        if not isinstance(setup_name, str) or not setup_name.strip():
+            raise RuntimeError("setup profile setup must be a non-empty string before mutation")
+
+        setup = load_json(worktree / "registry" / "setups" / f"{setup_name}.setup.json")
+        questions = setup.get("questions")
+        if not isinstance(questions, list) or not questions:
+            raise RuntimeError("setup questions must be a non-empty list before mutation")
+
+        first_question = questions[0]
+        if not isinstance(first_question, dict):
+            raise RuntimeError("setup questions[0] must be an object before mutation")
+
+        question_id = first_question.get("id")
+        recommended = first_question.get("recommended")
+        options = first_question.get("options")
+        if not isinstance(question_id, str) or not question_id.strip():
+            raise RuntimeError("setup questions[0].id must be a non-empty string before mutation")
+        if not isinstance(recommended, list) or not recommended or not isinstance(recommended[0], str):
+            raise RuntimeError("setup questions[0].recommended must contain a string before mutation")
+        if not isinstance(options, list) or not options:
+            raise RuntimeError("setup questions[0].options must be a non-empty list before mutation")
+
+        selected = recommended[0]
+        selected_option = next(
+            (
+                option
+                for option in options
+                if isinstance(option, dict) and option.get("value") == selected
+            ),
+            None,
+        )
+        if not isinstance(selected_option, dict):
+            raise RuntimeError("setup recommended option must exist before mutation")
+
+        reason = selected_option.get("reason")
+        if not isinstance(reason, str) or not reason.strip():
+            raise RuntimeError("setup recommended option reason must be a non-empty string before mutation")
+
         answers = data.get("answers")
         if not isinstance(answers, list) or not answers:
             raise RuntimeError("setup profile answers must be a non-empty list before mutation")
         first_answer = answers[0]
         if not isinstance(first_answer, dict):
             raise RuntimeError("setup profile answers[0] must be an object before mutation")
+
+        first_answer["question"] = question_id
+        first_answer["selected"] = selected
         first_answer["classification"] = "compatible"
+        first_answer["reason"] = reason
 
     awg_mutate_setup_profile(worktree, mutate)
 
@@ -6496,6 +6539,34 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "init", "--setup", "orchestrated-delivery-greenfield"],
             break_init_from_bundle_unknown_bundle,
             "--setup requires --guided",
+        ),
+        (
+            "failure",
+            "guided init fails when answer is used without guided mode",
+            ["scripts/agentic/agentic-gen.sh", "init", "--bundle", "orchestrated-delivery", "--answer", "project-type=ai-application"],
+            break_init_from_bundle_unknown_bundle,
+            "--answer requires --guided",
+        ),
+        (
+            "failure",
+            "guided init fails when answer format is invalid",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "project-type"],
+            break_init_from_bundle_unknown_bundle,
+            "Invalid --answer 'project-type'. Expected format: question=value",
+        ),
+        (
+            "failure",
+            "guided init fails when answer question is unknown",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "missing-question=value"],
+            break_init_from_bundle_unknown_bundle,
+            "--answer references unknown setup question(s): ['missing-question']",
+        ),
+        (
+            "failure",
+            "guided init fails when answer selects blocked option",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "project-type=documentation-only"],
+            break_init_from_bundle_unknown_bundle,
+            "question 'project-type' selected option 'documentation-only' is blocked",
         ),
         (
             "failure",

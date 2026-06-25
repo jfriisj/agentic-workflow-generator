@@ -276,11 +276,46 @@ def materialize_gates(workflow: dict[str, Any]) -> list[dict[str, Any]]:
     return gates
 
 
-def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: int) -> dict[str, str]:
+def parse_answer_overrides(raw_answers: list[str] | None) -> dict[str, str]:
+    overrides: dict[str, str] = {}
+
+    for raw_answer in raw_answers or []:
+        if "=" not in raw_answer:
+            raise ValueError(f"Invalid --answer '{raw_answer}'. Expected format: question=value")
+
+        question, selected = raw_answer.split("=", 1)
+        question = question.strip()
+        selected = selected.strip()
+
+        if not question:
+            raise ValueError(f"Invalid --answer '{raw_answer}'. Question id must be non-empty")
+
+        if not selected:
+            raise ValueError(f"Invalid --answer '{raw_answer}'. Selected value must be non-empty")
+
+        if question in overrides:
+            raise ValueError(f"Duplicate --answer for question '{question}'")
+
+        overrides[question] = selected
+
+    return overrides
+
+
+def materialize_answer(
+    setup_path: Path,
+    question: dict[str, Any],
+    index: int,
+    answer_overrides: dict[str, str],
+    used_overrides: set[str],
+) -> dict[str, str]:
     question_id = require_string(question, "id", setup_path)
     recommended = require_string_list(question, "recommended", setup_path)
 
-    selected = recommended[0]
+    if question_id in answer_overrides:
+        selected = answer_overrides[question_id]
+        used_overrides.add(question_id)
+    else:
+        selected = recommended[0]
 
     options = question.get("options")
     if not isinstance(options, list) or not options:
@@ -299,11 +334,11 @@ def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: 
 
     selected_option = options_by_value.get(selected)
     if selected_option is None:
-        raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' does not exist")
+        raise ValueError(f"{setup_path}: question '{question_id}' selected option '{selected}' does not exist")
 
     blocked = question.get("blocked")
     if isinstance(blocked, list) and selected in blocked:
-        raise ValueError(f"{setup_path}: question '{question_id}' recommended option '{selected}' is blocked")
+        raise ValueError(f"{setup_path}: question '{question_id}' selected option '{selected}' is blocked")
 
     compatible = question.get("compatible")
     if selected in recommended:
@@ -327,7 +362,7 @@ def first_recommended_answer(setup_path: Path, question: dict[str, Any], index: 
     }
 
 
-def materialize_setup_profile(setup_name: str) -> dict[str, Any]:
+def materialize_setup_profile(setup_name: str, answer_overrides: dict[str, str] | None = None) -> dict[str, Any]:
     setup_path, setup = load_setup(setup_name)
 
     mode = require_string(setup, "mode", setup_path)
@@ -337,11 +372,18 @@ def materialize_setup_profile(setup_name: str) -> dict[str, Any]:
     if not isinstance(questions, list) or not questions:
         raise ValueError(f"{setup_path}: questions must be a non-empty list")
 
+    overrides = answer_overrides or {}
+    used_overrides: set[str] = set()
+
     answers: list[dict[str, str]] = []
     for index, question in enumerate(questions):
         if not isinstance(question, dict):
             raise ValueError(f"{setup_path}: questions[{index}] must be an object")
-        answers.append(first_recommended_answer(setup_path, question, index))
+        answers.append(materialize_answer(setup_path, question, index, overrides, used_overrides))
+
+    unused_overrides = sorted(set(overrides) - used_overrides)
+    if unused_overrides:
+        raise ValueError(f"{setup_path}: --answer references unknown setup question(s): {unused_overrides}")
 
     final_recommendation = setup.get("finalRecommendation")
     if not isinstance(final_recommendation, dict):
@@ -429,6 +471,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bundle", help="Bundle name, for example: orchestrated-delivery")
     parser.add_argument("--guided", action="store_true", help="Initialize from a guided setup recommendation.")
     parser.add_argument("--setup", help="Guided setup name, for example: orchestrated-delivery-greenfield")
+    parser.add_argument(
+        "--answer",
+        action="append",
+        default=[],
+        help="Guided setup answer override in question=value format. May be repeated.",
+    )
     args = parser.parse_args()
 
     if args.guided:
@@ -439,6 +487,8 @@ def parse_args() -> argparse.Namespace:
     else:
         if args.setup:
             parser.error("--setup requires --guided")
+        if args.answer:
+            parser.error("--answer requires --guided")
         if not args.bundle:
             parser.error("one of --bundle or --guided --setup is required")
 
@@ -450,7 +500,8 @@ def main() -> int:
 
     try:
         if args.guided:
-            setup_profile = materialize_setup_profile(args.setup)
+            answer_overrides = parse_answer_overrides(args.answer)
+            setup_profile = materialize_setup_profile(args.setup, answer_overrides)
             write_json(SETUP_PROFILE_PATH, setup_profile)
             validate_setup_profile()
 
