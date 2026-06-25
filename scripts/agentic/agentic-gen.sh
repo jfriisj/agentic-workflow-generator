@@ -74,6 +74,8 @@ Commands:
   generate   Generate target-specific output.
   validate-generated
              Validate generated target output files.
+  validate-init-idempotency
+             Validate init --bundle determinism for .agentic/agentic.json.
   test-negative
              Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
@@ -123,6 +125,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
   require_file "scripts/agentic/init-from-bundle.py"
+  require_file "scripts/agentic/validate-init-idempotency.py"
   require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
@@ -146,6 +149,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   python -m py_compile "scripts/agentic/validate-profile-registry.py"
   python -m py_compile "scripts/agentic/init-from-bundle.py"
+  python -m py_compile "scripts/agentic/validate-init-idempotency.py"
   python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
   python -m py_compile "scripts/agentic/validate-registry-schemas.py"
@@ -397,6 +401,9 @@ case "$COMMAND" in
     ;;
   validate-idempotency)
     python scripts/agentic/validate-generation-idempotency.py
+    ;;
+  validate-init-idempotency)
+    python scripts/agentic/validate-init-idempotency.py "${@:2}"
     ;;
   test-negative)
     scripts/agentic/test-negative-gates.py

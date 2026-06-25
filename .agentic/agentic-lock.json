@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 63,
-    "contentHash": "sha256:493b974842fb9440b3bd16832201177bd560eda551976f6d2a7de49fc644d95f",
+    "fileCount": 64,
+    "contentHash": "sha256:f9948fb670b98b5048baeeac8fbb4d730b2a774cc8a121d6c3490542cc355bf0",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -188,8 +188,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:da31e69c91369bcdb85318b7ee1e943b147478681af1af0bb9fe2f9167e49234",
-        "sizeBytes": 13871
+        "sha256": "sha256:c5998d4fad94139512545d96ef70b4fb0df384b6d9932c7707e829f85723a006",
+        "sizeBytes": 14207
       },
       {
         "path": "scripts/agentic/cleanup-generated-output.py",
@@ -238,8 +238,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:0856d44a8d309389ad2dd259c77f2b0062d7435733e66dd9105148e1f9321033",
-        "sizeBytes": 250442
+        "sha256": "sha256:adaa510103d2399af696a9000d0b191d31fec1851129dc92389138d990993a79",
+        "sizeBytes": 251400
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -280,6 +280,11 @@
         "path": "scripts/agentic/validate-generation-idempotency.py",
         "sha256": "sha256:bf22814b1686fedb2a3e4bce1dd99567ba6f8d861fb8d8292a6dfcce609cecf6",
         "sizeBytes": 4340
+      },
+      {
+        "path": "scripts/agentic/validate-init-idempotency.py",
+        "sha256": "sha256:9ceaf2512f9f04a4d5c1f793bc7a2e0081656484394410d3925448a43273c9e5",
+        "sizeBytes": 2248
       },
       {
         "path": "scripts/agentic/validate-lockfile.py",

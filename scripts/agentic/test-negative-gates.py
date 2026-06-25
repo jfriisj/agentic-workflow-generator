@@ -380,6 +380,24 @@ def break_output_manifest_empty_generated_files(worktree: Path) -> None:
 
 
 
+
+def break_init_idempotency_by_changing_init_script(worktree: Path) -> None:
+    path = worktree / "scripts" / "agentic" / "init-from-bundle.py"
+    text = path.read_text(encoding="utf-8")
+
+    marker = "    return generated\n"
+    if marker not in text:
+        raise RuntimeError("Could not find init generated return marker")
+
+    injection = (
+        '    generated["project"]["description"] = '
+        'str(generated["project"].get("description", "")) + '
+        '" negative init idempotency drift marker"\n'
+    )
+
+    path.write_text(text.replace(marker, injection + marker, 1), encoding="utf-8")
+
+
 def break_generation_idempotency_by_changing_generator(worktree: Path) -> None:
     subprocess.run(
         ["scripts/agentic/agentic-gen.sh", "all"],
@@ -4272,6 +4290,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-idempotency"],
             break_generation_idempotency_by_changing_generator,
             "Generation is not idempotent",
+        ),
+        (
+            "failure",
+            "init idempotency validation fails when second init changes config",
+            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--bundle", "orchestrated-delivery"],
+            break_init_idempotency_by_changing_init_script,
+            "Init from bundle is not idempotent",
         ),
         (
             "failure",
