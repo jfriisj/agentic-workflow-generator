@@ -149,6 +149,89 @@ def assert_cleanup_apply_removed_file(worktree: Path) -> tuple[bool, str]:
 
 
 
+def assert_guided_target_selection(
+    worktree: Path,
+    expected_answer: str,
+    expected_classification: str,
+    expected_targets: list[str],
+) -> tuple[bool, str]:
+    setup_profile = load_json(worktree / ".agentic" / "setup-profile.json")
+    config = load_json(worktree / ".agentic" / "agentic.json")
+
+    selected = setup_profile.get("selected")
+    if not isinstance(selected, dict):
+        return False, "setup-profile selected must be an object"
+
+    actual_selected_targets = selected.get("targets")
+    if actual_selected_targets != expected_targets:
+        return False, f"setup-profile selected.targets was {actual_selected_targets!r}, expected {expected_targets!r}"
+
+    answers = setup_profile.get("answers")
+    if not isinstance(answers, list):
+        return False, "setup-profile answers must be a list"
+
+    target_answer = next(
+        (
+            answer
+            for answer in answers
+            if isinstance(answer, dict) and answer.get("question") == "target-platforms"
+        ),
+        None,
+    )
+    if not isinstance(target_answer, dict):
+        return False, "setup-profile target-platforms answer must exist"
+
+    if target_answer.get("selected") != expected_answer:
+        return False, f"target-platforms selected was {target_answer.get('selected')!r}, expected {expected_answer!r}"
+
+    if target_answer.get("classification") != expected_classification:
+        return False, (
+            f"target-platforms classification was {target_answer.get('classification')!r}, "
+            f"expected {expected_classification!r}"
+        )
+
+    config_targets = config.get("targets")
+    if not isinstance(config_targets, list):
+        return False, "agentic config targets must be a list"
+
+    actual_config_targets = [
+        target.get("name")
+        for target in config_targets
+        if isinstance(target, dict)
+    ]
+    if actual_config_targets != expected_targets:
+        return False, f"agentic config targets were {actual_config_targets!r}, expected {expected_targets!r}"
+
+    return True, "guided target selection matched setup-profile and agentic config"
+
+
+def assert_guided_default_targets(worktree: Path) -> tuple[bool, str]:
+    return assert_guided_target_selection(
+        worktree,
+        "opencode-and-vscode-copilot",
+        "recommended",
+        ["opencode", "vscode-copilot"],
+    )
+
+
+def assert_guided_opencode_only_targets(worktree: Path) -> tuple[bool, str]:
+    return assert_guided_target_selection(
+        worktree,
+        "opencode-only",
+        "compatible",
+        ["opencode"],
+    )
+
+
+def assert_guided_vscode_copilot_only_targets(worktree: Path) -> tuple[bool, str]:
+    return assert_guided_target_selection(
+        worktree,
+        "vscode-copilot-only",
+        "compatible",
+        ["vscode-copilot"],
+    )
+
+
 def break_capability_coverage(worktree: Path) -> None:
     path = worktree / "registry" / "skills" / "workflow-routing" / "skill.json"
     data = load_json(path)
@@ -4650,6 +4733,46 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency"],
             no_mutation,
             "error: one of --bundle or --guided --setup is required",
+        ),
+        (
+            "success",
+            "guided init selects default target recommendations",
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield"],
+            no_mutation,
+            "PASS: Initialized .agentic/setup-profile.json from guided setup 'orchestrated-delivery-greenfield'.",
+            assert_guided_default_targets,
+        ),
+        (
+            "success",
+            "guided init selects opencode only target recommendation",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "target-platforms=opencode-only",
+            ],
+            no_mutation,
+            "PASS: Initialized .agentic/setup-profile.json from guided setup 'orchestrated-delivery-greenfield'.",
+            assert_guided_opencode_only_targets,
+        ),
+        (
+            "success",
+            "guided init selects vscode copilot only target recommendation",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "target-platforms=vscode-copilot-only",
+            ],
+            no_mutation,
+            "PASS: Initialized .agentic/setup-profile.json from guided setup 'orchestrated-delivery-greenfield'.",
+            assert_guided_vscode_copilot_only_targets,
         ),
         (
             "failure",
