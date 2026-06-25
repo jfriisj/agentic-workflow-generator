@@ -54,6 +54,7 @@ test-runner
 
 - Approve code quality
 - Change requirements
+- Hide failing validation
 
 ## Produced Artifacts
 

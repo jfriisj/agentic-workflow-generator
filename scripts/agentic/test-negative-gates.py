@@ -3791,6 +3791,11 @@ def awg_mutate_first_bundle(worktree: Path, mutate: Callable[[dict[str, Any]], N
     write_json(path, data)
 
 
+
+def break_init_from_bundle_unknown_bundle(worktree: Path) -> None:
+    return
+
+
 def break_bundle_registry_name_mismatch(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         data["name"] = "wrong-name"
@@ -6165,6 +6170,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_gate_artifact_missing_transition_status,
             "workflow state 'Requirements' transition event 'pass' is not allowed by produced artifact 'Requirements' statuses",
+        ),
+        (
+            "failure",
+            "init from bundle fails when bundle is unknown",
+            ["scripts/agentic/agentic-gen.sh", "init", "--bundle", "missing-bundle"],
+            break_init_from_bundle_unknown_bundle,
+            "Unknown bundle 'missing-bundle'",
         ),
         (
             "failure",

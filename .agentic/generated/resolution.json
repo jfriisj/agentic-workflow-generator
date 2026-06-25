@@ -84,80 +84,6 @@
   },
   "agents": [
     {
-      "name": "Orchestrator",
-      "role": "workflow-state-machine",
-      "registryPath": "registry/agents/Orchestrator/agent.json",
-      "capabilities": [
-        "workflow.route",
-        "workflow.validate-state",
-        "workflow.handoff"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "workflow.route",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        },
-        {
-          "capability": "workflow.validate-state",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        },
-        {
-          "capability": "workflow.handoff",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "Requirements",
-      "role": "requirements-analysis",
-      "registryPath": "registry/agents/Requirements/agent.json",
-      "capabilities": [
-        "requirements.elicit",
-        "requirements.define-acceptance-criteria"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "requirements.elicit",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
-        },
-        {
-          "capability": "requirements.define-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "Requirements",
-          "contractPath": "registry/artifacts/Requirements/artifact.json",
-          "pathPattern": "agent-output/requirements/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Requirements",
-            "## Status",
-            "## Summary",
-            "## Scope",
-            "## Requirements",
-            "## Acceptance Criteria",
-            "## Assumptions",
-            "## Constraints",
-            "## Handoff Target"
-          ]
-        }
-      ]
-    },
-    {
       "name": "Architect",
       "role": "architecture-design",
       "registryPath": "registry/agents/Architect/agent.json",
@@ -196,6 +122,55 @@
             "## Decision",
             "## Alternatives Considered",
             "## Consequences",
+            "## Handoff Target"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CodeReviewer",
+      "role": "code-quality-gate",
+      "registryPath": "registry/agents/CodeReviewer/agent.json",
+      "capabilities": [
+        "review.clean-code",
+        "review.tests",
+        "review.security"
+      ],
+      "resolvedCapabilities": [
+        {
+          "capability": "review.clean-code",
+          "skill": "code-review-clean-code",
+          "skillPath": "registry/skills/code-review-clean-code/skill.json"
+        },
+        {
+          "capability": "review.tests",
+          "skill": "code-review-tests",
+          "skillPath": "registry/skills/code-review-tests/skill.json"
+        },
+        {
+          "capability": "review.security",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
+      ],
+      "missingCapabilities": [],
+      "produces": [
+        {
+          "type": "CodeReview",
+          "contractPath": "registry/artifacts/CodeReview/artifact.json",
+          "pathPattern": "agent-output/code-review/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Code Review",
+            "## Status",
+            "## Summary",
+            "## Evidence Reviewed",
+            "## Findings",
+            "## Required Fixes",
             "## Handoff Target"
           ]
         }
@@ -252,6 +227,124 @@
       ]
     },
     {
+      "name": "Orchestrator",
+      "role": "workflow-state-machine",
+      "registryPath": "registry/agents/Orchestrator/agent.json",
+      "capabilities": [
+        "workflow.route",
+        "workflow.validate-state",
+        "workflow.handoff"
+      ],
+      "resolvedCapabilities": [
+        {
+          "capability": "workflow.route",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        },
+        {
+          "capability": "workflow.validate-state",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        },
+        {
+          "capability": "workflow.handoff",
+          "skill": "workflow-routing",
+          "skillPath": "registry/skills/workflow-routing/skill.json"
+        }
+      ],
+      "missingCapabilities": [],
+      "produces": []
+    },
+    {
+      "name": "QA",
+      "role": "quality-assurance",
+      "registryPath": "registry/agents/QA/agent.json",
+      "capabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
+      ],
+      "resolvedCapabilities": [
+        {
+          "capability": "qa.verify-acceptance-criteria",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "qa.validate-evidence",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
+      ],
+      "missingCapabilities": [],
+      "produces": [
+        {
+          "type": "QAReport",
+          "contractPath": "registry/artifacts/QAReport/artifact.json",
+          "pathPattern": "agent-output/qa-report/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# QA Report",
+            "## Status",
+            "## Summary",
+            "## Evidence Reviewed",
+            "## Gate Results",
+            "## Release Risks",
+            "## Required Follow-up",
+            "## Handoff Target"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Requirements",
+      "role": "requirements-analysis",
+      "registryPath": "registry/agents/Requirements/agent.json",
+      "capabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
+      ],
+      "resolvedCapabilities": [
+        {
+          "capability": "requirements.elicit",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        },
+        {
+          "capability": "requirements.define-acceptance-criteria",
+          "skill": "mvp-core-capabilities",
+          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+        }
+      ],
+      "missingCapabilities": [],
+      "produces": [
+        {
+          "type": "Requirements",
+          "contractPath": "registry/artifacts/Requirements/artifact.json",
+          "pathPattern": "agent-output/requirements/*.md",
+          "allowedStatuses": [
+            "PASS",
+            "FAIL",
+            "BLOCKED"
+          ],
+          "requiredHeadings": [
+            "# Requirements",
+            "## Status",
+            "## Summary",
+            "## Scope",
+            "## Requirements",
+            "## Acceptance Criteria",
+            "## Assumptions",
+            "## Constraints",
+            "## Handoff Target"
+          ]
+        }
+      ]
+    },
+    {
       "name": "TestRunner",
       "role": "validation",
       "registryPath": "registry/agents/TestRunner/agent.json",
@@ -296,99 +389,6 @@
             "## Test Results",
             "## Failures",
             "## Coverage Notes",
-            "## Handoff Target"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "CodeReviewer",
-      "role": "code-quality-gate",
-      "registryPath": "registry/agents/CodeReviewer/agent.json",
-      "capabilities": [
-        "review.clean-code",
-        "review.tests",
-        "review.security"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "review.clean-code",
-          "skill": "code-review-clean-code",
-          "skillPath": "registry/skills/code-review-clean-code/skill.json"
-        },
-        {
-          "capability": "review.tests",
-          "skill": "code-review-tests",
-          "skillPath": "registry/skills/code-review-tests/skill.json"
-        },
-        {
-          "capability": "review.security",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "CodeReview",
-          "contractPath": "registry/artifacts/CodeReview/artifact.json",
-          "pathPattern": "agent-output/code-review/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Code Review",
-            "## Status",
-            "## Summary",
-            "## Evidence Reviewed",
-            "## Findings",
-            "## Required Fixes",
-            "## Handoff Target"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "QA",
-      "role": "quality-assurance",
-      "registryPath": "registry/agents/QA/agent.json",
-      "capabilities": [
-        "qa.verify-acceptance-criteria",
-        "qa.validate-evidence"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "qa.verify-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
-        },
-        {
-          "capability": "qa.validate-evidence",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "QAReport",
-          "contractPath": "registry/artifacts/QAReport/artifact.json",
-          "pathPattern": "agent-output/qa-report/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# QA Report",
-            "## Status",
-            "## Summary",
-            "## Evidence Reviewed",
-            "## Gate Results",
-            "## Release Risks",
-            "## Required Follow-up",
             "## Handoff Target"
           ]
         }

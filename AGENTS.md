@@ -17,17 +17,18 @@ This repository uses generated agentic workflow infrastructure.
 
 ## Agents
 
-- Orchestrator
-- Requirements
 - Architect
-- Implementer
-- TestRunner
 - CodeReviewer
+- Implementer
+- Orchestrator
 - QA
+- Requirements
+- TestRunner
 
 ## Gates
 
 - requirements-review
+- architecture-review
 - implementation-complete
 - test-review
 - code-review

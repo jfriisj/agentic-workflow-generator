@@ -7,6 +7,7 @@ TARGET="${2:-all}"
 usage() {
   cat <<'USAGE'
 Usage:
+  scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh validate-resolution
@@ -38,6 +39,7 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh doctor-strict
 
 Commands:
+  init      Initialize .agentic/agentic.json from a registered bundle.
   validate   Validate .agentic/agentic.json against its JSON Schema.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
   validate-resolution
@@ -120,6 +122,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-skill-registry.py"
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
+  require_file "scripts/agentic/init-from-bundle.py"
   require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
@@ -142,6 +145,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-skill-registry.py"
   python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   python -m py_compile "scripts/agentic/validate-profile-registry.py"
+  python -m py_compile "scripts/agentic/init-from-bundle.py"
   python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
   python -m py_compile "scripts/agentic/validate-registry-schemas.py"
@@ -315,6 +319,10 @@ show_status() {
 }
 
 case "$COMMAND" in
+  init)
+    python scripts/agentic/init-from-bundle.py "${@:2}"
+    ;;
+
   validate)
     scripts/agentic/validate-agentic-config.sh
     ;;

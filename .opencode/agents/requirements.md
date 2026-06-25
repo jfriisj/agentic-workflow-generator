@@ -60,6 +60,8 @@ read-only
 
 - Design implementation details
 - Approve release
+- Skip unresolved assumptions
+- Change workflow routing
 
 ## Produced Artifacts
 

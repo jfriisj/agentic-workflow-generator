@@ -52,6 +52,8 @@ read-only
 
 - Implement product code
 - Skip quality gates
+- Approve release
+- Ignore unresolved requirements
 
 ## Produced Artifacts
 

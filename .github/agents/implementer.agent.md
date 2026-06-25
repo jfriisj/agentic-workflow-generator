@@ -54,6 +54,7 @@ implementation
 
 - Change workflow routing
 - Self-approve implementation
+- Skip validation evidence
 
 ## Produced Artifacts
 

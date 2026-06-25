@@ -1,6 +1,6 @@
 ---
 name: QA
-description: Checks whether the completed work satisfies acceptance criteria and required evidence.
+description: Checks whether completed work satisfies acceptance criteria and required evidence.
 ---
 
 # QA
@@ -11,7 +11,7 @@ quality-assurance
 
 ## Description
 
-Checks whether the completed work satisfies acceptance criteria and required evidence.
+Checks whether completed work satisfies acceptance criteria and required evidence.
 
 ## Operating Rules
 
@@ -52,6 +52,8 @@ read-only
 
 - Implement product code
 - Override failed tests
+- Approve missing evidence
+- Change requirements
 
 ## Produced Artifacts
 
