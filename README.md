@@ -1,164 +1,245 @@
 # agentic-workflow-generator
-Platform-independent generator tool that can translate a declarative agent workflow specification into target-specific agent configurations, skills, gates, validators and runtime contexts for different coding-agent environments.
 
+A platform-neutral generator for agentic software delivery workflows.
 
-## 1. Code change — opdater `.agentic/README.md`
+The project turns a declarative registry of agents, skills, workflows, bundles, artifacts, gates, and target adapters into generated configuration for coding-agent environments such as VS Code Copilot and OpenCode.
 
-````bash
-python - <<'PY'
-from pathlib import Path
+## Why this exists
 
-path = Path(".agentic/README.md")
-text = path.read_text(encoding="utf-8")
+Coding-agent setups often become hand-written, duplicated, and hard to validate.
 
-section = '''
-## Developer workflow
-
-Use the wrapper script as the single entry point for local verification and CI-compatible checks.
-
-### Daily verification
-
-```bash
-scripts/agentic/agentic-gen.sh verify-quiet all
-````
-
-Runs the full generation and validation pipeline with output written to:
+This project treats agent workflows like a compiler problem:
 
 ```text
-/tmp/agentic-verify.log
+registry source of truth
+        ↓
+bundle selection
+        ↓
+.agentic/agentic.json
+        ↓
+resolution + lockfile
+        ↓
+target-specific generated output
+        ↓
+validation gates
 ```
 
-This is the recommended command for normal development because it avoids flooding the terminal.
+The goal is to make agentic workflows reproducible, deterministic, and fail-fast.
 
-### Capability coverage
+## Core concepts
+
+| Concept | Purpose |
+|---|---|
+| Agent | Defines a responsibility, capabilities, permissions, and produced artifacts |
+| Skill | Provides one or more capabilities used by agents |
+| Workflow | Defines states, transitions, gates, terminal states, and fail-closed routing |
+| Bundle | Selects a complete deployable composition of workflow, agents, skills, artifacts, profile, and targets |
+| Artifact | Defines required output contracts for gates and generated evidence |
+| Target adapter | Defines where generated output belongs for a target platform |
+| Lockfile | Records deterministic input state |
+| Output manifest | Records generated files and active bundle metadata |
+
+## Current supported targets
+
+```text
+vscode-copilot
+opencode
+```
+
+Generated output includes target-specific agents, skills, instructions, and configuration files.
+
+## Quickstart
+
+Initialize the active configuration from the default bundle:
 
 ```bash
+scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
+```
+
+Run the full generator pipeline:
+
+```bash
+scripts/agentic/agentic-gen.sh all
+```
+
+Run strict verification:
+
+```bash
+scripts/agentic/agentic-gen.sh doctor-strict
+```
+
+A clean result should end with:
+
+```text
+PASS: All negative gate tests passed.
+PASS: Working tree is clean.
+```
+
+## Main commands
+
+```bash
+scripts/agentic/agentic-gen.sh validate
+scripts/agentic/agentic-gen.sh validate-bundles
+scripts/agentic/agentic-gen.sh validate-registry-schemas
 scripts/agentic/agentic-gen.sh coverage
-```
-
-Reports whether every agent capability is covered by exactly one registered skill capability.
-
-Expected healthy output:
-
-```text
-Agent capabilities: 18
-Skill capabilities: 18
-
-Missing skill coverage:
-  none
-
-Unused skill capabilities:
-  none
-
-Duplicate skill capabilities:
-  none
-```
-
-### Negative gate tests
-
-```bash
-scripts/agentic/agentic-gen.sh test-negative
-```
-
-Runs fail-closed tests in an isolated temporary copy of the repository. These tests intentionally break registry, workflow, resolution, lockfile, and generated-output contracts to prove that validation gates fail correctly.
-
-### Generated output validation
-
-```bash
+scripts/agentic/agentic-gen.sh resolve
+scripts/agentic/agentic-gen.sh lock
+scripts/agentic/agentic-gen.sh manifest
+scripts/agentic/agentic-gen.sh generate all
 scripts/agentic/agentic-gen.sh validate-generated
+scripts/agentic/agentic-gen.sh validate-idempotency
+scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
+scripts/agentic/agentic-gen.sh test-negative
+scripts/agentic/agentic-gen.sh doctor-strict
 ```
 
-Checks that enabled targets produced the expected generated files.
+## Bundle flow
 
-Current generated targets:
+The default bundle is:
 
 ```text
-VS Code Copilot:
-.github/agents/*.agent.md
-.github/skills/*/SKILL.md
-.github/copilot-instructions.md
-
-OpenCode:
-.opencode/agents/*.md
-.opencode/skills/*/SKILL.md
-AGENTS.md
-opencode.json
+registry/bundles/orchestrated-delivery.bundle.json
 ```
 
-### Recommended pre-commit sequence
-
-```bash
-scripts/agentic/agentic-gen.sh verify-quiet all
-scripts/agentic/agentic-gen.sh test-negative
-git status --short
-```
-
-Commit only when `verify-quiet all` passes, `test-negative` passes, and `git status --short` contains only intentional changes.
-
-### CI gates
-
-CI runs both:
-
-```bash
-scripts/agentic/agentic-gen.sh verify-quiet all
-scripts/agentic/agentic-gen.sh test-negative
-```
-
-This verifies both the happy path and fail-closed behavior.
-'''
-
-marker = "## Developer workflow"
-
-if marker in text:
-before = text.split(marker, 1)[0].rstrip()
-text = before + "\n\n" + section.strip() + "\n"
-else:
-text = text.rstrip() + "\n\n" + section.strip() + "\n"
-
-path.write_text(text, encoding="utf-8")
-print("PASS: Updated .agentic/README.md with developer workflow documentation.")
-PY
-
-````
-
-## 2. Checks
-
-```bash
-grep -n "Developer workflow" .agentic/README.md
-grep -n "verify-quiet" .agentic/README.md
-grep -n "test-negative" .agentic/README.md
-grep -n "validate-generated" .agentic/README.md
-````
-
-```bash
-scripts/agentic/agentic-gen.sh verify-quiet all
-```
-
-Drift er forventet indtil commit, fordi README og lockfile kan ændre sig.
-
-## 3. Git
-
-```bash
-git status --short
-```
-
-```bash
-git add .agentic/README.md \
-        .agentic/agentic-lock.json \
-        .agentic/generated/resolution.json
-
-git commit -m "Document agentic developer workflow"
-```
-
-## 4. Verify efter commit
-
-```bash
-scripts/agentic/agentic-gen.sh verify-quiet all
-```
-
-Forventet:
+It selects:
 
 ```text
-PASS: verify-quiet completed successfully.
-Log: /tmp/agentic-verify.log
+workflow: orchestrated-delivery
+profile: microservice-platform
+agents: Architect, CodeReviewer, Implementer, Orchestrator, QA, Requirements, TestRunner
+targets: opencode, vscode-copilot
 ```
+
+The bundle is validated as a complete composition:
+
+```text
+workflow states must be covered by bundle agents
+workflow transitions must stay inside the selected workflow
+agent capabilities must be covered by bundle skills
+agent produced artifacts must be included in bundle artifacts
+bundle targets must resolve to matching target adapters
+profile workflow must match bundle workflow
+```
+
+## Generated output manifest
+
+The generated output manifest is written to:
+
+```text
+.agentic/generated/output-manifest.json
+```
+
+It records:
+
+```text
+active bundle metadata
+target adapters
+owned paths
+generated files
+sha256 hashes
+byte sizes
+summary counts
+```
+
+Validation fails if generated files drift, target ownership is wrong, or manifest bundle metadata no longer matches the bundle registry.
+
+## Fail-fast policy
+
+This project intentionally avoids fallback behavior.
+
+If a required tool, dependency, registry file, schema, artifact contract, generated file, or environment condition is missing or broken, validation must fail with a clear error message.
+
+Examples:
+
+```text
+node/npx must work for JSON Schema validation
+bundle references must resolve
+generated files must match the manifest
+lockfile state must be deterministic
+agents must not claim capabilities without skills
+gates must not pass without required artifacts
+```
+
+No silent degradation. No skipped validation. No fallback paths.
+
+## Development workflow
+
+Recommended local flow:
+
+```bash
+scripts/agentic/agentic-gen.sh all
+scripts/agentic/agentic-gen.sh test-negative
+scripts/agentic/agentic-gen.sh doctor-strict
+```
+
+Use log redirection for noisy checks:
+
+```bash
+LOG="/tmp/agentic-doctor.log"
+scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+tail -80 "$LOG"
+```
+
+Commit only when:
+
+```text
+doctor-strict passes
+negative gates pass
+working tree contains only intentional changes
+```
+
+## Repository structure
+
+```text
+.agentic/
+  agentic.json
+  agentic-lock.json
+  generated/
+  schemas/
+
+registry/
+  agents/
+  artifacts/
+  bundles/
+  profiles/
+  skills/
+  targets/
+  workflows/
+
+scripts/agentic/
+  agentic-gen.sh
+  validate-*.py
+  generate-*.py
+  test-negative-gates.py
+
+docs/
+  core-domain-model.md
+  engineering-discovery.md
+  target-platform-analysis.md
+```
+
+## Current quality gates
+
+The project validates:
+
+```text
+agent registry
+skill registry
+workflow registry
+profile registry
+bundle registry
+target adapters
+artifact contracts
+agent artifact bindings
+registry schemas
+registry references
+capability coverage
+resolution output
+lockfile structure
+generated output
+generation idempotency
+init idempotency
+negative gates
+```
+
+The negative gate suite intentionally breaks contracts to prove the validators fail closed.
