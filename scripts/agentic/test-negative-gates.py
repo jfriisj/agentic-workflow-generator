@@ -4088,6 +4088,85 @@ def break_setup_registry_option_recommends_missing_agent(worktree: Path) -> None
     awg_mutate_first_setup(worktree, mutate)
 
 
+def awg_setup_profile_file(worktree: Path) -> Path:
+    return worktree / ".agentic" / "setup-profile.json"
+
+
+def awg_mutate_setup_profile(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
+    path = awg_setup_profile_file(worktree)
+
+    if not path.is_file():
+        raise RuntimeError("expected .agentic/setup-profile.json to exist")
+
+    data = load_json(path)
+
+    if not isinstance(data, dict):
+        raise RuntimeError("setup profile file must be an object before mutation")
+
+    mutate(data)
+    write_json(path, data)
+
+
+def break_setup_profile_missing_schema_version(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data.pop("schemaVersion", None)
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_missing_setup_reference(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["setup"] = "missing-setup"
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_answer_missing_option(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        answers = data.get("answers")
+        if not isinstance(answers, list) or not answers:
+            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+        first_answer = answers[0]
+        if not isinstance(first_answer, dict):
+            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+        first_answer["selected"] = "missing-option"
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_answer_blocked_option(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        answers = data.get("answers")
+        if not isinstance(answers, list) or not answers:
+            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+        first_answer = answers[0]
+        if not isinstance(first_answer, dict):
+            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+        first_answer["selected"] = "documentation-only"
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_selected_missing_skill(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        selected = data.get("selected")
+        if not isinstance(selected, dict):
+            raise RuntimeError("setup profile selected must be an object before mutation")
+        selected["skills"] = ["missing-skill"]
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
+def break_setup_profile_fallback_allowed(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        policy = data.get("policy")
+        if not isinstance(policy, dict):
+            raise RuntimeError("setup profile policy must be an object before mutation")
+        policy["fallbackAllowed"] = True
+
+    awg_mutate_setup_profile(worktree, mutate)
+
+
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
@@ -6464,6 +6543,48 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-setups"],
             break_setup_registry_option_recommends_missing_agent,
             "question 'project-type' option 'microservice-platform'.recommends agents references missing agent 'MissingAgent'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when schemaVersion is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_missing_schema_version,
+            "schemaVersion must be a non-empty string",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when setup reference is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_missing_setup_reference,
+            "setup references missing setup registry file 'missing-setup'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when answer option is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_answer_missing_option,
+            "answer for question 'project-type' selects missing option 'missing-option'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when answer selects blocked option",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_answer_blocked_option,
+            "answer for question 'project-type' selects blocked option 'documentation-only'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when selected skill is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_selected_missing_skill,
+            "selected skills references missing skill 'missing-skill'",
+        ),
+        (
+            "failure",
+            "setup profile validation fails when fallback is allowed",
+            ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
+            break_setup_profile_fallback_allowed,
+            "policy.fallbackAllowed must be false",
         ),
         (
             "failure",

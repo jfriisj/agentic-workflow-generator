@@ -7,6 +7,7 @@ This directory contains the source configuration and generated metadata for the 
 ~~~text
 .agentic/
   agentic.json
+  setup-profile.json
   agentic-lock.json
   generated/
   templates/
@@ -16,10 +17,11 @@ This directory contains the source configuration and generated metadata for the 
 ## Rules
 
 1. `agentic.json` is the canonical project configuration.
-2. `agentic-lock.json` is used for reproducible generation.
-3. `.agentic/generated/` contains generated metadata.
-4. `.runtime/` contains generated runtime context and should normally not be committed.
-5. Target-specific generated files may be committed depending on project policy.
+2. `setup-profile.json` captures the guided setup decisions that shape the project.
+3. `agentic-lock.json` is used for reproducible generation.
+4. `.agentic/generated/` contains generated metadata.
+5. `.runtime/` contains generated runtime context and should normally not be committed.
+6. Target-specific generated files may be committed depending on project policy.
 
 ## Core Principle
 

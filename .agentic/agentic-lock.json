@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 67,
-    "contentHash": "sha256:0dc098d784ce746c8e8f9dbb40b837b78b663c645536dfe6acef1b1ca46d6362",
+    "fileCount": 69,
+    "contentHash": "sha256:df88ad598fd31ddbda55177b71c7cef570f3925f7da30eeb740fc8be33b516aa",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -25,6 +25,11 @@
         "path": ".agentic/schemas/agentic.schema.json",
         "sha256": "sha256:d681991d78ea5de99cb626ffdc98b10f443257ed915f38a1a2357f53692e6579",
         "sizeBytes": 7146
+      },
+      {
+        "path": ".agentic/schemas/setup-profile.schema.json",
+        "sha256": "sha256:1c6c153262217d20749b02afe9fa1f7160e094ddaad2361c898a1cbbb739ab6b",
+        "sizeBytes": 2796
       },
       {
         "path": "registry/agents/Architect/agent.json",
@@ -193,8 +198,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:e6b2cba96777383445dd6d21e49bea2cf396da35ce3a6c286921b0f7ee3ac168",
-        "sizeBytes": 14969
+        "sha256": "sha256:7266e6885efe857469bee48084a88916afe489c05d60590a7096f5560ad1a02a",
+        "sizeBytes": 15383
       },
       {
         "path": "scripts/agentic/cleanup-generated-output.py",
@@ -243,8 +248,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:3fba8b13019887742740e2a0396af5ea0dc3dd10fc134982515c57493c372860",
-        "sizeBytes": 258430
+        "sha256": "sha256:cdf8ef6709ea2a662926b6203c3caf579627059531c499f7753e4a0ef121804a",
+        "sizeBytes": 263263
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -325,6 +330,11 @@
         "path": "scripts/agentic/validate-resolution-output.py",
         "sha256": "sha256:365b0ed48e15bc8e7a075ff361bb5c5dd738bfebea5a218cf8cf49cc99e34deb",
         "sizeBytes": 30745
+      },
+      {
+        "path": "scripts/agentic/validate-setup-profile.py",
+        "sha256": "sha256:4b6438b00ac3792b2c6313d8261a31b9c1809ee838cb860e19af91c44f520bde",
+        "sizeBytes": 12575
       },
       {
         "path": "scripts/agentic/validate-setup-registry.py",

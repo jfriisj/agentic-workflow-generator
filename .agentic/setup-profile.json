@@ -1,0 +1,56 @@
+{
+  "$schema": "./schemas/setup-profile.schema.json",
+  "schemaVersion": "0.1.0",
+  "mode": "greenfield",
+  "setup": "orchestrated-delivery-greenfield",
+  "answers": [
+    {
+      "question": "project-type",
+      "selected": "microservice-platform"
+    },
+    {
+      "question": "delivery-style",
+      "selected": "orchestrated-delivery"
+    },
+    {
+      "question": "target-platforms",
+      "selected": "opencode-and-vscode-copilot"
+    }
+  ],
+  "selected": {
+    "bundle": "orchestrated-delivery",
+    "profile": "microservice-platform",
+    "workflow": "orchestrated-delivery",
+    "agents": [
+      "Architect",
+      "CodeReviewer",
+      "Implementer",
+      "Orchestrator",
+      "QA",
+      "Requirements",
+      "TestRunner"
+    ],
+    "skills": [
+      "code-review-clean-code",
+      "code-review-tests",
+      "mvp-core-capabilities",
+      "workflow-routing"
+    ],
+    "artifacts": [
+      "ArchitectureDecision",
+      "CodeReview",
+      "ImplementationReport",
+      "QAReport",
+      "Requirements",
+      "TestReport"
+    ],
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  },
+  "policy": {
+    "failFast": true,
+    "fallbackAllowed": false
+  }
+}
