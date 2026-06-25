@@ -1860,10 +1860,25 @@ def semantic_first_present_resolution_target(data: dict[str, Any]) -> dict[str, 
 
 
 def semantic_first_missing_resolution_target(data: dict[str, Any]) -> dict[str, Any]:
-    for target in semantic_resolution_targets(data):
+    targets = semantic_resolution_targets(data)
+
+    for target in targets:
         if isinstance(target, dict) and target.get("missing") is True:
             return target
-    raise RuntimeError("expected at least one missing target before mutation")
+
+    target = {
+        "name": "missing-negative-gate-target",
+        "enabled": False,
+        "adapterPath": None,
+        "missing": True,
+    }
+    targets.append(target)
+
+    summary = data.get("summary")
+    if isinstance(summary, dict):
+        summary["targetCount"] = len(targets)
+
+    return target
 
 
 
