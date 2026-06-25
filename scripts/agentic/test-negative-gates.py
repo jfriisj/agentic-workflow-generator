@@ -236,6 +236,19 @@ def break_cleanup_manifest_parent_path(worktree: Path) -> None:
 
 
 
+
+def break_output_manifest_bundle_workflow_drift(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "output-manifest.json"
+    data = load_json(path)
+
+    bundle = data.get("bundle")
+    if not isinstance(bundle, dict):
+        raise RuntimeError("output manifest bundle must be an object before mutation")
+
+    bundle["workflow"] = "wrong-workflow"
+    write_json(path, data)
+
+
 def break_output_manifest_unsupported_schema_version(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -4347,6 +4360,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_unsupported_schema_version,
             "Unsupported output manifest schemaVersion",
+        ),
+        (
+            "failure",
+            "output manifest validation fails when bundle metadata drifts from registry",
+            ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
+            break_output_manifest_bundle_workflow_drift,
+            "bundle metadata drift for workflow",
         ),
         (
             "failure",

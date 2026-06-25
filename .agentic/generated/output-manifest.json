@@ -1,6 +1,39 @@
 {
-  "schemaVersion": "0.1.0",
-  "description": "Deterministic manifest of generated target output files.",
+  "schemaVersion": "0.2.0",
+  "description": "Deterministic manifest of active bundle and generated target output files.",
+  "bundle": {
+    "name": "orchestrated-delivery",
+    "registryPath": "registry/bundles/orchestrated-delivery.bundle.json",
+    "profile": "microservice-platform",
+    "workflow": "orchestrated-delivery",
+    "agents": [
+      "Architect",
+      "CodeReviewer",
+      "Implementer",
+      "Orchestrator",
+      "QA",
+      "Requirements",
+      "TestRunner"
+    ],
+    "skills": [
+      "code-review-clean-code",
+      "code-review-tests",
+      "mvp-core-capabilities",
+      "workflow-routing"
+    ],
+    "artifacts": [
+      "ArchitectureDecision",
+      "CodeReview",
+      "ImplementationReport",
+      "QAReport",
+      "Requirements",
+      "TestReport"
+    ],
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  },
   "targets": [
     {
       "name": "opencode",
@@ -14,8 +47,8 @@
       "generatedFiles": [
         {
           "path": ".opencode/agents/architect.md",
-          "sha256": "774dae40c795915661042f037ca5e79cd567a8fadcd5a2fe41d300825b28c081",
-          "bytes": 1459
+          "sha256": "451b0ce8093086fdb9ced15f30a4caa274a3e6ec969cac77b188c463210b1484",
+          "bytes": 1918
         },
         {
           "path": ".opencode/agents/code-reviewer.md",
@@ -24,8 +57,8 @@
         },
         {
           "path": ".opencode/agents/implementer.md",
-          "sha256": "47335e8d4dbad66d0af4cb3686070c5db086106b3f562818d86e4b488c9af21a",
-          "bytes": 1932
+          "sha256": "a762a664ebc49bd40413b49363ae7a98bdd6c8de142d09ffdeca3c1b826ea675",
+          "bytes": 1959
         },
         {
           "path": ".opencode/agents/orchestrator.md",
@@ -34,18 +67,18 @@
         },
         {
           "path": ".opencode/agents/qa.md",
-          "sha256": "f455486b291826ee54163277509bb91b73fd11bd5c13aefb5a87559d599c7858",
-          "bytes": 1831
+          "sha256": "e61fa6fed078bf56aabbaddf82bfc85e1f36f9db081f8103eb7e29f78df31494",
+          "bytes": 1872
         },
         {
           "path": ".opencode/agents/requirements.md",
-          "sha256": "2de7c1a58b281bd7ae0e5c477964ba729cf5c281ea2d278fc9557e25d3ea1dbd",
-          "bytes": 1485
+          "sha256": "11fb5fbe15fd9b7997e992261dc5e8430e5eda4f692a6c4efd66c943038d0efa",
+          "bytes": 1929
         },
         {
           "path": ".opencode/agents/test-runner.md",
-          "sha256": "ecb069d903ccd7877789619cd0837c9b2f1c6be6229f5699fb40025fca7580ee",
-          "bytes": 1771
+          "sha256": "7ab1fdee3d78322574abe3d8966a6d23bc4cd15890230266f5272a09a904a96a",
+          "bytes": 1797
         },
         {
           "path": ".opencode/skills/code-review-clean-code/SKILL.md",
@@ -89,12 +122,12 @@
         },
         {
           "path": "AGENTS.md",
-          "sha256": "e86a50f5d6e02c5027f4582a42bac3f8897d9e81fdcb71def3255b8564b4af47",
-          "bytes": 1091
+          "sha256": "e47d458690c87fcae16c4b42d24cdc03bc0590865d829b6f2eec7115a9bee293",
+          "bytes": 1113
         },
         {
           "path": "opencode.json",
-          "sha256": "b41522d7c8571c316b97bc18317353541b844899493bc94fc1f8032ae26ce63c",
+          "sha256": "d93b255f29256de27850d6702d4afe88e9c139a2f813a9506ddcf15488e05891",
           "bytes": 432
         }
       ],
@@ -111,8 +144,8 @@
       "generatedFiles": [
         {
           "path": ".github/agents/architect.agent.md",
-          "sha256": "5153002c847bd432785cb045cdc6bc70a913e46a4bb0ec037bb0822fb70e07b1",
-          "bytes": 1364
+          "sha256": "e43a9c4b5ba8ee4f8804bae42465040a335e82b56ae939afb7fc68bd95f94f6f",
+          "bytes": 1823
         },
         {
           "path": ".github/agents/code-reviewer.agent.md",
@@ -121,8 +154,8 @@
         },
         {
           "path": ".github/agents/implementer.agent.md",
-          "sha256": "4bf4f1c356c87df8bd395683e1fbef1040a03c3f1f05467368af7e671a847585",
-          "bytes": 1835
+          "sha256": "ce969e5d299d5f5a894507ecb97e43079d858bd3a84f49bd1f871aa97ceb1c91",
+          "bytes": 1862
         },
         {
           "path": ".github/agents/orchestrator.agent.md",
@@ -131,23 +164,23 @@
         },
         {
           "path": ".github/agents/qa.agent.md",
-          "sha256": "86131a260aaa8a862c84fb073dc102ac66fb90be916e7574cdb439dbda3f6afe",
-          "bytes": 1729
+          "sha256": "10fffc08a510df06e1d81e961402d1de179ea782cae9c2e1d8adaf22a4aa4693",
+          "bytes": 1770
         },
         {
           "path": ".github/agents/requirements.agent.md",
-          "sha256": "842a0874ab77a13b519acc16fdc1e2f31103bc1ca6e04e3dd401112dc91ff4af",
-          "bytes": 1393
+          "sha256": "2c88e249d8c1b5bd65434b45d82cb077743886f3c90c23893d28f0540837b49e",
+          "bytes": 1837
         },
         {
           "path": ".github/agents/test-runner.agent.md",
-          "sha256": "f3795f5e2a081c260d2fa6a28290eb2ff8d7603d962e522f966fff9cac60dc0d",
-          "bytes": 1673
+          "sha256": "599d90e57fd1cfa2d4599032ea490cb731fb2e23e7e7b122339b9c3bfc096c09",
+          "bytes": 1699
         },
         {
           "path": ".github/copilot-instructions.md",
-          "sha256": "cf39dae6bb74f65e2d21bd9a2b7b6beff68e0cb8d3485248a52f078621f2fc52",
-          "bytes": 1102
+          "sha256": "febb001a60aa66be3d2030aaba7200188a4f710877c01b1069602746751e405b",
+          "bytes": 1124
         },
         {
           "path": ".github/skills/code-review-clean-code/SKILL.md",

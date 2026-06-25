@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-EXPECTED_SCHEMA_VERSION = "0.1.0"
+EXPECTED_SCHEMA_VERSION = "0.2.0"
 import hashlib
 import json
 import re
@@ -215,6 +215,80 @@ def validate_schema_version(data: dict[str, object]) -> list[str]:
 
 
 
+
+def validate_non_empty_string_list(value: Any, location: str, errors: list[str]) -> list[str]:
+    if not isinstance(value, list) or not value:
+        errors.append(f"{location}: expected non-empty string list")
+        return []
+
+    result: list[str] = []
+    seen: set[str] = set()
+
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            errors.append(f"{location}[{index}]: expected non-empty string")
+            continue
+
+        if item in seen:
+            errors.append(f"{location}[{index}]: duplicate item {item!r}")
+
+        seen.add(item)
+        result.append(item)
+
+    return result
+
+
+def validate_bundle_metadata(manifest: dict[str, Any], errors: list[str]) -> None:
+    bundle = manifest.get("bundle")
+    if not isinstance(bundle, dict):
+        errors.append(f"{MANIFEST_PATH}: expected bundle object")
+        return
+
+    name = bundle.get("name")
+    registry_path_value = bundle.get("registryPath")
+
+    if not isinstance(name, str) or not name.strip():
+        errors.append(f"{MANIFEST_PATH}: bundle.name must be a non-empty string")
+        return
+
+    if not isinstance(registry_path_value, str) or not is_safe_relative_path(registry_path_value):
+        errors.append(f"{MANIFEST_PATH}: bundle.registryPath must be a safe relative path")
+        return
+
+    registry_path = ROOT / registry_path_value
+    if not registry_path.is_file():
+        errors.append(f"{MANIFEST_PATH}: bundle registry file does not exist: {registry_path_value}")
+        return
+
+    try:
+        registry_bundle = load_json(registry_path)
+    except Exception as exc:
+        errors.append(f"{MANIFEST_PATH}: could not load bundle registry file {registry_path_value}: {exc}")
+        return
+
+    expected_scalar_fields = ["name", "profile", "workflow"]
+    for field in expected_scalar_fields:
+        manifest_value = bundle.get(field)
+        registry_value = registry_bundle.get(field)
+
+        if manifest_value != registry_value:
+            errors.append(
+                f"{MANIFEST_PATH}: bundle metadata drift for {field}: "
+                f"manifest has {manifest_value!r}, registry has {registry_value!r}"
+            )
+
+    expected_list_fields = ["agents", "skills", "artifacts", "targets"]
+    for field in expected_list_fields:
+        manifest_values = validate_non_empty_string_list(bundle.get(field), f"bundle.{field}", errors)
+        registry_values = registry_bundle.get(field)
+
+        if manifest_values != registry_values:
+            errors.append(
+                f"{MANIFEST_PATH}: bundle metadata drift for {field}: "
+                f"manifest has {manifest_values!r}, registry has {registry_values!r}"
+            )
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -226,6 +300,7 @@ def main() -> int:
         return 1
 
     validate_schema(manifest, errors)
+    validate_bundle_metadata(manifest, errors)
 
     schema_version = manifest.get("schemaVersion")
     if not isinstance(schema_version, str) or not schema_version.strip():

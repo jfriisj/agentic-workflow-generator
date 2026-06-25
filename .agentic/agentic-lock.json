@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 64,
-    "contentHash": "sha256:f9948fb670b98b5048baeeac8fbb4d730b2a774cc8a121d6c3490542cc355bf0",
+    "contentHash": "sha256:6bc88164d36a7b47e31892a322df504b1969bcead4f83eeceb7bc9103fa7b6bd",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -208,8 +208,8 @@
       },
       {
         "path": "scripts/agentic/generate-output-manifest.py",
-        "sha256": "sha256:4dbfe82c1c99cc883fd85cc49adf79af3ed2a69d3653f9ea0ef844deb44c5210",
-        "sizeBytes": 4630
+        "sha256": "sha256:f1d9bd114738f566494ee506571540acb84673564539e82d36fe0e237026e475",
+        "sizeBytes": 7828
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",
@@ -238,8 +238,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:adaa510103d2399af696a9000d0b191d31fec1851129dc92389138d990993a79",
-        "sizeBytes": 251400
+        "sha256": "sha256:fcbda3ce9e8a5f746112781236342ae32f4ece000c4c65bdfcb89146a4f768a3",
+        "sizeBytes": 252112
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -293,8 +293,8 @@
       },
       {
         "path": "scripts/agentic/validate-output-manifest.py",
-        "sha256": "sha256:a8358788bcb0e4595ec275537e1f6bddd2bfffb543d8f99fb99a6a813eb5e96d",
-        "sizeBytes": 13038
+        "sha256": "sha256:7eb32f5df74fece86363dbf953ca51f154b3f061a2ec019afc693874420069fb",
+        "sizeBytes": 15796
       },
       {
         "path": "scripts/agentic/validate-profile-registry.py",

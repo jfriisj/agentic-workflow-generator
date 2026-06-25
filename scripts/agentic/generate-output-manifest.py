@@ -8,6 +8,8 @@ from typing import Any
 
 ROOT = Path.cwd()
 TARGET_REGISTRY = ROOT / "registry" / "targets"
+BUNDLE_REGISTRY = ROOT / "registry" / "bundles"
+CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
 OUTPUT_PATH = ROOT / ".agentic" / "generated" / "output-manifest.json"
 
 
@@ -30,9 +32,75 @@ def load_json(path: Path) -> dict[str, Any]:
     return data
 
 
+
+def require_string(data: dict[str, Any], field: str, source: Path) -> str:
+    value = data.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{source}: {field} must be a non-empty string")
+    return value
+
+
+def require_string_list(data: dict[str, Any], field: str, source: Path) -> list[str]:
+    value = data.get(field)
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{source}: {field} must be a non-empty list")
+
+    result: list[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"{source}: {field}[{index}] must be a non-empty string")
+        result.append(item)
+
+    return result
+
+
 def is_safe_relative_path(path_value: str) -> bool:
     path = Path(path_value)
     return bool(path_value.strip()) and not path.is_absolute() and ".." not in path.parts
+
+
+
+def active_workflow_name() -> str:
+    config = load_json(CONFIG_PATH)
+    workflow = config.get("workflow")
+    if not isinstance(workflow, dict):
+        raise ValueError(f"{CONFIG_PATH}: workflow must be an object")
+
+    profile = workflow.get("profile")
+    if not isinstance(profile, str) or not profile.strip():
+        raise ValueError(f"{CONFIG_PATH}: workflow.profile must be a non-empty string")
+
+    return profile
+
+
+def active_bundle_entry() -> dict[str, Any]:
+    workflow_name = active_workflow_name()
+    candidates: list[tuple[Path, dict[str, Any]]] = []
+
+    for path in sorted(BUNDLE_REGISTRY.glob("*.bundle.json")):
+        bundle = load_json(path)
+        if bundle.get("workflow") == workflow_name:
+            candidates.append((path, bundle))
+
+    if not candidates:
+        raise ValueError(f"No bundle found for active workflow '{workflow_name}'")
+
+    if len(candidates) > 1:
+        names = ", ".join(require_string(bundle, "name", path) for path, bundle in candidates)
+        raise ValueError(f"Multiple bundles found for active workflow '{workflow_name}': {names}")
+
+    path, bundle = candidates[0]
+
+    return {
+        "name": require_string(bundle, "name", path),
+        "registryPath": relative(path),
+        "profile": require_string(bundle, "profile", path),
+        "workflow": require_string(bundle, "workflow", path),
+        "agents": require_string_list(bundle, "agents", path),
+        "skills": require_string_list(bundle, "skills", path),
+        "artifacts": require_string_list(bundle, "artifacts", path),
+        "targets": require_string_list(bundle, "targets", path),
+    }
 
 
 def load_target_adapters() -> list[dict[str, Any]]:
@@ -119,13 +187,29 @@ def main() -> int:
 
     targets = [target_entry(adapter) for adapter in adapters]
 
+    try:
+        bundle = active_bundle_entry()
+    except Exception as exc:
+        print(f"FAIL: Could not resolve active bundle metadata: {exc}")
+        return 1
+
+    bundle_target_names = set(bundle["targets"])
+    generated_target_names = {target["name"] for target in targets}
+
+    for missing_target in sorted(bundle_target_names - generated_target_names):
+        errors.append(f"bundle target has no generated output target: {missing_target}")
+
+    for extra_target in sorted(generated_target_names - bundle_target_names):
+        errors.append(f"generated target is not included in active bundle: {extra_target}")
+
     for target in targets:
         if target["generatedFileCount"] == 0:
             errors.append(f"{target['name']} target produced no manifest files")
 
     manifest = {
-        "schemaVersion": "0.1.0",
-        "description": "Deterministic manifest of generated target output files.",
+        "schemaVersion": "0.2.0",
+        "description": "Deterministic manifest of active bundle and generated target output files.",
+        "bundle": bundle,
         "targets": targets,
         "summary": {
             "targetCount": len(targets),
@@ -146,6 +230,7 @@ def main() -> int:
         return 1
 
     print("PASS: Generated output manifest created.")
+    print(f"Bundle: {manifest['bundle']['name']}")
     print(f"Targets: {', '.join(target['name'] for target in manifest['targets'])}")
     print(f"Generated files: {manifest['summary']['generatedFileCount']}")
     print(f"Manifest: {OUTPUT_PATH}")
