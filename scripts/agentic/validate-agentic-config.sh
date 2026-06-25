@@ -14,34 +14,39 @@ if [ ! -f "$SCHEMA_FILE" ]; then
   exit 1
 fi
 
-if command -v npx >/dev/null 2>&1; then
-  npx --yes ajv-cli@5 validate \
-    --spec=draft2020 \
-    -s "$SCHEMA_FILE" \
-    -d "$CONFIG_FILE"
-  echo "PASS: Agentic config is valid."
-  exit 0
+if ! command -v node >/dev/null 2>&1; then
+  echo "ERROR: node is required for JSON Schema validation, but node was not found in PATH." >&2
+  exit 1
 fi
 
-if command -v python >/dev/null 2>&1; then
-  python - <<PY
-import json
-import sys
-
-config_file = "$CONFIG_FILE"
-schema_file = "$SCHEMA_FILE"
-
-with open(config_file, "r", encoding="utf-8") as f:
-    json.load(f)
-
-with open(schema_file, "r", encoding="utf-8") as f:
-    json.load(f)
-
-print("PASS: JSON files are syntactically valid.")
-print("WARN: JSON Schema validation was skipped because ajv-cli is not available.")
-PY
-  exit 0
+if ! NODE_VERSION="$(node --version 2>&1)"; then
+  echo "ERROR: node is required for JSON Schema validation, but node failed to run." >&2
+  echo "Node command: $(command -v node)" >&2
+  echo "Node output:" >&2
+  echo "$NODE_VERSION" >&2
+  exit 1
 fi
 
-echo "ERROR: Neither npx nor python is available for validation." >&2
-exit 1
+if ! command -v npx >/dev/null 2>&1; then
+  echo "ERROR: npx is required for JSON Schema validation, but npx was not found in PATH." >&2
+  echo "Node command: $(command -v node)" >&2
+  echo "Node version: $NODE_VERSION" >&2
+  exit 1
+fi
+
+if ! NPX_VERSION="$(npx --version 2>&1)"; then
+  echo "ERROR: npx is required for JSON Schema validation, but npx failed to run." >&2
+  echo "Node command: $(command -v node)" >&2
+  echo "Node version: $NODE_VERSION" >&2
+  echo "npx command: $(command -v npx)" >&2
+  echo "npx output:" >&2
+  echo "$NPX_VERSION" >&2
+  exit 1
+fi
+
+npx --yes ajv-cli@5 validate \
+  --spec=draft2020 \
+  -s "$SCHEMA_FILE" \
+  -d "$CONFIG_FILE"
+
+echo "PASS: Agentic config is valid."
