@@ -93,8 +93,8 @@ def validate_config_resolution_consistency(resolution: dict[str, Any]) -> list[s
     config_workflow = config.get("workflow")
     resolution_workflow = resolution.get("workflow")
     if isinstance(config_workflow, dict) and isinstance(resolution_workflow, dict):
-        if config_workflow != resolution_workflow:
-            errors.append(f"{RESOLUTION_PATH}: workflow must match {CONFIG_PATH}: workflow")
+        if config_workflow.get("profile") != resolution_workflow.get("profile"):
+            errors.append(f"{RESOLUTION_PATH}: workflow.profile must match {CONFIG_PATH}: workflow.profile")
 
     config_targets = config.get("targets")
     resolution_targets = resolution.get("targets")
@@ -404,6 +404,11 @@ def validate_workflow_semantics_resolution(resolution: dict[str, Any]) -> list[s
             terminal_state_names.add(state_name)
 
     start_state = workflow.get("startState")
+    registry_start_state = registry_workflow.get("startState")
+    if isinstance(start_state, str) and isinstance(registry_start_state, str):
+        if start_state != registry_start_state:
+            errors.append(f"{RESOLUTION_PATH}: workflow.startState must match workflow registry startState")
+
     if isinstance(start_state, str) and start_state.strip():
         if start_state not in state_names:
             errors.append(
@@ -415,6 +420,13 @@ def validate_workflow_semantics_resolution(resolution: dict[str, Any]) -> list[s
             )
 
     terminal_states = workflow.get("terminalStates")
+    registry_terminal_states = registry_workflow.get("terminalStates")
+    if isinstance(terminal_states, list) and isinstance(registry_terminal_states, list):
+        if terminal_states != registry_terminal_states:
+            errors.append(
+                f"{RESOLUTION_PATH}: workflow.terminalStates must match workflow registry terminalStates"
+            )
+
     if isinstance(terminal_states, list):
         for terminal_index, terminal_state in enumerate(terminal_states):
             if not isinstance(terminal_state, str) or not terminal_state.strip():
@@ -437,6 +449,14 @@ def validate_workflow_semantics_resolution(resolution: dict[str, Any]) -> list[s
         if fail_closed != registry_fail_closed:
             errors.append(
                 f"{RESOLUTION_PATH}: workflow.failClosed must match workflow registry failClosed"
+            )
+
+    registry_transitions = registry_workflow.get("transitions")
+    resolution_transitions = workflow.get("transitions")
+    if isinstance(registry_transitions, list) and isinstance(resolution_transitions, list):
+        if resolution_transitions != registry_transitions:
+            errors.append(
+                f"{RESOLUTION_PATH}: workflow.transitions must match workflow registry transitions"
             )
 
     return errors
@@ -480,6 +500,43 @@ def validate_workflow_resolution(resolution: dict[str, Any]) -> list[str]:
                 )
 
             seen_terminal_states.add(terminal_state)
+
+    transitions = workflow.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        errors.append(f"{RESOLUTION_PATH}: workflow.transitions must be a non-empty list")
+    else:
+        seen_transition_keys: set[tuple[str, str]] = set()
+
+        for index, transition in enumerate(transitions):
+            label = f"workflow.transitions[{index}]"
+
+            if not isinstance(transition, dict):
+                errors.append(f"{RESOLUTION_PATH}: {label} must be an object")
+                continue
+
+            source = transition.get("from")
+            target = transition.get("to")
+            event = transition.get("on")
+
+            if not isinstance(source, str) or not source.strip():
+                errors.append(f"{RESOLUTION_PATH}: {label}.from must be a non-empty string")
+                continue
+
+            if not isinstance(target, str) or not target.strip():
+                errors.append(f"{RESOLUTION_PATH}: {label}.to must be a non-empty string")
+                continue
+
+            if not isinstance(event, str) or not event.strip():
+                errors.append(f"{RESOLUTION_PATH}: {label}.on must be a non-empty string")
+                continue
+
+            key = (source, event)
+            if key in seen_transition_keys:
+                errors.append(
+                    f"{RESOLUTION_PATH}: workflow transition event '{event}' from state '{source}' is duplicated"
+                )
+
+            seen_transition_keys.add(key)
 
     return errors
 

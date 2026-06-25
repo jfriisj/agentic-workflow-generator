@@ -2546,6 +2546,74 @@ def break_resolution_workflow_fail_closed_registry_mismatch(worktree: Path) -> N
 
     write_json(path, data)
 
+def break_resolution_workflow_missing_transitions(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    workflow.pop("transitions", None)
+    write_json(path, data)
+
+
+def break_resolution_workflow_transition_target_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    transitions = workflow.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+
+    first = transitions[0]
+    if not isinstance(first, dict):
+        raise RuntimeError("resolution workflow transition must be an object before mutation")
+
+    first["to"] = "Blocked"
+    write_json(path, data)
+
+
+def break_resolution_workflow_transition_event_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    transitions = workflow.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+
+    first = transitions[0]
+    if not isinstance(first, dict):
+        raise RuntimeError("resolution workflow transition must be an object before mutation")
+
+    first["on"] = "changed"
+    write_json(path, data)
+
+
+def break_resolution_workflow_transition_count_mismatch(worktree: Path) -> None:
+    path = worktree / ".agentic" / "generated" / "resolution.json"
+    data = load_json(path)
+
+    workflow = data.get("workflow")
+    if not isinstance(workflow, dict):
+        raise RuntimeError("resolution workflow must be an object before mutation")
+
+    transitions = workflow.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+
+    transitions.pop()
+    write_json(path, data)
+
+
 def break_resolution_missing_workflow(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -5247,6 +5315,34 @@ def main() -> int:
         ),
         (
             "failure",
+            "resolution validation fails when workflow transitions are missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_missing_transitions,
+            "workflow.transitions must be a non-empty list",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow transition target differs from registry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_transition_target_mismatch,
+            "workflow.transitions must match workflow registry transitions",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow transition event differs from registry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_transition_event_mismatch,
+            "workflow.transitions must match workflow registry transitions",
+        ),
+        (
+            "failure",
+            "resolution validation fails when workflow transition count differs from registry",
+            ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
+            break_resolution_workflow_transition_count_mismatch,
+            "workflow.transitions must match workflow registry transitions",
+        ),
+        (
+            "failure",
             "resolution validation fails when workflow profile registry file is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_workflow_profile_missing_registry_file,
@@ -5303,10 +5399,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "resolution validation fails when workflow differs from config",
+            "resolution validation fails when workflow startState differs from registry",
             ["scripts/agentic/agentic-gen.sh", "validate-resolution"],
             break_resolution_workflow_config_mismatch,
-            "workflow must match .agentic/agentic.json: workflow",
+            "workflow.startState must match workflow registry startState",
         ),
         (
             "failure",

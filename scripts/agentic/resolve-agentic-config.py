@@ -36,6 +36,40 @@ def registry_target_path(target_name: str) -> Path:
 def registry_artifact_path(artifact_type: str) -> Path:
     return REGISTRY_PATH / "artifacts" / artifact_type / "artifact.json"
 
+def registry_workflow_path(profile: str) -> Path:
+    return ROOT / "registry" / "workflows" / f"{profile}.workflow.json"
+
+
+def resolve_workflow(config_workflow: object, errors: list[str]) -> dict[str, Any]:
+    if not isinstance(config_workflow, dict):
+        errors.append("workflow must be an object")
+        return {}
+
+    resolved = dict(config_workflow)
+
+    profile = resolved.get("profile")
+    if not isinstance(profile, str) or not profile.strip():
+        errors.append("workflow.profile must be a non-empty string")
+        return resolved
+
+    registry_path = registry_workflow_path(profile)
+    if not registry_path.is_file():
+        errors.append(f"workflow.profile references missing workflow registry file: {registry_path}")
+        return resolved
+
+    try:
+        registry_workflow = load_json(registry_path)
+    except Exception as exc:
+        errors.append(f"failed to load workflow registry file {registry_path}: {exc}")
+        return resolved
+
+    for key in ["startState", "terminalStates", "failClosed", "transitions"]:
+        if key in registry_workflow:
+            resolved[key] = registry_workflow[key]
+
+    return resolved
+
+
 
 def load_artifact_metadata(artifact_type: str) -> dict[str, Any]:
     artifact_path = registry_artifact_path(artifact_type)
@@ -220,11 +254,12 @@ def main() -> int:
         for target in config.get("targets", [])
     ]
 
+    resolved_workflow = resolve_workflow(config.get("workflow", {}), errors)
     produced_binding_count = sum(len(agent.get("produces", [])) for agent in resolved_agents)
 
     resolution = {
         "project": config.get("project", {}),
-        "workflow": config.get("workflow", {}),
+        "workflow": resolved_workflow,
         "agents": resolved_agents,
         "targets": resolved_targets,
         "summary": {
