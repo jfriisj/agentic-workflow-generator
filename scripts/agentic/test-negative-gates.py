@@ -411,6 +411,29 @@ def break_init_idempotency_by_changing_init_script(worktree: Path) -> None:
     path.write_text(text.replace(marker, injection + marker, 1), encoding="utf-8")
 
 
+
+def break_environment_validation_node_command(worktree: Path) -> None:
+    fake_bin = worktree / ".tmp-negative-node-bin"
+    fake_bin.mkdir(parents=True, exist_ok=True)
+
+    node_path = fake_bin / "node"
+    node_path.write_text(
+        "#!/usr/bin/env bash\n"
+        "echo 'negative gate broken node' >&2\n"
+        "exit 42\n",
+        encoding="utf-8",
+    )
+    node_path.chmod(0o755)
+
+    npx_path = fake_bin / "npx"
+    npx_path.write_text(
+        "#!/usr/bin/env bash\n"
+        "echo 'negative gate fake npx'\n",
+        encoding="utf-8",
+    )
+    npx_path.chmod(0o755)
+
+
 def break_generation_idempotency_by_changing_generator(worktree: Path) -> None:
     subprocess.run(
         ["scripts/agentic/agentic-gen.sh", "all"],
@@ -4296,6 +4319,13 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_terminal_state,
             "terminalState",
+        ),
+        (
+            "failure",
+            "environment validation fails when node cannot run",
+            ["env", "PATH=.tmp-negative-node-bin:/usr/bin:/bin", "scripts/agentic/agentic-gen.sh", "validate-environment"],
+            break_environment_validation_node_command,
+            "node is required but failed to run",
         ),
         (
             "failure",

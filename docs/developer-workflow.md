@@ -35,6 +35,30 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
 
 This is not a fallback. It is an explicit environment choice.
 
+## Environment validation
+
+Validate the required local tools explicitly:
+
+```bash
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-environment
+```
+
+This is a fail-fast preflight.
+
+It checks the selected commands from `PATH` and fails if any required command is missing or cannot run.
+
+It does not install tools, repair `PATH`, or fall back to another implementation.
+
+Expected checked commands:
+
+```text
+bash
+git
+python
+node
+npx
+```
+
 ## Daily loop
 
 Use this loop while developing:

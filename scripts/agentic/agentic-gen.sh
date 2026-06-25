@@ -7,6 +7,7 @@ TARGET="${2:-all}"
 usage() {
   cat <<'USAGE'
 Usage:
+  scripts/agentic/agentic-gen.sh validate-environment
   scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve
@@ -39,6 +40,8 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh doctor-strict
 
 Commands:
+  validate-environment
+             Validate required local command-line tools fail-fast.
   init      Initialize .agentic/agentic.json from a registered bundle.
   validate   Validate .agentic/agentic.json against its JSON Schema.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
@@ -109,6 +112,7 @@ validate_json_files() {
 }
 
 check_scripts() {
+  require_file "scripts/agentic/validate-environment.py"
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/validate-resolution-output.py"
@@ -131,6 +135,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
 
+  python -m py_compile "scripts/agentic/validate-environment.py"
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
 
@@ -323,6 +328,10 @@ show_status() {
 }
 
 case "$COMMAND" in
+  validate-environment)
+    python scripts/agentic/validate-environment.py
+    ;;
+
   init)
     python scripts/agentic/init-from-bundle.py "${@:2}"
     ;;
