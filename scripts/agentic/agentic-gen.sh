@@ -25,6 +25,7 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
   scripts/agentic/agentic-gen.sh validate-bundles
+  scripts/agentic/agentic-gen.sh validate-setups
   scripts/agentic/agentic-gen.sh validate-references
   scripts/agentic/agentic-gen.sh validate-registry-schemas
   scripts/agentic/agentic-gen.sh coverage
@@ -69,6 +70,8 @@ Commands:
              Validate registered profile definitions.
   validate-bundles
              Validate registered bundle definitions.
+  validate-setups
+             Validate registered guided setup recommendation definitions.
   validate-references
              Validate cross-references between config and registry files.
   validate-registry-schemas
@@ -113,6 +116,7 @@ validate_json_files() {
 
 check_scripts() {
   require_file "scripts/agentic/validate-environment.py"
+  require_file "scripts/agentic/validate-setup-registry.py"
   require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/validate-resolution-output.py"
@@ -136,6 +140,7 @@ check_scripts() {
   require_file "scripts/agentic/report-capability-coverage.py"
 
   python -m py_compile "scripts/agentic/validate-environment.py"
+  python -m py_compile "scripts/agentic/validate-setup-registry.py"
   bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
 
@@ -196,6 +201,7 @@ run_pipeline() {
   python scripts/agentic/validate-workflow-registry.py || return 1
   python scripts/agentic/validate-profile-registry.py || return 1
   python scripts/agentic/validate-bundle-registry.py || return 1
+  python scripts/agentic/validate-setup-registry.py || return 1
   python scripts/agentic/validate-registry-references.py || return 1
   python scripts/agentic/validate-registry-schemas.py || return 1
   python scripts/agentic/report-capability-coverage.py || return 1
@@ -390,6 +396,9 @@ case "$COMMAND" in
     ;;
   validate-bundles)
     python scripts/agentic/validate-bundle-registry.py
+    ;;
+  validate-setups)
+    python scripts/agentic/validate-setup-registry.py
     ;;
   validate-references)
     python scripts/agentic/validate-registry-references.py

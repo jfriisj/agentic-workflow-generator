@@ -1,0 +1,269 @@
+{
+  "name": "orchestrated-delivery-greenfield",
+  "description": "Guided greenfield setup that recommends an orchestrated delivery workflow with project-shaping agents, skills, artifacts, and targets.",
+  "version": "0.1.0",
+  "mode": "greenfield",
+  "defaultBundle": "orchestrated-delivery",
+  "questions": [
+    {
+      "id": "project-type",
+      "prompt": "What kind of project are you starting?",
+      "recommended": [
+        "microservice-platform"
+      ],
+      "compatible": [
+        "ai-application",
+        "library-package"
+      ],
+      "blocked": [
+        "documentation-only"
+      ],
+      "options": [
+        {
+          "value": "microservice-platform",
+          "label": "Microservice or platform project",
+          "reason": "Recommended because this setup benefits from explicit requirements, architecture, implementation, review, QA, test, and orchestration states.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery",
+            "agents": [
+              "Architect",
+              "CodeReviewer",
+              "Implementer",
+              "Orchestrator",
+              "QA",
+              "Requirements",
+              "TestRunner"
+            ],
+            "skills": [
+              "code-review-clean-code",
+              "code-review-tests",
+              "mvp-core-capabilities",
+              "workflow-routing"
+            ],
+            "artifacts": [
+              "ArchitectureDecision",
+              "CodeReview",
+              "ImplementationReport",
+              "QAReport",
+              "Requirements",
+              "TestReport"
+            ],
+            "targets": [
+              "opencode",
+              "vscode-copilot"
+            ]
+          }
+        },
+        {
+          "value": "ai-application",
+          "label": "AI or LLM application",
+          "reason": "Compatible because AI application work also benefits from an orchestrated delivery workflow, but MCP and AI-evaluation-specific recommendations are not registered yet.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery",
+            "agents": [
+              "Architect",
+              "CodeReviewer",
+              "Implementer",
+              "Orchestrator",
+              "QA",
+              "Requirements",
+              "TestRunner"
+            ],
+            "skills": [
+              "code-review-clean-code",
+              "code-review-tests",
+              "mvp-core-capabilities",
+              "workflow-routing"
+            ],
+            "artifacts": [
+              "ArchitectureDecision",
+              "CodeReview",
+              "ImplementationReport",
+              "QAReport",
+              "Requirements",
+              "TestReport"
+            ],
+            "targets": [
+              "opencode",
+              "vscode-copilot"
+            ]
+          }
+        },
+        {
+          "value": "library-package",
+          "label": "Library or package",
+          "reason": "Compatible because implementation, review, and test agents are useful, but the generated setup may later be reduced when a library-specific setup exists.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery",
+            "agents": [
+              "Architect",
+              "CodeReviewer",
+              "Implementer",
+              "Orchestrator",
+              "QA",
+              "Requirements",
+              "TestRunner"
+            ],
+            "skills": [
+              "code-review-clean-code",
+              "code-review-tests",
+              "mvp-core-capabilities",
+              "workflow-routing"
+            ],
+            "artifacts": [
+              "ArchitectureDecision",
+              "CodeReview",
+              "ImplementationReport",
+              "QAReport",
+              "Requirements",
+              "TestReport"
+            ],
+            "targets": [
+              "opencode",
+              "vscode-copilot"
+            ]
+          }
+        },
+        {
+          "value": "documentation-only",
+          "label": "Documentation-only project",
+          "reason": "Blocked because this setup expects implementation, review, QA, and test artifacts. A documentation-specific setup should be registered separately."
+        }
+      ]
+    },
+    {
+      "id": "delivery-style",
+      "prompt": "How should the work be controlled?",
+      "recommended": [
+        "orchestrated-delivery"
+      ],
+      "compatible": [
+        "review-heavy",
+        "test-first"
+      ],
+      "blocked": [
+        "ad-hoc"
+      ],
+      "options": [
+        {
+          "value": "orchestrated-delivery",
+          "label": "Orchestrated delivery",
+          "reason": "Recommended because the workflow has explicit handoff states and artifact contracts from requirements through QA.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery"
+          }
+        },
+        {
+          "value": "review-heavy",
+          "label": "Review-heavy delivery",
+          "reason": "Compatible because the current bundle includes CodeReviewer and QA, but a dedicated review-heavy workflow is not registered yet.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery"
+          }
+        },
+        {
+          "value": "test-first",
+          "label": "Test-first delivery",
+          "reason": "Compatible because the current bundle includes TestRunner and test artifacts, but a dedicated test-first workflow is not registered yet.",
+          "recommends": {
+            "bundle": "orchestrated-delivery",
+            "profile": "microservice-platform",
+            "workflow": "orchestrated-delivery"
+          }
+        },
+        {
+          "value": "ad-hoc",
+          "label": "Ad-hoc prompting",
+          "reason": "Blocked because this generator is designed to produce deterministic, validated, fail-fast agentic setups."
+        }
+      ]
+    },
+    {
+      "id": "target-platforms",
+      "prompt": "Which target agent platforms should be generated?",
+      "recommended": [
+        "opencode-and-vscode-copilot"
+      ],
+      "compatible": [
+        "opencode-only",
+        "vscode-copilot-only"
+      ],
+      "blocked": [],
+      "options": [
+        {
+          "value": "opencode-and-vscode-copilot",
+          "label": "OpenCode and VS Code Copilot",
+          "reason": "Recommended because both target adapters are registered and the current bundle already supports both.",
+          "recommends": {
+            "targets": [
+              "opencode",
+              "vscode-copilot"
+            ]
+          }
+        },
+        {
+          "value": "opencode-only",
+          "label": "OpenCode only",
+          "reason": "Compatible because the OpenCode target adapter is registered.",
+          "recommends": {
+            "targets": [
+              "opencode"
+            ]
+          }
+        },
+        {
+          "value": "vscode-copilot-only",
+          "label": "VS Code Copilot only",
+          "reason": "Compatible because the VS Code Copilot target adapter is registered.",
+          "recommends": {
+            "targets": [
+              "vscode-copilot"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "finalRecommendation": {
+    "bundle": "orchestrated-delivery",
+    "profile": "microservice-platform",
+    "workflow": "orchestrated-delivery",
+    "agents": [
+      "Architect",
+      "CodeReviewer",
+      "Implementer",
+      "Orchestrator",
+      "QA",
+      "Requirements",
+      "TestRunner"
+    ],
+    "skills": [
+      "code-review-clean-code",
+      "code-review-tests",
+      "mvp-core-capabilities",
+      "workflow-routing"
+    ],
+    "artifacts": [
+      "ArchitectureDecision",
+      "CodeReview",
+      "ImplementationReport",
+      "QAReport",
+      "Requirements",
+      "TestReport"
+    ],
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  }
+}

@@ -41,6 +41,11 @@ SCHEMA_TARGETS = [
         "bundle",
     ),
     (
+        ".agentic/schemas/registry/setup.schema.json",
+        "registry/setups/*.setup.json",
+        "setup",
+    ),
+    (
         ".agentic/schemas/registry/artifact.schema.json",
         "registry/artifacts/*/artifact.json",
         "artifact",

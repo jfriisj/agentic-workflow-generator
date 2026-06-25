@@ -4002,6 +4002,92 @@ def break_bundle_registry_profile_workflow_mismatch(worktree: Path) -> None:
     write_json(path, data)
 
 
+def awg_first_setup_file(worktree: Path) -> Path:
+    setup_paths = sorted((worktree / "registry" / "setups").glob("*.setup.json"))
+
+    if not setup_paths:
+        raise RuntimeError("expected at least one setup registry file")
+
+    return setup_paths[0]
+
+
+def awg_mutate_first_setup(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
+    path = awg_first_setup_file(worktree)
+    data = load_json(path)
+
+    if not isinstance(data, dict):
+        raise RuntimeError("setup registry file must be an object before mutation")
+
+    mutate(data)
+    write_json(path, data)
+
+
+def break_setup_registry_name_mismatch(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["name"] = "wrong-setup"
+
+    awg_mutate_first_setup(worktree, mutate)
+
+
+def break_setup_registry_missing_default_bundle(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        data["defaultBundle"] = "missing-bundle"
+        final_recommendation = data.get("finalRecommendation")
+        if not isinstance(final_recommendation, dict):
+            raise RuntimeError("setup finalRecommendation must be an object before mutation")
+        final_recommendation["bundle"] = "missing-bundle"
+
+    awg_mutate_first_setup(worktree, mutate)
+
+
+def break_setup_registry_recommended_missing_option(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        questions = data.get("questions")
+        if not isinstance(questions, list) or not questions:
+            raise RuntimeError("setup questions must be a non-empty list before mutation")
+        first_question = questions[0]
+        if not isinstance(first_question, dict):
+            raise RuntimeError("setup questions[0] must be an object before mutation")
+        first_question["recommended"] = ["missing-option"]
+
+    awg_mutate_first_setup(worktree, mutate)
+
+
+def break_setup_registry_recommended_overlaps_blocked(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        questions = data.get("questions")
+        if not isinstance(questions, list) or not questions:
+            raise RuntimeError("setup questions must be a non-empty list before mutation")
+        first_question = questions[0]
+        if not isinstance(first_question, dict):
+            raise RuntimeError("setup questions[0] must be an object before mutation")
+        first_question["blocked"] = ["microservice-platform"]
+
+    awg_mutate_first_setup(worktree, mutate)
+
+
+def break_setup_registry_option_recommends_missing_agent(worktree: Path) -> None:
+    def mutate(data: dict[str, Any]) -> None:
+        questions = data.get("questions")
+        if not isinstance(questions, list) or not questions:
+            raise RuntimeError("setup questions must be a non-empty list before mutation")
+        first_question = questions[0]
+        if not isinstance(first_question, dict):
+            raise RuntimeError("setup questions[0] must be an object before mutation")
+        options = first_question.get("options")
+        if not isinstance(options, list) or not options:
+            raise RuntimeError("setup question options must be a non-empty list before mutation")
+        first_option = options[0]
+        if not isinstance(first_option, dict):
+            raise RuntimeError("setup question options[0] must be an object before mutation")
+        recommends = first_option.get("recommends")
+        if not isinstance(recommends, dict):
+            raise RuntimeError("setup option recommends must be an object before mutation")
+        recommends["agents"] = ["MissingAgent"]
+
+    awg_mutate_first_setup(worktree, mutate)
+
+
 def break_skill_registry_missing_name(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
@@ -6343,6 +6429,41 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
             break_bundle_registry_profile_workflow_mismatch,
             "bundle profile 'microservice-platform' workflow 'wrong-workflow' does not match bundle workflow 'orchestrated-delivery'",
+        ),
+        (
+            "failure",
+            "setup registry validation fails when name does not match file",
+            ["scripts/agentic/agentic-gen.sh", "validate-setups"],
+            break_setup_registry_name_mismatch,
+            "setup name 'wrong-setup' must match file name 'orchestrated-delivery-greenfield'",
+        ),
+        (
+            "failure",
+            "setup registry validation fails when default bundle is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setups"],
+            break_setup_registry_missing_default_bundle,
+            "defaultBundle defaultBundle references missing bundle 'missing-bundle'",
+        ),
+        (
+            "failure",
+            "setup registry validation fails when recommended option is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-setups"],
+            break_setup_registry_recommended_missing_option,
+            "question 'project-type' recommended references missing option 'missing-option'",
+        ),
+        (
+            "failure",
+            "setup registry validation fails when recommended overlaps blocked",
+            ["scripts/agentic/agentic-gen.sh", "validate-setups"],
+            break_setup_registry_recommended_overlaps_blocked,
+            "question 'project-type' has overlapping recommended/blocked values: ['microservice-platform']",
+        ),
+        (
+            "failure",
+            "setup registry validation fails when option recommends missing agent",
+            ["scripts/agentic/agentic-gen.sh", "validate-setups"],
+            break_setup_registry_option_recommends_missing_agent,
+            "question 'project-type' option 'microservice-platform'.recommends agents references missing agent 'MissingAgent'",
         ),
         (
             "failure",
