@@ -243,7 +243,7 @@ def expect_interactive_guided_defaults() -> tuple[bool, str]:
         result = run_with_pty(
             worktree,
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
-            "2\n\n\n\ny\n",
+            "orchestrated-delivery-greenfield\n\n\n\ny\n",
         )
 
         if result.returncode != 0:
@@ -288,7 +288,8 @@ def expect_interactive_guided_first_question_back_returns_to_setup() -> tuple[bo
         result = run_with_pty(
             worktree,
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
-            "2\nb\n2\n\n\n\ny\n",
+            "orchestrated-delivery-greenfield\nb\n"
+            "orchestrated-delivery-greenfield\n\n\n\ny\n",
         )
 
         if result.returncode != 0:
@@ -617,6 +618,97 @@ def assert_guided_vscode_copilot_only_targets(worktree: Path) -> tuple[bool, str
     )
 
 
+def assert_ai_application_composition(
+    worktree: Path,
+) -> tuple[bool, str]:
+    setup_profile = load_json(
+        worktree / ".agentic" / "setup-profile.json"
+    )
+    config = load_json(
+        worktree / ".agentic" / "agentic.json"
+    )
+
+    selected = setup_profile.get("selected")
+    if not isinstance(selected, dict):
+        return False, "setup-profile selected must be an object"
+
+    expected = {
+        "bundle": "ai-application",
+        "profile": "ai-application",
+        "workflow": "ai-application-delivery",
+        "agents": [
+            "AIEvaluator",
+            "Architect",
+            "CodeReviewer",
+            "Implementer",
+            "Orchestrator",
+            "QA",
+            "Requirements",
+            "TestRunner",
+        ],
+        "skills": [
+            "ai-evaluation",
+            "code-review-clean-code",
+            "code-review-tests",
+            "mvp-core-capabilities",
+            "workflow-routing",
+        ],
+        "artifacts": [
+            "AIEvaluationReport",
+            "ArchitectureDecision",
+            "CodeReview",
+            "ImplementationReport",
+            "QAReport",
+            "Requirements",
+            "TestReport",
+        ],
+        "targets": [
+            "opencode",
+            "vscode-copilot",
+        ],
+    }
+
+    for key, expected_value in expected.items():
+        actual_value = selected.get(key)
+        if actual_value != expected_value:
+            return (
+                False,
+                f"setup-profile selected.{key} was "
+                f"{actual_value!r}, expected {expected_value!r}",
+            )
+
+    workflow = config.get("workflow")
+    if not isinstance(workflow, dict):
+        return False, "agentic config workflow must be an object"
+
+    if workflow.get("profile") != "ai-application-delivery":
+        return (
+            False,
+            "agentic config workflow.profile was "
+            f"{workflow.get('profile')!r}, expected "
+            "'ai-application-delivery'",
+        )
+
+    agents = config.get("agents")
+    if not isinstance(agents, list):
+        return False, "agentic config agents must be a list"
+
+    actual_agents = [
+        agent.get("name")
+        for agent in agents
+        if isinstance(agent, dict)
+    ]
+
+    if actual_agents != expected["agents"]:
+        return (
+            False,
+            f"agentic config agents were {actual_agents!r}, "
+            f"expected {expected['agents']!r}",
+        )
+
+    return True, "AI application composition matched the dedicated setup"
+
+
 def break_capability_coverage(worktree: Path) -> None:
     path = worktree / "registry" / "skills" / "workflow-routing" / "skill.json"
     data = load_json(path)
@@ -644,6 +736,22 @@ def break_generated_output(worktree: Path) -> None:
     path = worktree / ".github" / "agents" / "orchestrator.agent.md"
     if not path.is_file():
         raise RuntimeError(f"Expected generated file not found before mutation: {path}")
+
+    path.unlink()
+
+
+def break_generated_selected_skill_output(worktree: Path) -> None:
+    path = (
+        worktree
+        / ".github"
+        / "skills"
+        / "code-review-clean-code"
+        / "SKILL.md"
+    )
+    if not path.is_file():
+        raise RuntimeError(
+            f"Expected generated selected skill not found before mutation: {path}"
+        )
 
     path.unlink()
 
@@ -5318,6 +5426,34 @@ def main() -> int:
         ),
         (
             "success",
+            "direct orchestrated bundle initialization remains available",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--bundle",
+                "orchestrated-delivery",
+            ],
+            no_mutation,
+            "PASS: Init from bundle is idempotent for bundle "
+            "'orchestrated-delivery'. Checked .agentic/agentic.json.",
+        ),
+        (
+            "success",
+            "AI guided init selects the complete AI composition",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "ai-application-greenfield",
+            ],
+            no_mutation,
+            "PASS: Initialized .agentic/setup-profile.json from guided setup "
+            "'ai-application-greenfield'.",
+            assert_ai_application_composition,
+        ),
+        (
+            "success",
             "guided init selects default target recommendations",
             ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield"],
             no_mutation,
@@ -5362,6 +5498,14 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_output,
             "missing generated file",
+        ),
+        (
+            "failure",
+            "generated output validation fails when selected skill file is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-generated"],
+            break_generated_selected_skill_output,
+            "missing generated file: "
+            ".github/skills/code-review-clean-code/SKILL.md",
         ),
         (
             "success",

@@ -25,13 +25,13 @@ c98fc8b Add isolated guided init end-to-end fixture
 
 Og den aktuelle arbejdende tilstand er:
 
-* milepæl 1 punkt 7 er implementeret og committed
-* den isolerede clean-consumer end-to-end fixture består
+* milepæl 1 er afsluttet, valideret og pushed til `origin/main`
+* milepæl 2 er i gang med første `ai-application` vertical slice
+* den isolerede clean-consumer end-to-end fixture består for alle 4 setups
 * hele `agentic-gen.sh all`-pipelinen består
-* alle **361 negative gates** består
-* `doctor-strict` består
-* working tree er ren
-* push til `origin/main` mangler stadig
+* alle **364 negative gates** består
+* working tree indeholder de tilsigtede milepæl 2-ændringer
+* endelig commit, `doctor-strict` og push mangler
 
 ---
 
@@ -82,15 +82,15 @@ Alle centrale registry-filer har både strukturel og semantisk validering.
 
 Den aktuelle sammensætning indeholder:
 
-* 7 agents,
-* 4 skill-directories,
-* 18 capabilities,
-* 3 workflows,
-* 3 profiles,
-* 3 bundles,
-* 6 artifact contracts,
+* 8 agents,
+* 5 skill-directories,
+* 21 capabilities,
+* 4 workflows,
+* 4 profiles,
+* 4 bundles,
+* 7 artifact contracts,
 * 2 target adapters,
-* 3 guided setups.
+* 4 guided setups.
 
 ### Agents
 
@@ -465,7 +465,7 @@ Projektet har nu:
 * Git hooks,
 * CI.
 
-Den negative suite har nu **361 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
+Den negative suite har nu **364 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
 
 Det er meget stærkere end blot at teste happy path.
 
@@ -473,17 +473,18 @@ Det er meget stærkere end blot at teste happy path.
 
 # 3. Hvad der kun er delvist færdigt
 
-## A. Guided init har nu tre reelle proces-setups
+## A. Guided init har nu fire reelle setups
 
 Der findes nu:
 
 ```text
+ai-application-greenfield
 lean-delivery-greenfield
 orchestrated-delivery-greenfield
 review-heavy-delivery-greenfield
 ```
 
-De materialiserer tre forskellige, validerede kompositioner med egne:
+De materialiserer fire forskellige, validerede kompositioner med egne:
 
 * workflows,
 * profiles,
@@ -492,9 +493,19 @@ De materialiserer tre forskellige, validerede kompositioner med egne:
 * artifact-kæder,
 * spørgsmål og klassifikationer.
 
-De tre workflows er:
+De fire workflows er:
 
 ```text
+ai-application:
+Requirements
+  → Architect
+  → Implementer
+  → AIEvaluator
+  → TestRunner
+  → CodeReviewer
+  → QA
+  → Done
+
 lean:
 Requirements
   → Implementer
@@ -525,7 +536,7 @@ Dermed er milepæl 1 punkt 6 afsluttet med to nye reelle setups frem for aliases
 
 Implementeringen afdækkede og rettede også ustabile test-fixtures, som tidligere valgte den alfabetisk første setup-, workflow- eller bundle-fil. Tests, der forventer en bestemt komposition, bruger nu eksplicit navngivne fixtures.
 
-Begge nye setups er dækket af:
+Alle fire setups er dækket af:
 
 * registry schema validation,
 * workflow-, profile-, bundle- og setup-validation,
@@ -574,16 +585,30 @@ Testen verificerer også, at compilerens source payload forbliver byte-identisk,
 
 Arbejdet afdækkede en reel clean-init-fejl: nye projekter fik tomme `languageProfiles` og `runtimeProfiles`, selv om resolution-validatoren kræver ikke-tomme lister. Profilkontrakten kræver nu eksplicitte `recommendedLanguageProfiles` og `recommendedRuntimeProfiles`, og `init-from-bundle.py` materialiserer dem fra bundlens registrerede profil.
 
-Den isolerede fixture, hele happy-path-pipelinen og alle **361 negative gates** består. Committet `c98fc8b` er oprettet, `doctor-strict` består, og working tree er ren. Dermed er milepæl 1 punkt 7 afsluttet; kun push til `origin/main` mangler.
+Den isolerede fixture, hele happy-path-pipelinen og alle **364 negative gates** består. Milepæl 1 er afsluttet, valideret med `doctor-strict` og pushed til `origin/main`.
 
-Den resterende faglige bredde hører til milepæl 2. De næste naturlige domain-oriented setups er:
+Milepæl 2 er nu i gang. Den første komplette domain-oriented vertical slice er `ai-application`.
 
-```text
-ai-application
-data-pipeline
-web-api
-library
-```
+Den tilføjer en selvstændig:
+
+* `AIEvaluator` agent,
+* `ai-evaluation` skill,
+* `AIEvaluationReport` artifact contract,
+* `ai-application` profile og bundle,
+* `ai-application-delivery` workflow,
+* `ai-application-greenfield` guided setup.
+
+AI-flowet har et eksplicit evalueringsgate for modelkvalitet, sikkerhed, fejlscenarier, kendte begrænsninger og operationel evidens.
+
+Det generiske `orchestrated-delivery` flow er fortsat direkte tilgængeligt. Det dedikerede AI-setup er en sikker guided anbefaling og ikke en begrænsning af de generiske bundles.
+
+Den isolerede end-to-end test opdager automatisk alle registrerede setups. Alle fire setups initialiseres og genereres deterministisk i rene consumer-fixtures.
+
+De næste naturlige domain-oriented setups er:
+
+* `data-pipeline`
+* `web-api`
+* `library`
 
 Disse skal fortsat have reelt forskellige registry-elementer og må ikke blot materialisere samme bundle under nye navne.
 
@@ -685,7 +710,7 @@ Regressionerne er valideret med:
 * guided `--dry-run`,
 * guided init-idempotens,
 * bundle init-idempotens,
-* alle **361 negative gates**, inklusive PTY-tests for defaults, cancellation og back-navigation.
+* alle **364 negative gates**, inklusive PTY-tests for defaults, cancellation og back-navigation.
 
 Transaktionel skrivning er foreløbig bevaret i CLI-modulet, fordi det fortsat er tæt koblet til validering og commit/rollback-orkestreringen. Det kan udtrækkes senere, hvis flere init-flows får samme behov.
 
@@ -1091,7 +1116,7 @@ Dette bør være næste fokus, før MCP.
 6. ✅ Tilføj mindst to nye reelle setups.
 7. ✅ Lav en ekstern eller isoleret end-to-end fixture.
 
-**Resultat:** Milepæl 1 er implementeret, committed og valideret med `doctor-strict` som grundlag for en troværdig `v0.1` agentic setup compiler. Kun push til `origin/main` mangler.
+**Resultat:** Milepæl 1 er implementeret, committed, valideret med `doctor-strict` og pushed til `origin/main` som grundlag for en troværdig `v0.1` agentic setup compiler.
 
 ---
 
@@ -1099,14 +1124,14 @@ Dette bør være næste fokus, før MCP.
 
 Brug `docs/adding-guided-setups.md` som implementerings- og valideringskontrakt.
 
-Tilføj først de registry-elementer, der gør setups fagligt forskellige:
+Aktuel status:
 
-```text
-ai-application
-data-pipeline
-web-api
-library
-```
+* `ai-application` — første vertical slice implementeret
+* `data-pipeline` — næste kandidat
+* `web-api` — planlagt
+* `library` — planlagt
+
+Tilføj fortsat først de registry-elementer, der gør hvert setup fagligt forskelligt.
 
 Tilføj derefter nødvendige:
 

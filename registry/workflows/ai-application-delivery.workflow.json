@@ -1,0 +1,129 @@
+{
+  "name": "ai-application-delivery",
+  "version": "0.1.0",
+  "description": "A fail-closed delivery workflow for AI applications with explicit AI quality, safety, and operational evaluation.",
+  "startState": "Requirements",
+  "terminalStates": [
+    "Done",
+    "Blocked"
+  ],
+  "states": [
+    {
+      "name": "Requirements",
+      "agent": "Requirements",
+      "gate": "requirements-review"
+    },
+    {
+      "name": "Architect",
+      "agent": "Architect",
+      "gate": "architecture-review"
+    },
+    {
+      "name": "Implementer",
+      "agent": "Implementer",
+      "gate": "implementation-complete"
+    },
+    {
+      "name": "AIEvaluator",
+      "agent": "AIEvaluator",
+      "gate": "ai-evaluation-review"
+    },
+    {
+      "name": "TestRunner",
+      "agent": "TestRunner",
+      "gate": "test-review"
+    },
+    {
+      "name": "CodeReviewer",
+      "agent": "CodeReviewer",
+      "gate": "code-review"
+    },
+    {
+      "name": "QA",
+      "agent": "QA",
+      "gate": "qa-review"
+    },
+    {
+      "name": "Done",
+      "terminal": true
+    },
+    {
+      "name": "Blocked",
+      "terminal": true
+    }
+  ],
+  "defaultFailureRoute": "Orchestrator",
+  "failClosed": true,
+  "transitions": [
+    {
+      "from": "Requirements",
+      "to": "Architect",
+      "on": "pass"
+    },
+    {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Implementer",
+      "on": "pass"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Implementer",
+      "to": "AIEvaluator",
+      "on": "pass"
+    },
+    {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "AIEvaluator",
+      "to": "TestRunner",
+      "on": "pass"
+    },
+    {
+      "from": "AIEvaluator",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "TestRunner",
+      "to": "CodeReviewer",
+      "on": "pass"
+    },
+    {
+      "from": "TestRunner",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "QA",
+      "on": "pass"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Done",
+      "on": "pass"
+    },
+    {
+      "from": "QA",
+      "to": "Blocked",
+      "on": "fail"
+    }
+  ]
+}

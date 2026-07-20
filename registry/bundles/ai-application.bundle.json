@@ -1,0 +1,37 @@
+{
+  "name": "ai-application",
+  "description": "Fail-closed AI application delivery bundle with explicit AI quality, safety, and operational evaluation.",
+  "version": "0.1.0",
+  "profile": "ai-application",
+  "workflow": "ai-application-delivery",
+  "agents": [
+    "AIEvaluator",
+    "Architect",
+    "CodeReviewer",
+    "Implementer",
+    "Orchestrator",
+    "QA",
+    "Requirements",
+    "TestRunner"
+  ],
+  "skills": [
+    "ai-evaluation",
+    "code-review-clean-code",
+    "code-review-tests",
+    "mvp-core-capabilities",
+    "workflow-routing"
+  ],
+  "artifacts": [
+    "AIEvaluationReport",
+    "ArchitectureDecision",
+    "CodeReview",
+    "ImplementationReport",
+    "QAReport",
+    "Requirements",
+    "TestReport"
+  ],
+  "targets": [
+    "opencode",
+    "vscode-copilot"
+  ]
+}

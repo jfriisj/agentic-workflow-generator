@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/agentic/artifacts/a-i-evaluation-report.schema.json",
+  "title": "AIEvaluationReport Artifact Contract",
+  "type": "object",
+  "required": [
+    "type",
+    "description",
+    "pathPattern",
+    "status",
+    "allowedStatuses",
+    "requiredHeadings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "AIEvaluationReport"
+    },
+    "description": {
+      "type": "string",
+      "const": "Artifact contract for evidence-based AI application quality, safety, and operational evaluation."
+    },
+    "pathPattern": {
+      "type": "string",
+      "const": "agent-output/ai-evaluation-report/*.md"
+    },
+    "status": {
+      "type": "object",
+      "required": [
+        "heading",
+        "pattern"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "type": "string",
+          "const": "## Status"
+        },
+        "pattern": {
+          "type": "string",
+          "const": "PASS|FAIL|BLOCKED"
+        }
+      }
+    },
+    "allowedStatuses": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "PASS"
+        },
+        {
+          "type": "string",
+          "const": "FAIL"
+        },
+        {
+          "type": "string",
+          "const": "BLOCKED"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true
+    },
+    "requiredHeadings": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "# AI Evaluation Report"
+        },
+        {
+          "type": "string",
+          "const": "## Status"
+        },
+        {
+          "type": "string",
+          "const": "## Summary"
+        },
+        {
+          "type": "string",
+          "const": "## Evaluation Scope"
+        },
+        {
+          "type": "string",
+          "const": "## Evaluation Data and Scenarios"
+        },
+        {
+          "type": "string",
+          "const": "## Metrics, Thresholds, and Baselines"
+        },
+        {
+          "type": "string",
+          "const": "## Results"
+        },
+        {
+          "type": "string",
+          "const": "## Safety and Failure Analysis"
+        },
+        {
+          "type": "string",
+          "const": "## Operational Evidence"
+        },
+        {
+          "type": "string",
+          "const": "## Known Limitations"
+        },
+        {
+          "type": "string",
+          "const": "## Required Fixes"
+        },
+        {
+          "type": "string",
+          "const": "## Handoff Target"
+        }
+      ],
+      "items": false,
+      "minItems": 12,
+      "maxItems": 12,
+      "uniqueItems": true
+    }
+  }
+}

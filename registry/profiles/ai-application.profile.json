@@ -1,0 +1,47 @@
+{
+  "name": "ai-application",
+  "version": "0.1.0",
+  "description": "Workflow profile for AI applications that require explicit requirements, architecture, implementation, AI evaluation, software testing, code review, and final quality assurance.",
+  "workflow": "ai-application-delivery",
+  "recommendedAgents": [
+    "Orchestrator",
+    "Requirements",
+    "Architect",
+    "Implementer",
+    "AIEvaluator",
+    "TestRunner",
+    "CodeReviewer",
+    "QA"
+  ],
+  "recommendedCapabilities": [
+    "workflow.route",
+    "workflow.validate-state",
+    "workflow.handoff",
+    "requirements.elicit",
+    "requirements.define-acceptance-criteria",
+    "architecture.design",
+    "architecture.evaluate-tradeoffs",
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests",
+    "ai.evaluate-quality",
+    "ai.evaluate-safety",
+    "ai.evaluate-operational-risks",
+    "test.run",
+    "test.report",
+    "test.diagnose-failure",
+    "review.clean-code",
+    "review.tests",
+    "review.security",
+    "qa.verify-acceptance-criteria",
+    "qa.validate-evidence"
+  ],
+  "recommendedLanguageProfiles": [
+    "language-agnostic"
+  ],
+  "recommendedRuntimeProfiles": [
+    "local",
+    "docker",
+    "ci"
+  ]
+}

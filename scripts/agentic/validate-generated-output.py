@@ -8,7 +8,6 @@ from typing import Any
 
 ROOT = Path.cwd()
 RESOLUTION_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
-SKILLS_DIR = ROOT / "registry" / "skills"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -80,12 +79,32 @@ def agent_names(resolution: dict[str, Any]) -> list[str]:
     return names
 
 
-def skill_names_from_registry() -> list[str]:
-    return sorted(
-        path.parent.name
-        for path in SKILLS_DIR.glob("*/skill.json")
-        if path.is_file()
-    )
+def skill_names_from_resolution(
+    resolution: dict[str, Any],
+) -> list[str]:
+    skill_names: set[str] = set()
+
+    agents = resolution.get("agents")
+    if not isinstance(agents, list):
+        return []
+
+    for agent in agents:
+        if not isinstance(agent, dict):
+            continue
+
+        resolved_capabilities = agent.get("resolvedCapabilities")
+        if not isinstance(resolved_capabilities, list):
+            continue
+
+        for resolved in resolved_capabilities:
+            if not isinstance(resolved, dict):
+                continue
+
+            skill_name = resolved.get("skill")
+            if isinstance(skill_name, str) and skill_name.strip():
+                skill_names.add(skill_name.strip())
+
+    return sorted(skill_names)
 
 
 def validate_vscode_output(agents: list[str], skills: list[str]) -> list[str]:
@@ -140,7 +159,7 @@ def main() -> int:
 
     targets = enabled_targets(resolution)
     agents = agent_names(resolution)
-    skills = skill_names_from_registry()
+    skills = skill_names_from_resolution(resolution)
 
     if not targets:
         errors.append(f"{RESOLUTION_PATH}: expected at least one enabled generated target")
@@ -149,7 +168,9 @@ def main() -> int:
         errors.append(f"{RESOLUTION_PATH}: expected at least one resolved agent")
 
     if not skills:
-        errors.append(f"{SKILLS_DIR}: expected at least one registered skill")
+        errors.append(
+            f"{RESOLUTION_PATH}: expected at least one resolved skill"
+        )
 
     if "vscode-copilot" in targets:
         errors.extend(validate_vscode_output(agents, skills))

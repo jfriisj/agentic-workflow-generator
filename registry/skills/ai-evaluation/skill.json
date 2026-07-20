@@ -1,0 +1,18 @@
+{
+  "name": "ai-evaluation",
+  "version": "0.1.0",
+  "description": "Evidence-based evaluation guidance for AI application quality, safety, failure behavior, and operational risks.",
+  "provides": [
+    "ai.evaluate-quality",
+    "ai.evaluate-safety",
+    "ai.evaluate-operational-risks"
+  ],
+  "requires": [],
+  "allowedAgents": [
+    "AIEvaluator"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2400
+  }
+}

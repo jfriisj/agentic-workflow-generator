@@ -509,7 +509,45 @@ A setup-profile test must materialize the exact setup required by its assertions
 
 Do not rely on whichever setup was last generated in the repository.
 
-## 11. Current process-oriented setups
+## 11. Current registered setups
+
+### ai-application-greenfield
+
+Purpose:
+
+~~~text
+AI and LLM application delivery
+explicit model-quality evaluation
+safety and failure-mode evidence
+operational evaluation before ordinary software validation
+~~~
+
+Flow:
+
+~~~text
+Requirements
+  → Architect
+  → Implementer
+  → AIEvaluator
+  → TestRunner
+  → CodeReviewer
+  → QA
+  → Done
+~~~
+
+Domain-specific additions:
+
+~~~text
+AIEvaluator agent
+ai-evaluation skill
+AIEvaluationReport artifact contract
+ai-application profile and bundle
+ai-application-delivery workflow
+~~~
+
+The AI setup is the recommended guided composition when AI-specific evaluation
+is required. It does not prevent direct initialization of generic bundles when
+a project intentionally does not require the dedicated AI evaluation gate.
 
 ### lean-delivery-greenfield
 
@@ -578,7 +616,12 @@ Requirements
   → Done
 ~~~
 
-These setups demonstrate that a real setup difference can be process-oriented even when the same underlying agents and skills are reused.
+The three delivery setups demonstrate that a real setup difference can be
+process-oriented even when the same underlying agents and skills are reused.
+
+The AI application setup demonstrates a domain-oriented difference through a
+specialized agent, skill, artifact contract, profile, bundle, and workflow gate.
+This is the first completed vertical slice of milestone 2.
 
 ## 12. Milestone 2 domain setup checklist
 

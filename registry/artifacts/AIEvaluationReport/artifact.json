@@ -1,0 +1,28 @@
+{
+  "type": "AIEvaluationReport",
+  "description": "Artifact contract for evidence-based AI application quality, safety, and operational evaluation.",
+  "pathPattern": "agent-output/ai-evaluation-report/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "allowedStatuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED"
+  ],
+  "requiredHeadings": [
+    "# AI Evaluation Report",
+    "## Status",
+    "## Summary",
+    "## Evaluation Scope",
+    "## Evaluation Data and Scenarios",
+    "## Metrics, Thresholds, and Baselines",
+    "## Results",
+    "## Safety and Failure Analysis",
+    "## Operational Evidence",
+    "## Known Limitations",
+    "## Required Fixes",
+    "## Handoff Target"
+  ]
+}

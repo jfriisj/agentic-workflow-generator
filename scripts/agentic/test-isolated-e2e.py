@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path.cwd()
-SETUP_NAME = "orchestrated-delivery-greenfield"
+SETUP_DIRECTORY = Path("registry/setups")
 
 SOURCE_DIRECTORIES = (
     Path("registry"),
@@ -42,6 +42,42 @@ def load_json(path: Path) -> dict[str, Any]:
         raise RuntimeError(f"{path}: expected a JSON object")
 
     return data
+
+
+def load_setup_cases() -> list[tuple[str, str]]:
+    setup_directory = ROOT / SETUP_DIRECTORY
+
+    if not setup_directory.is_dir():
+        raise RuntimeError(
+            f"Required setup directory is missing: {setup_directory}"
+        )
+
+    cases: list[tuple[str, str]] = []
+
+    for setup_path in sorted(setup_directory.glob("*.setup.json")):
+        setup = load_json(setup_path)
+        setup_name = setup.get("name")
+        default_bundle = setup.get("defaultBundle")
+
+        if not isinstance(setup_name, str) or not setup_name.strip():
+            raise RuntimeError(
+                f"{setup_path}: name must be a non-empty string"
+            )
+
+        if (
+            not isinstance(default_bundle, str)
+            or not default_bundle.strip()
+        ):
+            raise RuntimeError(
+                f"{setup_path}: defaultBundle must be a non-empty string"
+            )
+
+        cases.append((setup_name, default_bundle))
+
+    if not cases:
+        raise RuntimeError("No registered setup files were found")
+
+    return cases
 
 
 def copy_source_tree(fixture_root: Path) -> None:
@@ -122,7 +158,11 @@ def assert_clean_start(fixture_root: Path) -> None:
         )
 
 
-def assert_materialized_configuration(fixture_root: Path) -> None:
+def assert_materialized_configuration(
+    fixture_root: Path,
+    setup_name: str,
+    expected_bundle: str,
+) -> None:
     setup_profile = load_json(
         fixture_root / ".agentic" / "setup-profile.json"
     )
@@ -130,26 +170,34 @@ def assert_materialized_configuration(fixture_root: Path) -> None:
         fixture_root / ".agentic" / "agentic.json"
     )
 
-    if setup_profile.get("setup") != SETUP_NAME:
+    if setup_profile.get("setup") != setup_name:
         raise RuntimeError(
             "setup-profile setup was "
-            f"{setup_profile.get('setup')!r}, expected {SETUP_NAME!r}"
+            f"{setup_profile.get('setup')!r}, expected {setup_name!r}"
         )
 
     selected = setup_profile.get("selected")
     if not isinstance(selected, dict):
         raise RuntimeError("setup-profile selected must be an object")
 
-    if selected.get("bundle") != "orchestrated-delivery":
+    if selected.get("bundle") != expected_bundle:
         raise RuntimeError(
             "setup-profile selected.bundle was "
-            f"{selected.get('bundle')!r}"
+            f"{selected.get('bundle')!r}, expected {expected_bundle!r}"
         )
 
-    if selected.get("targets") != ["opencode", "vscode-copilot"]:
+    selected_targets = selected.get("targets")
+    if (
+        not isinstance(selected_targets, list)
+        or not selected_targets
+        or any(
+            not isinstance(target, str) or not target.strip()
+            for target in selected_targets
+        )
+    ):
         raise RuntimeError(
-            "setup-profile selected.targets was "
-            f"{selected.get('targets')!r}"
+            "setup-profile selected.targets must be a non-empty "
+            "string list"
         )
 
     project = config.get("project")
@@ -172,9 +220,10 @@ def assert_materialized_configuration(fixture_root: Path) -> None:
         if isinstance(target, dict) and target.get("enabled") is True
     )
 
-    if enabled_targets != ["opencode", "vscode-copilot"]:
+    if enabled_targets != sorted(selected_targets):
         raise RuntimeError(
-            f"enabled targets were {enabled_targets!r}"
+            f"enabled targets were {enabled_targets!r}, "
+            f"expected {sorted(selected_targets)!r}"
         )
 
 
@@ -356,112 +405,133 @@ def main() -> int:
     print("== Isolated consumer end-to-end test ==")
 
     source_snapshot_before = snapshot_source_payload()
+    setup_cases = load_setup_cases()
+    completed_setups = 0
+    total_tracked_files = 0
 
-    temp_root = Path(
-        tempfile.mkdtemp(prefix="agentic-isolated-e2e-")
-    )
-    fixture_root = temp_root / "consumer-project"
-
-    exit_code = 0
-
-    try:
-        copy_source_tree(fixture_root)
-        assert_clean_start(fixture_root)
-
-        init_command = [
-            "scripts/agentic/agentic-gen.sh",
-            "init",
-            "--guided",
-            "--setup",
-            SETUP_NAME,
-        ]
-
-        run_command(
-            fixture_root,
-            init_command,
-            "PASS: Initialized .agentic/setup-profile.json "
-            f"from guided setup '{SETUP_NAME}'.",
-        )
-        assert_materialized_configuration(fixture_root)
-
-        run_command(
-            fixture_root,
-            ["scripts/agentic/agentic-gen.sh", "all"],
-            "PASS: Generated output is valid.",
-        )
-        assert_generated_outputs(fixture_root)
-
-        first_snapshot = snapshot_files(fixture_root)
-
-        run_command(
-            fixture_root,
-            init_command,
-            "PASS: Initialized .agentic/setup-profile.json "
-            f"from guided setup '{SETUP_NAME}'.",
-        )
-        run_command(
-            fixture_root,
-            ["scripts/agentic/agentic-gen.sh", "all"],
-            "PASS: Generated output is valid.",
-        )
-
-        second_snapshot = snapshot_files(fixture_root)
-
-        if first_snapshot != second_snapshot:
-            changed = sorted(
-                path
-                for path in set(first_snapshot) | set(second_snapshot)
-                if first_snapshot.get(path) != second_snapshot.get(path)
+    for setup_name, expected_bundle in setup_cases:
+        temp_root = Path(
+            tempfile.mkdtemp(
+                prefix=f"agentic-isolated-e2e-{setup_name}-"
             )
-            raise RuntimeError(
-                "Isolated end-to-end output was not deterministic. "
-                "Changed paths: "
-                + ", ".join(changed)
-            )
+        )
+        fixture_root = temp_root / "consumer-project"
+        case_failed = False
 
-        source_snapshot_after = snapshot_source_payload()
-        if source_snapshot_before != source_snapshot_after:
-            changed = sorted(
-                path
-                for path in set(source_snapshot_before)
-                | set(source_snapshot_after)
-                if source_snapshot_before.get(path)
-                != source_snapshot_after.get(path)
-            )
-            raise RuntimeError(
-                "Isolated end-to-end execution modified compiler sources. "
-                "Changed paths: "
-                + ", ".join(changed)
-            )
-
-        print(
-            "PASS: Isolated consumer fixture initialized from a clean state."
-        )
-        print(
-            "PASS: Both targets, resolution, and lockfile were generated "
-            "and validated."
-        )
-        print(
-            "PASS: Repeated guided init and generation were byte-identical "
-            f"across {len(first_snapshot)} tracked file(s)."
-        )
-        print(
-            "PASS: Compiler source payload remained byte-identical."
-        )
-    except Exception as exc:
-        print(f"FAIL: {exc}")
-        exit_code = 1
-    finally:
         try:
-            shutil.rmtree(temp_root)
-        except Exception as cleanup_exc:
-            print(
-                f"FAIL: Could not remove isolated fixture {temp_root}: "
-                f"{cleanup_exc}"
-            )
-            exit_code = 1
+            copy_source_tree(fixture_root)
+            assert_clean_start(fixture_root)
 
-    return exit_code
+            init_command = [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                setup_name,
+            ]
+
+            run_command(
+                fixture_root,
+                init_command,
+                "PASS: Initialized .agentic/setup-profile.json "
+                f"from guided setup '{setup_name}'.",
+            )
+            assert_materialized_configuration(
+                fixture_root,
+                setup_name,
+                expected_bundle,
+            )
+
+            run_command(
+                fixture_root,
+                ["scripts/agentic/agentic-gen.sh", "all"],
+                "PASS: Generated output is valid.",
+            )
+            assert_generated_outputs(fixture_root)
+
+            first_snapshot = snapshot_files(fixture_root)
+
+            run_command(
+                fixture_root,
+                init_command,
+                "PASS: Initialized .agentic/setup-profile.json "
+                f"from guided setup '{setup_name}'.",
+            )
+            run_command(
+                fixture_root,
+                ["scripts/agentic/agentic-gen.sh", "all"],
+                "PASS: Generated output is valid.",
+            )
+
+            second_snapshot = snapshot_files(fixture_root)
+
+            if first_snapshot != second_snapshot:
+                changed = sorted(
+                    path
+                    for path in set(first_snapshot) | set(second_snapshot)
+                    if first_snapshot.get(path)
+                    != second_snapshot.get(path)
+                )
+                raise RuntimeError(
+                    f"Setup '{setup_name}' produced non-deterministic "
+                    "isolated end-to-end output. Changed paths: "
+                    + ", ".join(changed)
+                )
+
+            completed_setups += 1
+            total_tracked_files += len(first_snapshot)
+
+            print(
+                f"PASS: Setup '{setup_name}' initialized and generated "
+                f"{len(first_snapshot)} deterministic tracked file(s)."
+            )
+        except Exception as exc:
+            print(f"FAIL: Setup '{setup_name}': {exc}")
+            case_failed = True
+        finally:
+            try:
+                shutil.rmtree(temp_root)
+            except Exception as cleanup_exc:
+                print(
+                    f"FAIL: Could not remove isolated fixture "
+                    f"{temp_root}: {cleanup_exc}"
+                )
+                case_failed = True
+
+        if case_failed:
+            return 1
+
+    source_snapshot_after = snapshot_source_payload()
+    if source_snapshot_before != source_snapshot_after:
+        changed = sorted(
+            path
+            for path in set(source_snapshot_before)
+            | set(source_snapshot_after)
+            if source_snapshot_before.get(path)
+            != source_snapshot_after.get(path)
+        )
+        print(
+            "FAIL: Isolated end-to-end execution modified compiler "
+            "sources. Changed paths: "
+            + ", ".join(changed)
+        )
+        return 1
+
+    print(
+        "PASS: All registered setups initialized from clean isolated "
+        f"consumer fixtures. Checked {completed_setups} setup(s)."
+    )
+    print(
+        "PASS: Targets, resolution, and lockfile were generated and "
+        "validated for every setup."
+    )
+    print(
+        "PASS: Repeated guided init and generation were byte-identical "
+        f"across {total_tracked_files} cumulative tracked file(s)."
+    )
+    print("PASS: Compiler source payload remained byte-identical.")
+
+    return 0
 
 
 if __name__ == "__main__":

@@ -98,20 +98,28 @@ scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
 
 ## Registered greenfield setups
 
-Three process-oriented greenfield setups are registered.
+Four greenfield setups are registered: three process-oriented setups and one domain-oriented AI application setup.
 
 | Setup | Bundle | Profile | Workflow | Purpose |
 |---|---|---|---|---|
+| `ai-application-greenfield` | `ai-application` | `ai-application` | `ai-application-delivery` | AI delivery with explicit quality, safety, failure-mode, and operational evaluation |
 | `lean-delivery-greenfield` | `lean-delivery` | `lean-delivery` | `lean-delivery` | Focused lower-risk changes with fewer handoffs |
 | `orchestrated-delivery-greenfield` | `orchestrated-delivery` | `microservice-platform` | `orchestrated-delivery` | General delivery with architecture, tests, review, and QA |
 | `review-heavy-delivery-greenfield` | `review-heavy-delivery` | `review-heavy-delivery` | `review-heavy-delivery` | High-assurance delivery with review before formal tests |
 
-All three setups default to:
+All four setups default to:
 
 - mode `greenfield`
 - targets `opencode` and `vscode-copilot`
 - `failFast: true`
 - `fallbackAllowed: false`
+
+### AI application delivery flow
+
+`Requirements → Architect → Implementer → AIEvaluator → TestRunner → CodeReviewer → QA → Done`
+
+The `AIEvaluator` gate records evidence for model quality, safety, failure modes,
+known limitations, and operational behavior before ordinary software validation continues.
 
 ### Lean delivery flow
 
@@ -133,6 +141,7 @@ Independent code review occurs before formal test execution.
 
 The registry files are:
 
+- `registry/setups/ai-application-greenfield.setup.json`
 - `registry/setups/lean-delivery-greenfield.setup.json`
 - `registry/setups/orchestrated-delivery-greenfield.setup.json`
 - `registry/setups/review-heavy-delivery-greenfield.setup.json`
@@ -188,14 +197,21 @@ scripts/agentic/agentic-gen.sh init \
   --answer target-platforms=vscode-copilot-only
 ~~~
 
-Select compatible AI-application and test-first answers:
+Initialize the dedicated AI application setup:
 
 ~~~bash
 scripts/agentic/agentic-gen.sh init \
   --guided \
-  --setup orchestrated-delivery-greenfield \
-  --answer project-type=ai-application \
-  --answer delivery-style=test-first
+  --setup ai-application-greenfield
+~~~
+
+The guided AI setup is the safe default when AI-specific evaluation is required.
+It does not remove access to generic delivery compositions. A deliberately
+generic orchestrated configuration can still be initialized directly:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --bundle orchestrated-delivery
 ~~~
 
 An override fails when:

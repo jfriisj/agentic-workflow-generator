@@ -412,7 +412,7 @@
   "summary": {
     "agentCount": 7,
     "targetCount": 2,
-    "availableSkillCount": 4,
+    "availableSkillCount": 5,
     "producedArtifactBindingCount": 6,
     "errorCount": 0,
     "errors": []

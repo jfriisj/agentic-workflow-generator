@@ -103,7 +103,7 @@ A clean result should end with:
 
 ```text
 PASS: Isolated consumer fixture initialized from a clean state.
-PASS: All 361 negative gate tests passed.
+PASS: All 364 negative gate tests passed.
 PASS: Working tree is clean.
 ```
 
@@ -133,16 +133,18 @@ scripts/agentic/agentic-gen.sh doctor-strict
 
 ## Guided setup flow
 
-Three greenfield setups are currently registered:
+Four greenfield setups are currently registered:
 
 | Setup | Delivery model |
 |---|---|
+| `ai-application-greenfield` | AI application delivery with explicit quality, safety, failure-mode, and operational evaluation |
 | `lean-delivery-greenfield` | Compact fail-closed delivery for focused lower-risk changes |
 | `orchestrated-delivery-greenfield` | Architecture, implementation, tests, code review, and final QA |
 | `review-heavy-delivery-greenfield` | Architecture and independent code review before formal tests and final QA |
 
 Each setup selects its own validated bundle, profile, workflow, agents, skills,
-artifacts, and targets.
+artifacts, and targets. Domain-oriented setups provide safer guided defaults
+without removing direct initialization of registered generic bundles.
 
 Every answer option is classified as:
 

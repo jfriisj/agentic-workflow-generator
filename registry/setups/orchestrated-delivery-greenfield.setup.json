@@ -12,11 +12,11 @@
         "microservice-platform"
       ],
       "compatible": [
-        "ai-application",
         "library-package"
       ],
       "blocked": [
-        "documentation-only"
+        "documentation-only",
+        "ai-application"
       ],
       "options": [
         {
@@ -59,39 +59,7 @@
         {
           "value": "ai-application",
           "label": "AI or LLM application",
-          "reason": "Compatible because AI application work also benefits from an orchestrated delivery workflow, but MCP and AI-evaluation-specific recommendations are not registered yet.",
-          "recommends": {
-            "bundle": "orchestrated-delivery",
-            "profile": "microservice-platform",
-            "workflow": "orchestrated-delivery",
-            "agents": [
-              "Architect",
-              "CodeReviewer",
-              "Implementer",
-              "Orchestrator",
-              "QA",
-              "Requirements",
-              "TestRunner"
-            ],
-            "skills": [
-              "code-review-clean-code",
-              "code-review-tests",
-              "mvp-core-capabilities",
-              "workflow-routing"
-            ],
-            "artifacts": [
-              "ArchitectureDecision",
-              "CodeReview",
-              "ImplementationReport",
-              "QAReport",
-              "Requirements",
-              "TestReport"
-            ],
-            "targets": [
-              "opencode",
-              "vscode-copilot"
-            ]
-          }
+          "reason": "Blocked in this guided setup because its generic composition does not include the dedicated AI evaluation gate. Use ai-application-greenfield for the standard AI delivery flow, or initialize a generic bundle directly when AI-specific evaluation is intentionally not required."
         },
         {
           "value": "library-package",
