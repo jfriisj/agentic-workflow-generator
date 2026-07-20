@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
+import os
+import pty
+import select
 import shutil
+import signal
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -136,6 +142,199 @@ def expect_success(
 
         return True, f"PASS: {name}"
 
+    finally:
+        shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+def run_with_pty(
+    worktree: Path,
+    command: list[str],
+    scripted_input: str,
+    timeout_seconds: float = 15.0,
+) -> subprocess.CompletedProcess[str]:
+    master_fd, slave_fd = pty.openpty()
+    process: subprocess.Popen[bytes] | None = None
+    output = bytearray()
+
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=worktree,
+            stdin=slave_fd,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            close_fds=True,
+            start_new_session=True,
+        )
+    finally:
+        os.close(slave_fd)
+
+    try:
+        os.write(master_fd, scripted_input.encode("utf-8"))
+        deadline = time.monotonic() + timeout_seconds
+
+        while True:
+            if time.monotonic() >= deadline:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait()
+                raise RuntimeError(
+                    f"PTY command timed out after {timeout_seconds:.1f} seconds: "
+                    + " ".join(command)
+                )
+
+            readable, _, _ = select.select([master_fd], [], [], 0.1)
+
+            if readable:
+                try:
+                    chunk = os.read(master_fd, 4096)
+                except OSError as exc:
+                    if exc.errno == errno.EIO:
+                        break
+                    raise
+
+                if not chunk:
+                    break
+
+                output.extend(chunk)
+
+            if process.poll() is not None:
+                while True:
+                    readable, _, _ = select.select([master_fd], [], [], 0)
+
+                    if not readable:
+                        break
+
+                    try:
+                        chunk = os.read(master_fd, 4096)
+                    except OSError as exc:
+                        if exc.errno == errno.EIO:
+                            break
+                        raise
+
+                    if not chunk:
+                        break
+
+                    output.extend(chunk)
+
+                break
+
+        returncode = process.wait(timeout=1)
+        stdout = output.decode("utf-8", errors="replace")
+
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=returncode,
+            stdout=stdout,
+            stderr=None,
+        )
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+
+        os.close(master_fd)
+
+
+def expect_interactive_guided_defaults() -> tuple[bool, str]:
+    name = "interactive guided init accepts default recommendations"
+    worktree = copy_repo_to_temp()
+
+    try:
+        result = run_with_pty(
+            worktree,
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
+            "\n\n\n\ny\n",
+        )
+
+        if result.returncode != 0:
+            return (
+                False,
+                f"{name}: expected success, but command failed.\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        required_output = (
+            "== Guided Agentic Initialization ==",
+            "== Generated Setup Plan ==",
+            "project-type: microservice-platform [recommended]",
+            "delivery-style: orchestrated-delivery [recommended]",
+            "target-platforms: opencode-and-vscode-copilot [recommended]",
+            "PASS: Initialized .agentic/setup-profile.json "
+            "from guided setup 'orchestrated-delivery-greenfield'.",
+        )
+
+        for expected_text in required_output:
+            if expected_text not in result.stdout:
+                return (
+                    False,
+                    f"{name}: expected text was not found: {expected_text!r}\n\n"
+                    f"Output:\n{result.stdout}",
+                )
+
+        post_passed, post_message = assert_guided_default_targets(worktree)
+        if not post_passed:
+            return False, f"{name}: {post_message}\n\nOutput:\n{result.stdout}"
+
+        return True, f"PASS: {name}"
+    finally:
+        shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
+    name = "interactive guided init cancellation preserves existing files"
+    worktree = copy_repo_to_temp()
+
+    profile_path = worktree / ".agentic" / "setup-profile.json"
+    config_path = worktree / ".agentic" / "agentic.json"
+
+    try:
+        tracked_paths = (profile_path, config_path)
+        before: dict[Path, tuple[bytes, int]] = {}
+
+        for tracked_path in tracked_paths:
+            if not tracked_path.is_file():
+                return False, f"{name}: required file was missing before test: {tracked_path}"
+
+            before[tracked_path] = (
+                tracked_path.read_bytes(),
+                tracked_path.stat().st_mtime_ns,
+            )
+
+        result = run_with_pty(
+            worktree,
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
+            "\n\n\n\n\n",
+        )
+
+        if result.returncode == 0:
+            return (
+                False,
+                f"{name}: expected cancellation failure, but command passed.\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        expected_text = "Interactive guided init was cancelled; no files were written"
+        if expected_text not in result.stdout:
+            return (
+                False,
+                f"{name}: expected cancellation text was not found: "
+                f"{expected_text!r}\n\nOutput:\n{result.stdout}",
+            )
+
+        for tracked_path, (expected_bytes, expected_mtime_ns) in before.items():
+            if not tracked_path.is_file():
+                return False, f"{name}: cancellation removed file: {tracked_path}"
+
+            actual_bytes = tracked_path.read_bytes()
+            actual_mtime_ns = tracked_path.stat().st_mtime_ns
+
+            if actual_bytes != expected_bytes:
+                return False, f"{name}: cancellation changed file contents: {tracked_path}"
+
+            if actual_mtime_ns != expected_mtime_ns:
+                return False, f"{name}: cancellation rewrote file: {tracked_path}"
+
+        return True, f"PASS: {name}"
     finally:
         shutil.rmtree(worktree.parent, ignore_errors=True)
 
@@ -7271,6 +7470,11 @@ def main() -> int:
         ),
     ]
 
+    interactive_tests = [
+        expect_interactive_guided_defaults,
+        expect_interactive_guided_cancel_preserves_files,
+    ]
+
     failures: list[str] = []
 
     for test in tests:
@@ -7290,13 +7494,22 @@ def main() -> int:
         if not passed:
             failures.append(message)
 
+    for interactive_test in interactive_tests:
+        passed, message = interactive_test()
+        print(message)
+
+        if not passed:
+            failures.append(message)
+
     if failures:
         print()
         print(f"FAIL: {len(failures)} negative gate test(s) failed.")
         return 1
 
+    total_tests = len(tests) + len(interactive_tests)
+
     print()
-    print(f"PASS: All {len(tests)} negative gate tests passed.")
+    print(f"PASS: All {total_tests} negative gate tests passed.")
     return 0
 
 
