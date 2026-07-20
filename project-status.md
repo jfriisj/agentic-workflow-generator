@@ -26,12 +26,12 @@ c98fc8b Add isolated guided init end-to-end fixture
 Og den aktuelle arbejdende tilstand er:
 
 * milepæl 1 er afsluttet, valideret og pushed til `origin/main`
-* milepæl 2 er i gang med første `ai-application` vertical slice
+* milepæl 2 er i gang, og første `ai-application` vertical slice er afsluttet
 * den isolerede clean-consumer end-to-end fixture består for alle 4 setups
 * hele `agentic-gen.sh all`-pipelinen består
 * alle **364 negative gates** består
-* working tree indeholder de tilsigtede milepæl 2-ændringer
-* endelig commit, `doctor-strict` og push mangler
+* commit `ada888a` indeholder AI-vertical-slicen
+* `doctor-strict` består, og ændringerne er pushed til `origin/main`
 
 ---
 
