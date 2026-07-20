@@ -1,0 +1,282 @@
+# Guided initialization
+
+Guided initialization shapes a new project from registered, deterministic setup rules.
+
+It does not ask an LLM to invent a workflow. Questions, options, classifications, reasons, and recommendations all come from the setup registry.
+
+## Modes
+
+### Interactive guided initialization
+
+Use this for a human-driven greenfield setup:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init --guided
+~~~
+
+Interactive mode requires an attached terminal.
+
+The command fails clearly when stdin or stdout is not a TTY:
+
+~~~text
+Interactive --guided requires an attached terminal
+~~~
+
+The flow is:
+
+~~~text
+validate setup registry
+select a registered setup
+answer registry-defined questions
+review the generated setup plan
+confirm explicitly
+write setup profile and active configuration
+~~~
+
+Pressing Enter selects the recommended default when the question has one unambiguous recommended option.
+
+### Deterministic guided initialization
+
+Use this for scripts, CI, repeatable examples, and idempotency validation:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield
+~~~
+
+This mode does not prompt for input.
+
+It selects the registered recommended defaults unless explicit answer overrides are supplied.
+
+### Direct bundle initialization
+
+Use direct bundle initialization when no guided project-shaping step is needed:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
+~~~
+
+`--bundle` and `--guided` are mutually exclusive.
+
+## Registered greenfield setup
+
+The current setup is:
+
+~~~text
+registry/setups/orchestrated-delivery-greenfield.setup.json
+~~~
+
+It uses:
+
+~~~text
+mode: greenfield
+default bundle: orchestrated-delivery
+default profile: microservice-platform
+default workflow: orchestrated-delivery
+default targets: opencode, vscode-copilot
+~~~
+
+The setup asks three questions:
+
+| Question | Recommended | Compatible | Blocked |
+|---|---|---|---|
+| `project-type` | `microservice-platform` | `ai-application`, `library-package` | `documentation-only` |
+| `delivery-style` | `orchestrated-delivery` | `review-heavy`, `test-first` | `ad-hoc` |
+| `target-platforms` | `opencode-and-vscode-copilot` | `opencode-only`, `vscode-copilot-only` | none |
+
+## Classification contract
+
+### Recommended
+
+A recommended option is fully represented by the current registered setup and is the default selection.
+
+### Compatible
+
+A compatible option can use the current registered bundle safely, but a more specialized setup, workflow, profile, or capability model may be added later.
+
+Compatible does not mean fallback. The option is explicitly registered and validated.
+
+### Blocked
+
+A blocked option is intentionally unsupported by the selected setup.
+
+Selecting it fails immediately with the registered reason.
+
+The initializer never silently changes a blocked answer to another option.
+
+## Answer overrides
+
+Overrides use the form:
+
+~~~text
+--answer question=value
+~~~
+
+The option may be repeated.
+
+Generate only OpenCode output:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield \
+  --answer target-platforms=opencode-only
+~~~
+
+Generate only VS Code Copilot output:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield \
+  --answer target-platforms=vscode-copilot-only
+~~~
+
+Select compatible AI-application and test-first answers:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield \
+  --answer project-type=ai-application \
+  --answer delivery-style=test-first
+~~~
+
+An override fails when:
+
+~~~text
+the question does not exist
+the option does not exist
+the option is blocked
+the value is not in question=value format
+--answer is used without --guided
+--answer is used with interactive --guided but without --setup
+~~~
+
+## Generated files
+
+Guided initialization writes:
+
+~~~text
+.agentic/setup-profile.json
+.agentic/agentic.json
+~~~
+
+### Setup profile
+
+`.agentic/setup-profile.json` records:
+
+~~~text
+schema version
+setup name and version
+mode
+selected answers
+classification for every answer
+registered reason for every answer
+selected bundle
+selected profile
+selected workflow
+selected agents
+selected skills
+selected artifacts
+selected targets
+fail-fast policy
+~~~
+
+The policy requires:
+
+~~~text
+failFast: true
+fallbackAllowed: false
+~~~
+
+### Active configuration
+
+`.agentic/agentic.json` is materialized from the selected bundle and target recommendation.
+
+It becomes the input to resolution, lockfile generation, target generation, manifest generation, and validation.
+
+## Confirmation and cancellation
+
+Interactive mode displays the complete setup plan before writing files.
+
+The user must confirm with `y`.
+
+Any other response cancels the operation and returns a failure:
+
+~~~text
+Interactive guided init was cancelled; no files were written
+~~~
+
+Cancellation preserves both existing files byte-for-byte and does not rewrite their timestamps.
+
+## Transactional write behavior
+
+The initializer validates the materialized setup profile after writing the candidate outputs.
+
+If validation fails, the previous versions of these files are restored:
+
+~~~text
+.agentic/setup-profile.json
+.agentic/agentic.json
+~~~
+
+There is no partial-success state and no fallback output.
+
+## Validation
+
+Validate the setup registry:
+
+~~~bash
+scripts/agentic/agentic-gen.sh validate-setups
+~~~
+
+Validate the materialized setup profile:
+
+~~~bash
+scripts/agentic/agentic-gen.sh validate-setup-profile
+~~~
+
+Validate deterministic guided-init idempotency:
+
+~~~bash
+scripts/agentic/agentic-gen.sh validate-init-idempotency \
+  --guided \
+  --setup orchestrated-delivery-greenfield
+~~~
+
+Run the full pipeline:
+
+~~~bash
+scripts/agentic/agentic-gen.sh all
+scripts/agentic/agentic-gen.sh test-negative
+scripts/agentic/agentic-gen.sh doctor-strict
+~~~
+
+## Automated coverage
+
+The negative-gate suite covers:
+
+~~~text
+unknown setup
+non-TTY interactive execution
+--answer without explicit setup
+invalid answer format
+unknown question
+blocked option
+setup registry drift
+setup profile drift
+fallback policy violations
+guided-init idempotency
+interactive default happy path through a pseudo-TTY
+interactive cancellation with no file writes
+~~~
+
+## Current limitation
+
+Only one guided setup is currently registered.
+
+The current compatible AI-application, library-package, review-heavy, and test-first answers still resolve to the orchestrated-delivery bundle because specialized setups and workflows are not registered yet.
+
+Future setups must be added as explicit registry entries. They must not be simulated through fallback behavior.

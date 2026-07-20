@@ -36,6 +36,8 @@ The goal is to make agentic workflows reproducible, deterministic, and fail-fast
 | Skill | Provides one or more capabilities used by agents |
 | Workflow | Defines states, transitions, gates, terminal states, and fail-closed routing |
 | Bundle | Selects a complete deployable composition of workflow, agents, skills, artifacts, profile, and targets |
+| Setup | Defines guided questions, classifications, recommendations, and the default bundle |
+| Setup profile | Records the selected guided answers and materialized recommendation |
 | Artifact | Defines required output contracts for gates and generated evidence |
 | Target adapter | Defines where generated output belongs for a target platform |
 | Lockfile | Records deterministic input state |
@@ -52,11 +54,38 @@ Generated output includes target-specific agents, skills, instructions, and conf
 
 ## Quickstart
 
-Initialize the active configuration from the default bundle:
+For a new project, start the interactive guided initializer:
+
+```bash
+scripts/agentic/agentic-gen.sh init --guided
+```
+
+The initializer:
+
+```text
+validates the setup registry
+asks registry-defined questions
+shows recommended, compatible, and blocked options
+shows the final setup plan
+requires explicit confirmation
+writes .agentic/setup-profile.json and .agentic/agentic.json
+```
+
+For deterministic automation or CI, select the registered setup explicitly:
+
+```bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield
+```
+
+Initialize directly from a registered bundle when guided project shaping is not needed:
 
 ```bash
 scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
 ```
+
+See [Guided initialization](docs/guided-init.md) for classifications, overrides, generated files, failure behavior, and automation examples.
 
 Run the full generator pipeline:
 
@@ -90,10 +119,58 @@ scripts/agentic/agentic-gen.sh manifest
 scripts/agentic/agentic-gen.sh generate all
 scripts/agentic/agentic-gen.sh validate-generated
 scripts/agentic/agentic-gen.sh validate-idempotency
+scripts/agentic/agentic-gen.sh init --guided
+scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield
+scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --answer target-platforms=opencode-only
 scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
+scripts/agentic/agentic-gen.sh validate-init-idempotency --guided --setup orchestrated-delivery-greenfield
 scripts/agentic/agentic-gen.sh test-negative
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
+
+## Guided setup flow
+
+The registered greenfield setup is:
+
+```text
+registry/setups/orchestrated-delivery-greenfield.setup.json
+```
+
+It asks about:
+
+```text
+project type
+delivery style
+target platforms
+```
+
+Every option is classified as one of:
+
+```text
+recommended
+compatible
+blocked
+```
+
+Recommended and compatible options materialize through the same deterministic setup model. Blocked options fail explicitly and are never selected through fallback behavior.
+
+The resulting setup profile is written to:
+
+```text
+.agentic/setup-profile.json
+```
+
+It records the setup reference, selected answers, classifications, reasons, selected bundle, profile, workflow, agents, skills, artifacts, targets, and fail-fast policy.
+
+The active configuration is written to:
+
+```text
+.agentic/agentic.json
+```
+
+Interactive `--guided` requires an attached terminal. Non-interactive automation must use an explicit `--setup`.
+
+See [Guided initialization](docs/guided-init.md) for the complete contract.
 
 ## Bundle flow
 
@@ -204,6 +281,7 @@ registry/
   artifacts/
   bundles/
   profiles/
+  setups/
   skills/
   targets/
   workflows/
@@ -216,7 +294,9 @@ scripts/agentic/
 
 docs/
   core-domain-model.md
+  developer-workflow.md
   engineering-discovery.md
+  guided-init.md
   target-platform-analysis.md
 ```
 
@@ -230,6 +310,8 @@ skill registry
 workflow registry
 profile registry
 bundle registry
+setup registry
+setup profile
 target adapters
 artifact contracts
 agent artifact bindings

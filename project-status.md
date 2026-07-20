@@ -944,12 +944,11 @@ De svære dele omkring determinisme, ejerskab, drift og fail-closed validation e
 
 **Omkring 70–75 %**
 
-Fundamentet og det interaktive flow fungerer, men der mangler:
+Fundamentet, det interaktive flow og bruger-/CLI-dokumentationen fungerer, men der mangler:
 
 * flere setups,
 * flere workflows/profiles,
 * bedre UX,
-* dokumentation,
 * dry-run,
 * ekstern end-to-end fixture.
 
@@ -977,8 +976,8 @@ Det er ikke et tegn på, at projektet er halvfærdigt teknisk. Det skyldes, at d
 
 Dette bør være næste fokus, før MCP.
 
-1. Opdater README og lav `docs/guided-init.md`.
-2. Dokumentér både interactive og deterministic flows.
+1. ✅ Opdater README og lav `docs/guided-init.md`.
+2. ✅ Dokumentér både interactive og deterministic flows.
 3. Tilføj `--dry-run`.
 4. Ret `back`-navigationen.
 5. Del `init-from-bundle.py` op i mindre moduler.
