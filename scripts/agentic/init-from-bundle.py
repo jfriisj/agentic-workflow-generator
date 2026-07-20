@@ -768,7 +768,7 @@ def interactive_question_selection(
     return materialized["selected"]
 
 
-def collect_interactive_answers(setup_name: str) -> dict[str, str]:
+def collect_interactive_answers(setup_name: str) -> dict[str, str] | None:
     setup_path, setup = load_setup(setup_name)
     questions = setup.get("questions")
     if not isinstance(questions, list) or not questions:
@@ -793,7 +793,7 @@ def collect_interactive_answers(setup_name: str) -> dict[str, str]:
 
         if selected is None:
             if question_index == 0:
-                raise ValueError("Cannot go back from the first guided question")
+                return None
 
             previous_question = questions[question_index - 1]
             if not isinstance(previous_question, dict):
@@ -1098,8 +1098,12 @@ def main() -> int:
             if interactive:
                 require_interactive_terminal()
                 validate_setup_registry()
-                setup_name = choose_interactive_setup()
-                answer_overrides = collect_interactive_answers(setup_name)
+
+                while True:
+                    setup_name = choose_interactive_setup()
+                    answer_overrides = collect_interactive_answers(setup_name)
+                    if answer_overrides is not None:
+                        break
             else:
                 setup_name = args.setup
                 answer_overrides = parse_answer_overrides(args.answer)

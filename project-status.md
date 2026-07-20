@@ -26,7 +26,7 @@ Det seneste checkpoint er:
 Og den aktuelle tilstand er:
 
 * `doctor-strict` består
-* alle **354 negative gates** består
+* alle **359 negative gates** består
 * working tree er ren
 * `main` er pushed til GitHub
 * både interaktiv og ikke-interaktiv initialisering virker
@@ -402,7 +402,17 @@ Det:
 9. kræver eksplicit bekræftelse,
 10. skriver config og setup-profile.
 
-Interaktiviteten er adapteren oven på den samme deterministiske setup-model; den duplikerer ikke anbefalingslogikken. Implementeringen bevarer også det eksisterende ikke-interaktive flow. 
+Interaktiviteten er adapteren oven på den samme deterministiske setup-model; den duplikerer ikke anbefalingslogikken. Implementeringen bevarer også det eksisterende ikke-interaktive flow.
+
+Back-navigationen er nu sammenhængende på tværs af setup-valget og spørgsmålene:
+
+* `b` fra spørgsmål 2 eller senere går tilbage til det foregående spørgsmål,
+* `b` fra det første spørgsmål går tilbage til setup-valget,
+* svar fra det forladte setup kasseres,
+* setup-valget og spørgsmålene starter derefter en ny deterministisk svarsamling,
+* det ikke-interaktive `--guided --setup`-flow er uændret.
+
+Adfærden er dækket af en PTY-regressionstest, som går tilbage fra første spørgsmål, vælger setup igen og gennemfører initialiseringen med de anbefalede defaults.
 
 ### Transaktionel skrivning
 
@@ -978,7 +988,7 @@ Dette bør være næste fokus, før MCP.
 1. ✅ Opdater README og lav `docs/guided-init.md`.
 2. ✅ Dokumentér både interactive og deterministic flows.
 3. ✅ Tilføj `--dry-run`.
-4. Ret `back`-navigationen.
+4. ✅ Ret `back`-navigationen.
 5. Del `init-from-bundle.py` op i mindre moduler.
 6. Tilføj mindst to nye reelle setups.
 7. Lav en ekstern eller isoleret end-to-end fixture.

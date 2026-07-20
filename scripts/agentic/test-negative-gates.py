@@ -280,6 +280,62 @@ def expect_interactive_guided_defaults() -> tuple[bool, str]:
         shutil.rmtree(worktree.parent, ignore_errors=True)
 
 
+def expect_interactive_guided_first_question_back_returns_to_setup() -> tuple[bool, str]:
+    name = "interactive guided init returns to setup selection from first question"
+    worktree = copy_repo_to_temp()
+
+    try:
+        result = run_with_pty(
+            worktree,
+            ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
+            "\nb\n\n\n\n\ny\n",
+        )
+
+        if result.returncode != 0:
+            return (
+                False,
+                f"{name}: expected success, but command failed.\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        setup_heading = "== Guided Agentic Initialization =="
+        if result.stdout.count(setup_heading) != 2:
+            return (
+                False,
+                f"{name}: expected setup selection to be displayed exactly twice, "
+                f"but found {result.stdout.count(setup_heading)} occurrence(s).\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        first_question = "Question 1/3:"
+        if result.stdout.count(first_question) != 2:
+            return (
+                False,
+                f"{name}: expected the first question to be displayed exactly twice, "
+                f"but found {result.stdout.count(first_question)} occurrence(s).\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        expected_text = (
+            "PASS: Initialized .agentic/setup-profile.json "
+            "from guided setup 'orchestrated-delivery-greenfield'."
+        )
+        if expected_text not in result.stdout:
+            return (
+                False,
+                f"{name}: expected completion text was not found: "
+                f"{expected_text!r}\n\nOutput:\n{result.stdout}",
+            )
+
+        post_passed, post_message = assert_guided_default_targets(worktree)
+        if not post_passed:
+            return False, f"{name}: {post_message}\n\nOutput:\n{result.stdout}"
+
+        return True, f"PASS: {name}"
+    finally:
+        shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
 def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
     name = "interactive guided init cancellation preserves existing files"
     worktree = copy_repo_to_temp()
@@ -7627,6 +7683,7 @@ def main() -> int:
 
     custom_tests = [
         expect_interactive_guided_defaults,
+        expect_interactive_guided_first_question_back_returns_to_setup,
         expect_interactive_guided_cancel_preserves_files,
         expect_guided_dry_run_defaults,
         expect_guided_dry_run_opencode_override,
