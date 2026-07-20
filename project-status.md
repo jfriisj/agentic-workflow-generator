@@ -20,7 +20,7 @@ Det officielle projektmål er netop at omsætte et deklarativt registry af agent
 Det seneste checkpoint er:
 
 ```text
-14e5282 Add interactive guided init PTY tests
+afedd9f Fix guided init back navigation
 ```
 
 Og den aktuelle tilstand er:
