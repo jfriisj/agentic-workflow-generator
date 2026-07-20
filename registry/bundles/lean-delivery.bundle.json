@@ -1,0 +1,30 @@
+{
+  "name": "lean-delivery",
+  "description": "Compact delivery bundle for focused changes with requirements, implementation, testing, code review, and fail-closed routing.",
+  "version": "0.1.0",
+  "profile": "lean-delivery",
+  "workflow": "lean-delivery",
+  "agents": [
+    "CodeReviewer",
+    "Implementer",
+    "Orchestrator",
+    "Requirements",
+    "TestRunner"
+  ],
+  "skills": [
+    "code-review-clean-code",
+    "code-review-tests",
+    "mvp-core-capabilities",
+    "workflow-routing"
+  ],
+  "artifacts": [
+    "CodeReview",
+    "ImplementationReport",
+    "Requirements",
+    "TestReport"
+  ],
+  "targets": [
+    "opencode",
+    "vscode-copilot"
+  ]
+}

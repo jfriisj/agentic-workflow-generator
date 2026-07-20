@@ -96,31 +96,49 @@ scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
 
 `--bundle` and `--guided` are mutually exclusive.
 
-## Registered greenfield setup
+## Registered greenfield setups
 
-The current setup is:
+Three process-oriented greenfield setups are registered.
 
-~~~text
-registry/setups/orchestrated-delivery-greenfield.setup.json
-~~~
+| Setup | Bundle | Profile | Workflow | Purpose |
+|---|---|---|---|---|
+| `lean-delivery-greenfield` | `lean-delivery` | `lean-delivery` | `lean-delivery` | Focused lower-risk changes with fewer handoffs |
+| `orchestrated-delivery-greenfield` | `orchestrated-delivery` | `microservice-platform` | `orchestrated-delivery` | General delivery with architecture, tests, review, and QA |
+| `review-heavy-delivery-greenfield` | `review-heavy-delivery` | `review-heavy-delivery` | `review-heavy-delivery` | High-assurance delivery with review before formal tests |
 
-It uses:
+All three setups default to:
 
-~~~text
-mode: greenfield
-default bundle: orchestrated-delivery
-default profile: microservice-platform
-default workflow: orchestrated-delivery
-default targets: opencode, vscode-copilot
-~~~
+- mode `greenfield`
+- targets `opencode` and `vscode-copilot`
+- `failFast: true`
+- `fallbackAllowed: false`
 
-The setup asks three questions:
+### Lean delivery flow
 
-| Question | Recommended | Compatible | Blocked |
-|---|---|---|---|
-| `project-type` | `microservice-platform` | `ai-application`, `library-package` | `documentation-only` |
-| `delivery-style` | `orchestrated-delivery` | `review-heavy`, `test-first` | `ad-hoc` |
-| `target-platforms` | `opencode-and-vscode-copilot` | `opencode-only`, `vscode-copilot-only` | none |
+`Requirements → Implementer → TestRunner → CodeReviewer → Done`
+
+Failed tests or review return to `Implementer`.
+
+### Orchestrated delivery flow
+
+`Requirements → Architect → Implementer → TestRunner → CodeReviewer → QA → Done`
+
+This is the general process used by the original microservice-platform profile.
+
+### Review-heavy delivery flow
+
+`Requirements → Architect → Implementer → CodeReviewer → TestRunner → QA → Done`
+
+Independent code review occurs before formal test execution.
+
+The registry files are:
+
+- `registry/setups/lean-delivery-greenfield.setup.json`
+- `registry/setups/orchestrated-delivery-greenfield.setup.json`
+- `registry/setups/review-heavy-delivery-greenfield.setup.json`
+
+For the complete contract and implementation sequence for additional setups,
+see [Adding guided setups](adding-guided-setups.md).
 
 ## Classification contract
 
@@ -315,10 +333,20 @@ guided dry-run file and timestamp preservation
 interactive --guided --dry-run without a TTY
 ~~~
 
-## Current limitation
+## Extending the setup registry
 
-Only one guided setup is currently registered.
+The current setups provide three distinct process-oriented compositions.
 
-The current compatible AI-application, library-package, review-heavy, and test-first answers still resolve to the orchestrated-delivery bundle because specialized setups and workflows are not registered yet.
+Milestone 2 can add domain-oriented setups such as AI applications, data
+pipelines, web APIs, and libraries. These must be implemented as explicit,
+internally consistent registry compositions rather than aliases or fallback
+behavior.
 
-Future setups must be added as explicit registry entries. They must not be simulated through fallback behavior.
+Use [Adding guided setups](adding-guided-setups.md) for:
+
+- architecture and registry contracts
+- the required implementation sequence
+- questionnaire classification rules
+- stable test-fixture rules
+- milestone 2 planning questions
+- the setup definition of done

@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 72,
-    "contentHash": "sha256:6daa58f4cd9f9802238fe661d8fa0066d450ad5177d247fdec49fcfccb4655e3",
+    "fileCount": 80,
+    "contentHash": "sha256:f904059adcd583c11a84df86cbed561bd11680c5bd0e6217ac50b0ca87bd2c37",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -127,9 +127,24 @@
         "sizeBytes": 2316
       },
       {
+        "path": "registry/bundles/lean-delivery.bundle.json",
+        "sha256": "sha256:2cf45878f80738c614c2e943756c349777f39a544655e9c0358f304ccaeb1e9c",
+        "sizeBytes": 662
+      },
+      {
         "path": "registry/bundles/orchestrated-delivery.bundle.json",
         "sha256": "sha256:7a54a554a908c157bab5a00fc8fce079bda563de6344ef71e38aa5e38f35e43b",
         "sizeBytes": 733
+      },
+      {
+        "path": "registry/bundles/review-heavy-delivery.bundle.json",
+        "sha256": "sha256:6ffebf42df5b3b47a5b068ddc0949b2761bc10852acd6f2cab3e76d524327006",
+        "sizeBytes": 749
+      },
+      {
+        "path": "registry/profiles/lean-delivery.profile.json",
+        "sha256": "sha256:60fc35c7a2032d47b53e32ae4993da907c58b072298e40182e7fb92baa59dcbe",
+        "sizeBytes": 855
       },
       {
         "path": "registry/profiles/microservice-platform.profile.json",
@@ -137,9 +152,24 @@
         "sizeBytes": 709
       },
       {
+        "path": "registry/profiles/review-heavy-delivery.profile.json",
+        "sha256": "sha256:f0a4f42527bdc0d41cfba350ef34fdd148dfe5df57d5c5fcdf8afa128327d267",
+        "sizeBytes": 995
+      },
+      {
+        "path": "registry/setups/lean-delivery-greenfield.setup.json",
+        "sha256": "sha256:719fe7d7fc72a3bbad165fcf9e9842b6585b0a76aca587571c714cea46f1b2ba",
+        "sizeBytes": 6258
+      },
+      {
         "path": "registry/setups/orchestrated-delivery-greenfield.setup.json",
         "sha256": "sha256:98367e634237e588e8ac4c5682b020bce21f6e60570500b6e08694b08364ec04",
         "sizeBytes": 8339
+      },
+      {
+        "path": "registry/setups/review-heavy-delivery-greenfield.setup.json",
+        "sha256": "sha256:2cd6fb2abb8441d735a74ba32e2195aba64105863b9019ce387ef80d5993de04",
+        "sizeBytes": 5927
       },
       {
         "path": "registry/skills/code-review-clean-code/SKILL.md",
@@ -192,9 +222,19 @@
         "sizeBytes": 1676
       },
       {
+        "path": "registry/workflows/lean-delivery.workflow.json",
+        "sha256": "sha256:1837ed394bd1fbf7cf011a47bf2f302063207f348da9c14f6bd6c04e57355477",
+        "sizeBytes": 1675
+      },
+      {
         "path": "registry/workflows/orchestrated-delivery.workflow.json",
         "sha256": "sha256:9008b9baae6922010c2af57c5bf517628b8d1a8b7492ab42f319b8f6dfc03884",
         "sizeBytes": 2116
+      },
+      {
+        "path": "registry/workflows/review-heavy-delivery.workflow.json",
+        "sha256": "sha256:345ca6abe9c40462391870a00d352e0d5e3a082e3b54bef2b1cbd8f80168ee91",
+        "sizeBytes": 2134
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
@@ -263,8 +303,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:a7da146a4692270a3efd0d1165ef9b7b577231fe7b4b0aa862602164473dab61",
-        "sizeBytes": 296584
+        "sha256": "sha256:f9ede1c419725d7769a1ffbdd22bd2c5573d861a33918b73487137dd0d6a66d0",
+        "sizeBytes": 298698
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",

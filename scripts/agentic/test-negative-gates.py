@@ -243,7 +243,7 @@ def expect_interactive_guided_defaults() -> tuple[bool, str]:
         result = run_with_pty(
             worktree,
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
-            "\n\n\n\ny\n",
+            "2\n\n\n\ny\n",
         )
 
         if result.returncode != 0:
@@ -288,7 +288,7 @@ def expect_interactive_guided_first_question_back_returns_to_setup() -> tuple[bo
         result = run_with_pty(
             worktree,
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
-            "\nb\n\n\n\n\ny\n",
+            "2\nb\n2\n\n\n\ny\n",
         )
 
         if result.returncode != 0:
@@ -359,7 +359,7 @@ def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
         result = run_with_pty(
             worktree,
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
-            "\n\n\n\n\n",
+            "q\n",
         )
 
         if result.returncode == 0:
@@ -3629,15 +3629,25 @@ def first_two_skill_json_files(worktree: Path) -> tuple[Path, Path]:
 
 
 
-def awg_first_workflow_registry_file(worktree: Path) -> Path:
-    workflow_files = sorted((worktree / "registry" / "workflows").glob("*.workflow.json"))
-    if not workflow_files:
-        raise RuntimeError("expected at least one workflow registry file")
-    return workflow_files[0]
+def awg_default_workflow_registry_file(worktree: Path) -> Path:
+    path = (
+        worktree
+        / "registry"
+        / "workflows"
+        / "orchestrated-delivery.workflow.json"
+    )
+
+    if not path.is_file():
+        raise RuntimeError(
+            "expected default workflow registry file: "
+            "registry/workflows/orchestrated-delivery.workflow.json"
+        )
+
+    return path
 
 
-def awg_mutate_first_workflow(worktree: Path, mutator) -> None:
-    path = awg_first_workflow_registry_file(worktree)
+def awg_mutate_default_workflow(worktree: Path, mutator) -> None:
+    path = awg_default_workflow_registry_file(worktree)
     data = load_json(path)
     mutator(data)
     write_json(path, data)
@@ -3954,15 +3964,15 @@ def break_agentic_config_target_enabled_invalid_type(worktree: Path) -> None:
     write_json(path, data)
 
 def break_workflow_registry_name_file_mismatch(worktree: Path) -> None:
-    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
+    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
 
 
 def break_workflow_registry_fail_closed_invalid_type(worktree: Path) -> None:
-    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("failClosed", "true"))
+    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("failClosed", "true"))
 
 
 def break_workflow_registry_states_invalid_type(worktree: Path) -> None:
-    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("states", "not-a-list"))
+    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("states", "not-a-list"))
 
 
 def break_workflow_registry_duplicate_state_name(worktree: Path) -> None:
@@ -3974,7 +3984,7 @@ def break_workflow_registry_duplicate_state_name(worktree: Path) -> None:
             raise RuntimeError("workflow states must be objects before mutation")
         states[1]["name"] = states[0]["name"]
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_start_state_missing(worktree: Path) -> None:
@@ -3982,7 +3992,7 @@ def break_workflow_registry_start_state_missing(worktree: Path) -> None:
         data.pop("startState", None)
         data.pop("initialState", None)
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_start_state_terminal(worktree: Path) -> None:
@@ -3992,11 +4002,11 @@ def break_workflow_registry_start_state_terminal(worktree: Path) -> None:
             raise RuntimeError("workflow terminalStates must be non-empty before mutation")
         data["startState"] = terminal_states[0]
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_terminal_states_empty(worktree: Path) -> None:
-    awg_mutate_first_workflow(worktree, lambda data: data.__setitem__("terminalStates", []))
+    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("terminalStates", []))
 
 
 def break_workflow_registry_duplicate_terminal_state(worktree: Path) -> None:
@@ -4006,7 +4016,7 @@ def break_workflow_registry_duplicate_terminal_state(worktree: Path) -> None:
             raise RuntimeError("workflow terminalStates must be non-empty before mutation")
         terminal_states.append(terminal_states[0])
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_terminal_state_not_marked_terminal(worktree: Path) -> None:
@@ -4026,7 +4036,7 @@ def break_workflow_registry_terminal_state_not_marked_terminal(worktree: Path) -
 
         raise RuntimeError("could not find terminal state before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_non_terminal_missing_agent(worktree: Path) -> None:
@@ -4042,7 +4052,7 @@ def break_workflow_registry_non_terminal_missing_agent(worktree: Path) -> None:
 
         raise RuntimeError("could not find non-terminal state before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_non_terminal_unknown_agent(worktree: Path) -> None:
@@ -4058,7 +4068,7 @@ def break_workflow_registry_non_terminal_unknown_agent(worktree: Path) -> None:
 
         raise RuntimeError("could not find non-terminal state before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_non_terminal_missing_gate(worktree: Path) -> None:
@@ -4074,7 +4084,7 @@ def break_workflow_registry_non_terminal_missing_gate(worktree: Path) -> None:
 
         raise RuntimeError("could not find non-terminal state before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_terminal_state_declares_agent(worktree: Path) -> None:
@@ -4090,13 +4100,13 @@ def break_workflow_registry_terminal_state_declares_agent(worktree: Path) -> Non
 
         raise RuntimeError("could not find terminal state before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 def break_workflow_registry_missing_transitions(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         data.pop("transitions", None)
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_transition_unknown_source(worktree: Path) -> None:
@@ -4111,7 +4121,7 @@ def break_workflow_registry_transition_unknown_source(worktree: Path) -> None:
 
         first["from"] = "UnknownState"
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_transition_unknown_target(worktree: Path) -> None:
@@ -4126,7 +4136,7 @@ def break_workflow_registry_transition_unknown_target(worktree: Path) -> None:
 
         first["to"] = "UnknownState"
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_terminal_outgoing_transition(worktree: Path) -> None:
@@ -4137,7 +4147,7 @@ def break_workflow_registry_terminal_outgoing_transition(worktree: Path) -> None
 
         transitions.append({"from": "Done", "to": "Blocked", "on": "fail"})
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_transition_duplicate_event(worktree: Path) -> None:
@@ -4152,7 +4162,7 @@ def break_workflow_registry_transition_duplicate_event(worktree: Path) -> None:
 
         transitions.append(dict(first))
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_transition_missing_event(worktree: Path) -> None:
@@ -4167,7 +4177,7 @@ def break_workflow_registry_transition_missing_event(worktree: Path) -> None:
 
         first.pop("on", None)
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_non_terminal_without_outgoing_transition(worktree: Path) -> None:
@@ -4185,7 +4195,7 @@ def break_workflow_registry_non_terminal_without_outgoing_transition(worktree: P
             )
         ]
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 def break_workflow_registry_existing_route_unreachable(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
@@ -4205,7 +4215,7 @@ def break_workflow_registry_existing_route_unreachable(worktree: Path) -> None:
 
         raise RuntimeError("expected Requirements pass transition before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_unreachable_non_terminal_with_outgoing(worktree: Path) -> None:
@@ -4239,7 +4249,7 @@ def break_workflow_registry_unreachable_non_terminal_with_outgoing(worktree: Pat
         states.append(new_state)
         transitions.append({"from": "SecurityReview", "to": "Blocked", "on": "fail"})
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_registry_unreachable_terminal_state(worktree: Path) -> None:
@@ -4258,7 +4268,7 @@ def break_workflow_registry_unreachable_terminal_state(worktree: Path) -> None:
 
         raise RuntimeError("expected transition to Done before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 def break_workflow_gate_agent_without_produced_artifact(worktree: Path) -> None:
     path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
@@ -4298,7 +4308,7 @@ def break_workflow_gate_transition_event_not_allowed_by_artifact(worktree: Path)
 
         raise RuntimeError("expected Requirements pass transition before mutation")
 
-    awg_mutate_first_workflow(worktree, mutate)
+    awg_mutate_default_workflow(worktree, mutate)
 
 
 def break_workflow_gate_artifact_missing_transition_status(worktree: Path) -> None:
@@ -4316,17 +4326,28 @@ def break_workflow_gate_artifact_missing_transition_status(worktree: Path) -> No
     ]
     write_json(path, data)
 
-def awg_first_bundle_file(worktree: Path) -> Path:
-    bundle_paths = sorted((worktree / "registry" / "bundles").glob("*.bundle.json"))
+def awg_default_bundle_file(worktree: Path) -> Path:
+    path = (
+        worktree
+        / "registry"
+        / "bundles"
+        / "orchestrated-delivery.bundle.json"
+    )
 
-    if not bundle_paths:
-        raise RuntimeError("expected at least one bundle registry file")
+    if not path.is_file():
+        raise RuntimeError(
+            "expected default bundle registry file: "
+            "registry/bundles/orchestrated-delivery.bundle.json"
+        )
 
-    return bundle_paths[0]
+    return path
 
 
-def awg_mutate_first_bundle(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
-    path = awg_first_bundle_file(worktree)
+def awg_mutate_default_bundle(
+    worktree: Path,
+    mutate: Callable[[dict[str, Any]], None],
+) -> None:
+    path = awg_default_bundle_file(worktree)
     data = load_json(path)
     mutate(data)
     write_json(path, data)
@@ -4341,21 +4362,21 @@ def break_bundle_registry_name_mismatch(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         data["name"] = "wrong-name"
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_workflow(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         data["workflow"] = "missing-workflow"
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_profile(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         data["profile"] = "missing-profile"
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_agent(worktree: Path) -> None:
@@ -4365,7 +4386,7 @@ def break_bundle_registry_missing_agent(worktree: Path) -> None:
             raise RuntimeError("bundle agents must be a list before mutation")
         agents.append("MissingAgent")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_skill(worktree: Path) -> None:
@@ -4375,7 +4396,7 @@ def break_bundle_registry_missing_skill(worktree: Path) -> None:
             raise RuntimeError("bundle skills must be a list before mutation")
         skills.append("missing-skill")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_artifact(worktree: Path) -> None:
@@ -4385,7 +4406,7 @@ def break_bundle_registry_missing_artifact(worktree: Path) -> None:
             raise RuntimeError("bundle artifacts must be a list before mutation")
         artifacts.append("MissingArtifact")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_missing_target(worktree: Path) -> None:
@@ -4395,7 +4416,7 @@ def break_bundle_registry_missing_target(worktree: Path) -> None:
             raise RuntimeError("bundle targets must be a list before mutation")
         targets.append("missing-target")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 
@@ -4403,10 +4424,20 @@ def break_bundle_registry_missing_target(worktree: Path) -> None:
 
 
 def awg_bundle_workflow_file(worktree: Path) -> Path:
-    paths = sorted((worktree / "registry" / "workflows").glob("*.workflow.json"))
-    if not paths:
-        raise RuntimeError("No workflow registry files found")
-    return paths[0]
+    path = (
+        worktree
+        / "registry"
+        / "workflows"
+        / "orchestrated-delivery.workflow.json"
+    )
+
+    if not path.is_file():
+        raise RuntimeError(
+            "expected bundle workflow registry file: "
+            "registry/workflows/orchestrated-delivery.workflow.json"
+        )
+
+    return path
 
 
 def awg_bundle_target_adapter_file(worktree: Path, target: str) -> Path:
@@ -4432,7 +4463,7 @@ def break_bundle_registry_workflow_state_agent_not_in_bundle(worktree: Path) -> 
             raise RuntimeError("bundle agents must contain Requirements before mutation")
         agents.remove("Requirements")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_workflow_transition_outside_bundle_workflow(worktree: Path) -> None:
@@ -4460,7 +4491,7 @@ def break_bundle_registry_agent_capability_missing_bundle_skill(worktree: Path) 
             raise RuntimeError("bundle skills must contain mvp-core-capabilities before mutation")
         skills.remove("mvp-core-capabilities")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_agent_produced_artifact_missing_from_bundle(worktree: Path) -> None:
@@ -4472,7 +4503,7 @@ def break_bundle_registry_agent_produced_artifact_missing_from_bundle(worktree: 
             raise RuntimeError("bundle artifacts must contain Requirements before mutation")
         artifacts.remove("Requirements")
 
-    awg_mutate_first_bundle(worktree, mutate)
+    awg_mutate_default_bundle(worktree, mutate)
 
 
 def break_bundle_registry_target_adapter_name_mismatch(worktree: Path) -> None:
@@ -4489,17 +4520,25 @@ def break_bundle_registry_profile_workflow_mismatch(worktree: Path) -> None:
     write_json(path, data)
 
 
-def awg_first_setup_file(worktree: Path) -> Path:
-    setup_paths = sorted((worktree / "registry" / "setups").glob("*.setup.json"))
+def awg_default_setup_file(worktree: Path) -> Path:
+    path = (
+        worktree
+        / "registry"
+        / "setups"
+        / "orchestrated-delivery-greenfield.setup.json"
+    )
 
-    if not setup_paths:
-        raise RuntimeError("expected at least one setup registry file")
+    if not path.is_file():
+        raise RuntimeError(
+            "expected default setup registry file: "
+            "registry/setups/orchestrated-delivery-greenfield.setup.json"
+        )
 
-    return setup_paths[0]
+    return path
 
 
 def awg_mutate_first_setup(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
-    path = awg_first_setup_file(worktree)
+    path = awg_default_setup_file(worktree)
     data = load_json(path)
 
     if not isinstance(data, dict):
@@ -4579,7 +4618,27 @@ def awg_setup_profile_file(worktree: Path) -> Path:
     return worktree / ".agentic" / "setup-profile.json"
 
 
-def awg_mutate_setup_profile(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
+def awg_mutate_setup_profile(
+    worktree: Path,
+    mutate: Callable[[dict[str, Any]], None],
+) -> None:
+    init_result = run(
+        worktree,
+        [
+            "scripts/agentic/agentic-gen.sh",
+            "init",
+            "--guided",
+            "--setup",
+            "orchestrated-delivery-greenfield",
+        ],
+    )
+
+    if init_result.returncode != 0:
+        raise RuntimeError(
+            "failed to materialize orchestrated-delivery-greenfield "
+            f"before setup-profile mutation:\n{init_result.stdout}"
+        )
+
     path = awg_setup_profile_file(worktree)
 
     if not path.is_file():
@@ -5226,6 +5285,36 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency"],
             no_mutation,
             "error: one of --bundle or --guided --setup is required",
+        ),
+        (
+            "success",
+            "lean guided init is idempotent",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--guided",
+                "--setup",
+                "lean-delivery-greenfield",
+            ],
+            no_mutation,
+            "PASS: Guided init is idempotent for setup "
+            "'lean-delivery-greenfield'. Checked "
+            ".agentic/setup-profile.json and .agentic/agentic.json.",
+        ),
+        (
+            "success",
+            "review-heavy guided init is idempotent",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--guided",
+                "--setup",
+                "review-heavy-delivery-greenfield",
+            ],
+            no_mutation,
+            "PASS: Guided init is idempotent for setup "
+            "'review-heavy-delivery-greenfield'. Checked "
+            ".agentic/setup-profile.json and .agentic/agentic.json.",
         ),
         (
             "success",

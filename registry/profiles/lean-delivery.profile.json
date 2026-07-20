@@ -1,0 +1,33 @@
+{
+  "name": "lean-delivery",
+  "version": "0.1.0",
+  "description": "Workflow profile for focused software changes that need deterministic implementation, test, and review gates without a separate architecture or QA phase.",
+  "workflow": "lean-delivery",
+  "recommendedAgents": [
+    "Orchestrator",
+    "Requirements",
+    "Implementer",
+    "TestRunner",
+    "CodeReviewer"
+  ],
+  "recommendedCapabilities": [
+    "workflow.route",
+    "workflow.validate-state",
+    "workflow.handoff",
+    "requirements.elicit",
+    "requirements.define-acceptance-criteria",
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests",
+    "test.run",
+    "test.report",
+    "test.diagnose-failure",
+    "review.clean-code",
+    "review.tests",
+    "review.security"
+  ],
+  "recommendedRuntimeProfiles": [
+    "local",
+    "ci"
+  ]
+}

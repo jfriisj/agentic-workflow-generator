@@ -85,7 +85,7 @@ Initialize directly from a registered bundle when guided project shaping is not 
 scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
 ```
 
-See [Guided initialization](docs/guided-init.md) for classifications, overrides, generated files, failure behavior, and automation examples.
+See [Guided initialization](docs/guided-init.md) for classifications, overrides, generated files, failure behavior, and automation examples. Use [Adding guided setups](docs/adding-guided-setups.md) when implementing new process-oriented or domain-oriented compositions.
 
 Run the full generator pipeline:
 
@@ -131,29 +131,29 @@ scripts/agentic/agentic-gen.sh doctor-strict
 
 ## Guided setup flow
 
-The registered greenfield setup is:
+Three greenfield setups are currently registered:
 
-```text
-registry/setups/orchestrated-delivery-greenfield.setup.json
-```
+| Setup | Delivery model |
+|---|---|
+| `lean-delivery-greenfield` | Compact fail-closed delivery for focused lower-risk changes |
+| `orchestrated-delivery-greenfield` | Architecture, implementation, tests, code review, and final QA |
+| `review-heavy-delivery-greenfield` | Architecture and independent code review before formal tests and final QA |
 
-It asks about:
+Each setup selects its own validated bundle, profile, workflow, agents, skills,
+artifacts, and targets.
 
-```text
-project type
-delivery style
-target platforms
-```
+Every answer option is classified as:
 
-Every option is classified as one of:
+- `recommended`
+- `compatible`
+- `blocked`
 
-```text
-recommended
-compatible
-blocked
-```
+Recommended and compatible options must accurately represent the materialized
+composition. Blocked options fail explicitly and are never replaced through
+fallback behavior.
 
-Recommended and compatible options materialize through the same deterministic setup model. Blocked options fail explicitly and are never selected through fallback behavior.
+The complete implementation contract for additional setups is documented in
+[Adding guided setups](docs/adding-guided-setups.md).
 
 The resulting setup profile is written to:
 

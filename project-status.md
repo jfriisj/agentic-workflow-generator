@@ -83,12 +83,12 @@ Den aktuelle sammensætning indeholder:
 * 7 agents,
 * 4 skill-directories,
 * 18 capabilities,
-* 1 workflow,
-* 1 profile,
-* 1 bundle,
+* 3 workflows,
+* 3 profiles,
+* 3 bundles,
 * 6 artifact contracts,
 * 2 target adapters,
-* 1 guided setup.
+* 3 guided setups.
 
 ### Agents
 
@@ -462,7 +462,7 @@ Projektet har nu:
 * Git hooks,
 * CI.
 
-Den negative suite har nu **354 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
+Den negative suite har nu **361 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
 
 Det er meget stærkere end blot at teste happy path.
 
@@ -470,36 +470,85 @@ Det er meget stærkere end blot at teste happy path.
 
 # 3. Hvad der kun er delvist færdigt
 
-## A. Guided init har kun ét setup
+## A. Guided init har nu tre reelle proces-setups
 
-Der findes kun:
+Der findes nu:
 
 ```text
+lean-delivery-greenfield
 orchestrated-delivery-greenfield
+review-heavy-delivery-greenfield
 ```
 
-Det betyder, at infrastrukturen er færdig, men anbefalingsmotorens faglige bredde endnu er meget lille.
+De materialiserer tre forskellige, validerede kompositioner med egne:
 
-De næste naturlige setups er eksempelvis:
+* workflows,
+* profiles,
+* bundles,
+* agentvalg,
+* artifact-kæder,
+* spørgsmål og klassifikationer.
+
+De tre workflows er:
+
+```text
+lean:
+Requirements
+  → Implementer
+  → TestRunner
+  → CodeReviewer
+  → Done
+
+orchestrated:
+Requirements
+  → Architect
+  → Implementer
+  → TestRunner
+  → CodeReviewer
+  → QA
+  → Done
+
+review-heavy:
+Requirements
+  → Architect
+  → Implementer
+  → CodeReviewer
+  → TestRunner
+  → QA
+  → Done
+```
+
+Dermed er milepæl 1 punkt 6 afsluttet med to nye reelle setups frem for aliases eller fallback-adfærd.
+
+Implementeringen afdækkede og rettede også ustabile test-fixtures, som tidligere valgte den alfabetisk første setup-, workflow- eller bundle-fil. Tests, der forventer en bestemt komposition, bruger nu eksplicit navngivne fixtures.
+
+Begge nye setups er dækket af:
+
+* registry schema validation,
+* workflow-, profile-, bundle- og setup-validation,
+* guided dry-run,
+* guided-init idempotency,
+* permanente success-tests,
+* hele negative-gate-suiten.
+
+Viden og arbejdsgang er dokumenteret i:
+
+```text
+docs/adding-guided-setups.md
+```
+
+Guiden beskriver registry-kontrakter, workflow-regler, klassifikationssemantik, stabil test-fixture-praksis, implementeringsrækkefølge og definition of done for nye setups.
+
+Den resterende faglige bredde hører til milepæl 2. De næste naturlige domain-oriented setups er:
 
 ```text
 ai-application
 data-pipeline
 web-api
 library
-cli-tool
-frontend-application
-documentation-project
 ```
 
-Men de bør ikke blot være kopier af samme bundle. De bør have reelt forskellige:
-
-* workflows,
-* profiles,
-* agents,
-* skills,
-* artifacts,
-* target recommendations.
+Disse skal fortsat have reelt forskellige registry-elementer og må ikke blot materialisere samme bundle under nye navne.
 
 ---
 
@@ -1001,7 +1050,7 @@ Dette bør være næste fokus, før MCP.
 3. ✅ Tilføj `--dry-run`.
 4. ✅ Ret `back`-navigationen.
 5. ✅ Del `init-from-bundle.py` op i mindre moduler.
-6. Tilføj mindst to nye reelle setups.
+6. ✅ Tilføj mindst to nye reelle setups.
 7. Lav en ekstern eller isoleret end-to-end fixture.
 
 **Resultat:** En troværdig `v0.1` som agentic setup compiler.
@@ -1009,6 +1058,8 @@ Dette bør være næste fokus, før MCP.
 ---
 
 ## Milepæl 2 — Udvid setup-domænet
+
+Brug `docs/adding-guided-setups.md` som implementerings- og valideringskontrakt.
 
 Tilføj først de registry-elementer, der gør setups fagligt forskellige:
 

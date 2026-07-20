@@ -1,0 +1,114 @@
+{
+  "name": "review-heavy-delivery",
+  "version": "0.1.0",
+  "description": "A fail-closed delivery workflow that performs independent code review before test execution and finishes with QA acceptance.",
+  "startState": "Requirements",
+  "terminalStates": [
+    "Done",
+    "Blocked"
+  ],
+  "states": [
+    {
+      "name": "Requirements",
+      "agent": "Requirements",
+      "gate": "requirements-review"
+    },
+    {
+      "name": "Architect",
+      "agent": "Architect",
+      "gate": "architecture-review"
+    },
+    {
+      "name": "Implementer",
+      "agent": "Implementer",
+      "gate": "implementation-complete"
+    },
+    {
+      "name": "CodeReviewer",
+      "agent": "CodeReviewer",
+      "gate": "pre-test-code-review"
+    },
+    {
+      "name": "TestRunner",
+      "agent": "TestRunner",
+      "gate": "test-review"
+    },
+    {
+      "name": "QA",
+      "agent": "QA",
+      "gate": "qa-review"
+    },
+    {
+      "name": "Done",
+      "terminal": true
+    },
+    {
+      "name": "Blocked",
+      "terminal": true
+    }
+  ],
+  "defaultFailureRoute": "Orchestrator",
+  "failClosed": true,
+  "transitions": [
+    {
+      "from": "Requirements",
+      "to": "Architect",
+      "on": "pass"
+    },
+    {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Implementer",
+      "on": "pass"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "Implementer",
+      "to": "CodeReviewer",
+      "on": "pass"
+    },
+    {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "fail"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "TestRunner",
+      "on": "pass"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "TestRunner",
+      "to": "QA",
+      "on": "pass"
+    },
+    {
+      "from": "TestRunner",
+      "to": "Implementer",
+      "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Done",
+      "on": "pass"
+    },
+    {
+      "from": "QA",
+      "to": "Implementer",
+      "on": "fail"
+    }
+  ]
+}

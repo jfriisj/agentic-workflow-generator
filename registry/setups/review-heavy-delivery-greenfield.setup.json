@@ -1,0 +1,189 @@
+{
+  "name": "review-heavy-delivery-greenfield",
+  "description": "Guided greenfield setup for changes requiring architecture, independent code review before test execution, test evidence, and final QA acceptance.",
+  "version": "0.1.0",
+  "mode": "greenfield",
+  "defaultBundle": "review-heavy-delivery",
+  "questions": [
+    {
+      "id": "assurance-level",
+      "prompt": "How much delivery assurance does the change require?",
+      "recommended": [
+        "review-heavy"
+      ],
+      "compatible": [
+        "release-critical"
+      ],
+      "blocked": [
+        "minimal-process"
+      ],
+      "options": [
+        {
+          "value": "review-heavy",
+          "label": "Independent review and final QA",
+          "reason": "Recommended because the workflow includes architecture, independent code review, test evidence, and QA acceptance.",
+          "recommends": {
+            "bundle": "review-heavy-delivery",
+            "profile": "review-heavy-delivery",
+            "workflow": "review-heavy-delivery",
+            "agents": [
+              "Architect",
+              "CodeReviewer",
+              "Implementer",
+              "Orchestrator",
+              "QA",
+              "Requirements",
+              "TestRunner"
+            ],
+            "skills": [
+              "code-review-clean-code",
+              "code-review-tests",
+              "mvp-core-capabilities",
+              "workflow-routing"
+            ],
+            "artifacts": [
+              "ArchitectureDecision",
+              "CodeReview",
+              "ImplementationReport",
+              "QAReport",
+              "Requirements",
+              "TestReport"
+            ]
+          }
+        },
+        {
+          "value": "release-critical",
+          "label": "Release-critical change",
+          "reason": "Compatible because failed review, test, or QA gates cannot be bypassed and unresolved work returns for correction.",
+          "recommends": {
+            "bundle": "review-heavy-delivery",
+            "profile": "review-heavy-delivery",
+            "workflow": "review-heavy-delivery"
+          }
+        },
+        {
+          "value": "minimal-process",
+          "label": "Minimal delivery process",
+          "reason": "Blocked because this setup deliberately includes separate architecture, review, test, and QA phases. Use the lean-delivery setup for focused lower-risk changes."
+        }
+      ]
+    },
+    {
+      "id": "review-timing",
+      "prompt": "When should independent code review occur?",
+      "recommended": [
+        "before-test-execution"
+      ],
+      "compatible": [],
+      "blocked": [
+        "before-final-qa",
+        "self-review-only",
+        "after-release"
+      ],
+      "options": [
+        {
+          "value": "before-test-execution",
+          "label": "Before test execution",
+          "reason": "Recommended because maintainability, correctness, test design, and security findings are corrected before the formal test and QA phases.",
+          "recommends": {
+            "bundle": "review-heavy-delivery",
+            "profile": "review-heavy-delivery",
+            "workflow": "review-heavy-delivery"
+          }
+        },
+        {
+          "value": "before-final-qa",
+          "label": "Before final QA acceptance",
+          "reason": "Blocked because this setup deliberately performs independent code review before formal test execution. Use the orchestrated-delivery setup when review should occur after tests and immediately before final QA."
+        },
+        {
+          "value": "self-review-only",
+          "label": "Implementation self-review only",
+          "reason": "Blocked because the Implementer must not self-approve implementation work."
+        },
+        {
+          "value": "after-release",
+          "label": "Review after release",
+          "reason": "Blocked because review is a fail-closed gate and must complete before test execution and QA acceptance."
+        }
+      ]
+    },
+    {
+      "id": "target-platforms",
+      "prompt": "Which target agent platforms should be generated?",
+      "recommended": [
+        "opencode-and-vscode-copilot"
+      ],
+      "compatible": [
+        "opencode-only",
+        "vscode-copilot-only"
+      ],
+      "blocked": [],
+      "options": [
+        {
+          "value": "opencode-and-vscode-copilot",
+          "label": "OpenCode and VS Code Copilot",
+          "reason": "Recommended because both registered target adapters are generated from the same validated composition.",
+          "recommends": {
+            "targets": [
+              "opencode",
+              "vscode-copilot"
+            ]
+          }
+        },
+        {
+          "value": "opencode-only",
+          "label": "OpenCode only",
+          "reason": "Compatible because the OpenCode adapter is registered.",
+          "recommends": {
+            "targets": [
+              "opencode"
+            ]
+          }
+        },
+        {
+          "value": "vscode-copilot-only",
+          "label": "VS Code Copilot only",
+          "reason": "Compatible because the VS Code Copilot adapter is registered.",
+          "recommends": {
+            "targets": [
+              "vscode-copilot"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "finalRecommendation": {
+    "bundle": "review-heavy-delivery",
+    "profile": "review-heavy-delivery",
+    "workflow": "review-heavy-delivery",
+    "agents": [
+      "Architect",
+      "CodeReviewer",
+      "Implementer",
+      "Orchestrator",
+      "QA",
+      "Requirements",
+      "TestRunner"
+    ],
+    "skills": [
+      "code-review-clean-code",
+      "code-review-tests",
+      "mvp-core-capabilities",
+      "workflow-routing"
+    ],
+    "artifacts": [
+      "ArchitectureDecision",
+      "CodeReview",
+      "ImplementationReport",
+      "QAReport",
+      "Requirements",
+      "TestReport"
+    ],
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  }
+}

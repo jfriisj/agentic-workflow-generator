@@ -1,0 +1,39 @@
+{
+  "name": "review-heavy-delivery",
+  "version": "0.1.0",
+  "description": "Workflow profile for changes that require architecture, independent pre-test code review, test evidence, and final QA.",
+  "workflow": "review-heavy-delivery",
+  "recommendedAgents": [
+    "Orchestrator",
+    "Requirements",
+    "Architect",
+    "Implementer",
+    "CodeReviewer",
+    "TestRunner",
+    "QA"
+  ],
+  "recommendedCapabilities": [
+    "workflow.route",
+    "workflow.validate-state",
+    "workflow.handoff",
+    "requirements.elicit",
+    "requirements.define-acceptance-criteria",
+    "architecture.design",
+    "architecture.evaluate-tradeoffs",
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests",
+    "review.clean-code",
+    "review.tests",
+    "review.security",
+    "test.run",
+    "test.report",
+    "test.diagnose-failure",
+    "qa.verify-acceptance-criteria",
+    "qa.validate-evidence"
+  ],
+  "recommendedRuntimeProfiles": [
+    "docker",
+    "ci"
+  ]
+}
