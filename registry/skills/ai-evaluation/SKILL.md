@@ -1,3 +1,8 @@
+---
+name: "ai-evaluation"
+description: "Use when evaluating an AI application against measurable quality, safety, failure-mode, and operational-risk evidence."
+---
+
 # AI Evaluation Skill
 
 ## Purpose

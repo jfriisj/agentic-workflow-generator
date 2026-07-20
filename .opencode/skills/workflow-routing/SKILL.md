@@ -1,3 +1,8 @@
+---
+name: "workflow-routing"
+description: "Use when the Orchestrator must route work through workflow states, gates, failures, and handoffs without bypassing evidence requirements."
+---
+
 # Workflow Routing Skill
 
 ## Purpose

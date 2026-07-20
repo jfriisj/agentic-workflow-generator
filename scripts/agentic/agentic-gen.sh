@@ -13,6 +13,7 @@ Usage:
   scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
   scripts/agentic/agentic-gen.sh init --guided --setup <setup-name> --dry-run
   scripts/agentic/agentic-gen.sh validate
+  scripts/agentic/agentic-gen.sh validate-semantics
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh validate-resolution
   scripts/agentic/agentic-gen.sh lock
@@ -23,7 +24,7 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-agent-artifacts
   scripts/agentic/agentic-gen.sh validate-targets
-scripts/agentic/agentic-gen.sh validate-target-semantics
+  scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-skills
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
@@ -35,7 +36,10 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh validate-generated
+  scripts/agentic/agentic-gen.sh validate-target-compatibility
+  scripts/agentic/agentic-gen.sh validate-target-runtime
   scripts/agentic/agentic-gen.sh test-isolated-e2e
+  scripts/agentic/agentic-gen.sh test-target-runtime-e2e
   scripts/agentic/agentic-gen.sh test-negative
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -49,7 +53,9 @@ Commands:
   validate-environment
              Validate required local command-line tools fail-fast.
   init      Initialize .agentic/agentic.json from a registered bundle or guided setup.
-  validate   Validate .agentic/agentic.json against its JSON Schema.
+  validate   Validate .agentic/agentic.json against its JSON Schema and semantic contract.
+  validate-semantics
+             Validate Milestone-specific agentic config semantics.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
   validate-resolution
              Validate generated resolver output.
@@ -87,10 +93,16 @@ Commands:
   generate   Generate target-specific output.
   validate-generated
              Validate generated target output files.
+  validate-target-compatibility
+             Validate generated framework contracts, permissions, tools, and handoffs.
+  validate-target-runtime
+             Require OpenCode to parse generated config, agents, and skills.
   validate-init-idempotency
              Validate init determinism for .agentic/agentic.json and guided setup profiles.
   test-isolated-e2e
              Run guided init and generation from a clean isolated consumer fixture.
+  test-target-runtime-e2e
+             Require OpenCode to parse every registered isolated setup.
   test-negative
              Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
@@ -128,6 +140,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-setup-registry.py"
   require_file "scripts/agentic/validate-setup-profile.py"
   require_file "scripts/agentic/validate-agentic-config.sh"
+  require_file "scripts/agentic/validate-agentic-semantics.py"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/validate-resolution-output.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
@@ -135,6 +148,8 @@ check_scripts() {
   require_file "scripts/agentic/generate-lockfile.py"
   require_file "scripts/agentic/validate-lockfile.py"
   require_file "scripts/agentic/validate-generated-output.py"
+  require_file "scripts/agentic/target_generation_support.py"
+  require_file "scripts/agentic/validate-target-compatibility.py"
   require_file "scripts/agentic/validate-artifacts.py"
   require_file "scripts/agentic/validate-agent-registry.py"
   require_file "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -157,6 +172,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/validate-setup-registry.py"
   python -m py_compile "scripts/agentic/validate-setup-profile.py"
   bash -n "scripts/agentic/validate-agentic-config.sh"
+  python -m py_compile "scripts/agentic/validate-agentic-semantics.py"
   bash -n "scripts/agentic/agentic-gen.sh"
 
   python -m py_compile "scripts/agentic/resolve-agentic-config.py"
@@ -166,6 +182,8 @@ check_scripts() {
   python -m py_compile "scripts/agentic/generate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-lockfile.py"
   python -m py_compile "scripts/agentic/validate-generated-output.py"
+  python -m py_compile "scripts/agentic/target_generation_support.py"
+  python -m py_compile "scripts/agentic/validate-target-compatibility.py"
   python -m py_compile "scripts/agentic/validate-artifacts.py"
   python -m py_compile "scripts/agentic/validate-agent-registry.py"
   python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
@@ -215,6 +233,7 @@ run_pipeline() {
   check_scripts || return 1
   validate_json_files || return 1
   scripts/agentic/validate-agentic-config.sh || return 1
+  python scripts/agentic/validate-agentic-semantics.py || return 1
   python scripts/agentic/validate-target-adapters.py || return 1
   python scripts/agentic/validate-skill-registry.py || return 1
   python scripts/agentic/validate-workflow-registry.py || return 1
@@ -234,6 +253,7 @@ run_pipeline() {
   python scripts/agentic/validate-agent-artifact-bindings.py || return 1
   generate_target "$target" || return 1
   python scripts/agentic/validate-generated-output.py || return 1
+  python scripts/agentic/validate-target-compatibility.py || return 1
 }
 
 verify_no_drift() {
@@ -368,6 +388,10 @@ case "$COMMAND" in
 
   validate)
     scripts/agentic/validate-agentic-config.sh
+    python scripts/agentic/validate-agentic-semantics.py
+    ;;
+  validate-semantics)
+    python scripts/agentic/validate-agentic-semantics.py
     ;;
   resolve)
     python scripts/agentic/resolve-agentic-config.py
@@ -444,6 +468,12 @@ case "$COMMAND" in
   validate-generated)
     python scripts/agentic/validate-generated-output.py
     ;;
+  validate-target-compatibility)
+    python scripts/agentic/validate-target-compatibility.py
+    ;;
+  validate-target-runtime)
+    python scripts/agentic/validate-target-compatibility.py --require-opencode-runtime
+    ;;
   validate-idempotency)
     python scripts/agentic/validate-generation-idempotency.py
     ;;
@@ -452,6 +482,9 @@ case "$COMMAND" in
     ;;
   test-isolated-e2e)
     scripts/agentic/test-isolated-e2e.py
+    ;;
+  test-target-runtime-e2e)
+    scripts/agentic/test-isolated-e2e.py --require-opencode-runtime
     ;;
   test-negative)
     scripts/agentic/test-negative-gates.py

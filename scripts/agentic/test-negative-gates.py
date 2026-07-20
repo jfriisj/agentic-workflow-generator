@@ -4071,6 +4071,36 @@ def break_agentic_config_target_enabled_invalid_type(worktree: Path) -> None:
     first_target["enabled"] = "true"
     write_json(path, data)
 
+
+def break_agentic_config_runtime_context_enabled(worktree: Path) -> None:
+    path = worktree / ".agentic" / "agentic.json"
+    data = load_json(path)
+
+    runtime_context = data.get("runtimeContext")
+    if not isinstance(runtime_context, dict):
+        raise RuntimeError(
+            "config runtimeContext must be an object before mutation"
+        )
+
+    runtime_context["enabled"] = True
+    write_json(path, data)
+
+
+def break_agentic_config_runtime_context_fail_if_missing(
+    worktree: Path,
+) -> None:
+    path = worktree / ".agentic" / "agentic.json"
+    data = load_json(path)
+
+    runtime_context = data.get("runtimeContext")
+    if not isinstance(runtime_context, dict):
+        raise RuntimeError(
+            "config runtimeContext must be an object before mutation"
+        )
+
+    runtime_context["failIfMissing"] = True
+    write_json(path, data)
+
 def break_workflow_registry_name_file_mismatch(worktree: Path) -> None:
     awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
 
@@ -7792,6 +7822,20 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_agentic_config_target_enabled_invalid_type,
             "enabled must be a boolean",
+        ),
+        (
+            "failure",
+            "agentic config semantic validation fails when runtime context is enabled before Milestone 4",
+            ["scripts/agentic/agentic-gen.sh", "validate"],
+            break_agentic_config_runtime_context_enabled,
+            "runtimeContext.enabled must be false before Milestone 4",
+        ),
+        (
+            "failure",
+            "agentic config semantic validation fails when missing runtime context is required before Milestone 4",
+            ["scripts/agentic/agentic-gen.sh", "validate"],
+            break_agentic_config_runtime_context_fail_if_missing,
+            "runtimeContext.failIfMissing must be false before Milestone 4",
         ),
         (
             "failure",

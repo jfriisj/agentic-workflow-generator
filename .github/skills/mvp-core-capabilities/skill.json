@@ -1,7 +1,7 @@
 {
   "name": "mvp-core-capabilities",
   "version": "0.1.0",
-  "description": "Placeholder MVP skill pack for core workflow, requirements, architecture, implementation, testing, and QA capabilities.",
+  "description": "Use when a selected workflow agent needs the temporary shared MVP guidance for requirements, architecture, implementation, testing, QA, or security review.",
   "provides": [
     "requirements.elicit",
     "requirements.define-acceptance-criteria",

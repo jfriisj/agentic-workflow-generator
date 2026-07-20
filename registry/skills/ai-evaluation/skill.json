@@ -1,7 +1,7 @@
 {
   "name": "ai-evaluation",
   "version": "0.1.0",
-  "description": "Evidence-based evaluation guidance for AI application quality, safety, failure behavior, and operational risks.",
+  "description": "Use when evaluating an AI application against measurable quality, safety, failure-mode, and operational-risk evidence.",
   "provides": [
     "ai.evaluate-quality",
     "ai.evaluate-safety",

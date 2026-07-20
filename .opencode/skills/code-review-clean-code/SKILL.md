@@ -1,3 +1,7 @@
+---
+name: "code-review-clean-code"
+description: "Use when reviewing code for readability, naming, structure, duplication, simplicity, and maintainability."
+---
 
 # Clean Code Review Skill
 

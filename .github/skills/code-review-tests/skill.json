@@ -1,7 +1,7 @@
 {
   "name": "code-review-tests",
   "version": "0.1.0",
-  "description": "Review guidance for test coverage, validation evidence, and test reliability.",
+  "description": "Use when reviewing test coverage, validation evidence, failure reporting, regression risk, and test reliability.",
   "provides": [
     "review.tests"
   ],

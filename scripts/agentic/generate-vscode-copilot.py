@@ -7,6 +7,15 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from target_generation_support import (
+    WorkflowTopology,
+    deduplicated_resolved_skills,
+    derive_workflow_topology,
+    handoffs_for_agent,
+    require_permission_mapping,
+    yaml_string,
+)
+
 ROOT = Path.cwd()
 CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
 RESOLUTION_PATH = ROOT / ".agentic" / "generated" / "resolution.json"
@@ -50,6 +59,21 @@ def find_config_agent(config: dict[str, Any], agent_name: str) -> dict[str, Any]
     raise RuntimeError(f"Agent not found in config: {agent_name}")
 
 
+def require_supported_runtime_context(config: dict[str, Any]) -> None:
+    runtime_context = config.get("runtimeContext")
+    if not isinstance(runtime_context, dict):
+        raise RuntimeError("runtimeContext must be an object.")
+
+    enabled = runtime_context.get("enabled")
+    fail_if_missing = runtime_context.get("failIfMissing")
+
+    if enabled is not False or fail_if_missing is not False:
+        raise RuntimeError(
+            "Runtime context generation is not implemented until Milestone 4; "
+            "runtimeContext.enabled and runtimeContext.failIfMissing must both be false."
+        )
+
+
 def render_produced_artifacts(produces: list[dict[str, Any]]) -> str:
     if not produces:
         return """## Produced Artifacts
@@ -88,22 +112,63 @@ This agent does not declare a produced artifact contract.
     return "\n".join(blocks) + "\n"
 
 
-def generate_agent_file(config_agent: dict[str, Any], resolved_agent: dict[str, Any]) -> str:
+def render_handoffs(
+    topology: WorkflowTopology,
+    agent_name: str,
+) -> str:
+    handoffs = handoffs_for_agent(topology, agent_name)
+    if not handoffs:
+        return ""
+
+    lines = ["handoffs:"]
+    for handoff in handoffs:
+        lines.extend(
+            [
+                f"  - label: {yaml_string(handoff['label'])}",
+                f"    agent: {yaml_string(slugify(handoff['agent']))}",
+                f"    prompt: {yaml_string(handoff['prompt'])}",
+                "    send: false",
+            ]
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def generate_agent_file(
+    config_agent: dict[str, Any],
+    resolved_agent: dict[str, Any],
+    adapter: dict[str, Any],
+    topology: WorkflowTopology,
+) -> str:
     name = config_agent["name"]
     role = config_agent["role"]
     description = config_agent["description"]
     permission_profile = config_agent["permissionProfile"]
     capabilities = config_agent.get("capabilities", [])
     must_not = config_agent.get("mustNot", [])
-    resolved_capabilities = resolved_agent.get("resolvedCapabilities", [])
-    resolved_skills = [item["skill"] for item in resolved_capabilities]
+    resolved_skills = deduplicated_resolved_skills(resolved_agent)
     produces = resolved_agent.get("produces", [])
-    runtime_context_path = f".runtime/context/{{{{WORKFLOW_ID}}}}-{name}.context.md"
+    permission = require_permission_mapping(adapter, permission_profile)
+    tools = permission.get("tools")
+
+    if (
+        not isinstance(tools, list)
+        or not tools
+        or not all(isinstance(tool, str) and tool.strip() for tool in tools)
+    ):
+        raise RuntimeError(
+            f"VS Code permission mapping for {permission_profile} "
+            "must declare a non-empty tools list."
+        )
+
+    tools_frontmatter = json.dumps(tools, ensure_ascii=False)
+    handoffs_frontmatter = render_handoffs(topology, name)
 
     return f"""---
-name: {name}
-description: {description}
----
+name: {yaml_string(name)}
+description: {yaml_string(description)}
+tools: {tools_frontmatter}
+{handoffs_frontmatter}---
 
 # {name}
 
@@ -118,27 +183,19 @@ description: {description}
 ## Operating Rules
 
 1. Stay inside your assigned role.
-2. Use only the generated runtime context for workflow-specific knowledge.
-3. Do not invent missing workflow state.
-4. If required runtime context is missing, stop and report `BLOCKED: Missing generated runtime context`.
-5. If required evidence is missing, stop and report `BLOCKED: Missing required evidence`.
-6. Do not override fail-closed gates.
-
-## Runtime Context Requirement
-
-Before doing any work, load this generated runtime context:
-
-~~~text
-{runtime_context_path}
-~~~
-
-If the file is missing, do not continue.
+2. Do not invent missing workflow state.
+3. If required evidence is missing, stop and report `BLOCKED: Missing required evidence`.
+4. Do not override fail-closed gates.
 
 ## Permission Profile
 
 ~~~text
 {permission_profile}
 ~~~
+
+## VS Code Tools
+
+{markdown_list(tools)}
 
 ## Capabilities
 
@@ -203,17 +260,10 @@ This repository uses generated agentic workflow infrastructure.
 2. Artifacts are workflow memory.
 3. The orchestrator owns routing and state transitions.
 4. Agents must stay within their role.
-5. Agents must use generated runtime context when available.
-6. Missing evidence must result in BLOCKED, not PASS.
-7. Generated files should not be manually edited unless the project explicitly allows overrides.
+5. Missing evidence must result in BLOCKED, not PASS.
+6. Generated files should not be manually edited unless the project explicitly allows overrides.
 
-## Generated Context
-
-Runtime context is generated under:
-
-~~~text
-.runtime/context/
-~~~
+## Generated Metadata
 
 Resolution metadata is generated under:
 
@@ -249,9 +299,28 @@ def copy_resolved_skills(resolution: dict[str, Any]) -> None:
 def main() -> int:
     config = load_json(CONFIG_PATH)
     resolution = load_json(RESOLUTION_PATH)
+    require_supported_runtime_context(config)
 
     if resolution.get("summary", {}).get("errorCount", 0) != 0:
         raise RuntimeError("Resolution contains errors. Run resolver first and fix all reported errors.")
+
+    enabled_targets = {
+        target["name"]: target
+        for target in resolution.get("targets", [])
+        if target.get("enabled")
+    }
+
+    if "vscode-copilot" not in enabled_targets:
+        raise RuntimeError("vscode-copilot target is not enabled or not resolved.")
+
+    adapter_path_raw = enabled_targets["vscode-copilot"].get("adapterPath")
+    if not adapter_path_raw:
+        raise RuntimeError(
+            "vscode-copilot adapter path is missing from resolution."
+        )
+
+    adapter = load_json(ROOT / adapter_path_raw)
+    topology = derive_workflow_topology(resolution)
 
     AGENTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     SKILLS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -260,7 +329,15 @@ def main() -> int:
         agent_name = resolved_agent["name"]
         config_agent = find_config_agent(config, agent_name)
         output_path = AGENTS_OUTPUT_DIR / f"{slugify(agent_name)}.agent.md"
-        write_text(output_path, generate_agent_file(config_agent, resolved_agent))
+        write_text(
+            output_path,
+            generate_agent_file(
+                config_agent,
+                resolved_agent,
+                adapter,
+                topology,
+            ),
+        )
 
     copy_resolved_skills(resolution)
     write_text(INSTRUCTIONS_OUTPUT_PATH, generate_instructions(config))

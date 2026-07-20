@@ -130,10 +130,10 @@ def existing_config_or_default(
             {"name": "test-runner", "read": True, "write": True, "edit": True, "bash": "limited"},
         ],
         "runtimeContext": {
-            "enabled": True,
+            "enabled": False,
             "outputDirectory": ".runtime/context",
             "resolutionDirectory": ".runtime/resolution",
-            "failIfMissing": True,
+            "failIfMissing": False,
         },
         "validation": {
             "failClosed": True,
@@ -450,7 +450,12 @@ def materialize_config(
         "permissionProfiles": existing["permissionProfiles"],
         "agents": materialize_agents(agent_names),
         "gates": materialize_gates(workflow),
-        "runtimeContext": existing["runtimeContext"],
+        "runtimeContext": {
+            "enabled": False,
+            "outputDirectory": ".runtime/context",
+            "resolutionDirectory": ".runtime/resolution",
+            "failIfMissing": False,
+        },
         "validation": existing["validation"],
     }
 

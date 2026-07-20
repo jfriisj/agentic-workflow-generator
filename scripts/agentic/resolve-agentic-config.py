@@ -63,7 +63,14 @@ def resolve_workflow(config_workflow: object, errors: list[str]) -> dict[str, An
         errors.append(f"failed to load workflow registry file {registry_path}: {exc}")
         return resolved
 
-    for key in ["startState", "terminalStates", "failClosed", "transitions"]:
+    for key in [
+        "startState",
+        "states",
+        "terminalStates",
+        "defaultFailureRoute",
+        "failClosed",
+        "transitions",
+    ]:
         if key in registry_workflow:
             resolved[key] = registry_workflow[key]
 

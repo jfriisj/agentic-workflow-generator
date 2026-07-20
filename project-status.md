@@ -17,21 +17,23 @@ registry
 
 Det officielle projektmål er netop at omsætte et deklarativt registry af agents, skills, workflows, bundles, artifacts, gates og target adapters til platformsspecifik konfiguration på en reproducerbar og fail-fast måde. ([GitHub][1])
 
-Det seneste committed checkpoint er:
+Det seneste committed og pushed checkpoint er:
 
 ```text
-c98fc8b Add isolated guided init end-to-end fixture
+53018a2 Update AI milestone status
 ```
 
 Og den aktuelle arbejdende tilstand er:
 
 * milepæl 1 er afsluttet, valideret og pushed til `origin/main`
 * milepæl 2 er i gang, og første `ai-application` vertical slice er afsluttet
-* den isolerede clean-consumer end-to-end fixture består for alle 4 setups
+* framework-kompatibilitetsauditten for OpenCode og VS Code Copilot er funktionelt afsluttet i working tree
+* alle 4 setups består isoleret clean-consumer generation og framework-validering
+* OpenCode 1.17.10 parser config, agents og skills for alle 4 isolerede setups
 * hele `agentic-gen.sh all`-pipelinen består
-* alle **364 negative gates** består
-* commit `ada888a` indeholder AI-vertical-slicen
-* `doctor-strict` består, og ændringerne er pushed til `origin/main`
+* alle **366 negative gates** består
+* de aktuelle framework-auditændringer er endnu ikke committed eller pushed
+* afsluttende driftkontrol, `doctor-strict`, commit og push mangler
 
 ---
 
@@ -175,8 +177,8 @@ Systemet validerer:
 Den nuværende konfiguration har:
 
 ```text
-Agent capabilities: 18
-Skill capabilities: 18
+Agent capabilities: 21
+Skill capabilities: 21
 
 Missing: none
 Unused: none
@@ -249,7 +251,7 @@ Lockfilen opdager:
 * størrelse-drift,
 * forkert file count.
 
-Den seneste pipeline sporer 69 inputfiler.
+Den seneste pipeline sporer 93 inputfiler.
 
 ---
 
@@ -465,7 +467,7 @@ Projektet har nu:
 * Git hooks,
 * CI.
 
-Den negative suite har nu **364 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
+Den negative suite har nu **366 tests**, som bevidst ødelægger kontrakter og beviser, at systemet fejler lukket.
 
 Det er meget stærkere end blot at teste happy path.
 
@@ -648,17 +650,17 @@ Dette er ikke nødvendigvis nødvendigt til første MVP, men det er en del af de
 
 ---
 
-## C. Guided UX kan forbedres
+## C. Guided UX kan forbedres yderligere
 
-Nuværende mindre UX-mangler:
+Back-navigation og `--dry-run` er implementeret og regressionsdækket.
 
-* `back` fra første spørgsmål bør gå tilbage til setup-valget,
-* der mangler muligvis en ren `--dry-run`,
-* der mangler en bedre samlet forklaring af konsekvensen ved compatible overrides,
-* der mangler mulighed for at eksportere eller vise planen uden at skrive,
-* flere setups kræver bedre navigation og filtrering.
+De resterende mindre UX-forbedringer er:
 
-Fail-fast-adfærden ved ugyldigt input bør dog bevares. Der bør ikke indføres skjult fallback eller automatisk korrektion.
+* en bedre samlet forklaring af konsekvensen ved compatible overrides,
+* et mere struktureret eksportformat for den viste plan,
+* bedre navigation og filtrering, når setup-kataloget vokser.
+
+Fail-fast-adfærden ved ugyldigt input skal bevares. Der bør ikke indføres skjult fallback eller automatisk korrektion.
 
 ---
 
@@ -859,36 +861,35 @@ Det vil gøre hver generated agent til en egentlig runtime-konfiguration.
 
 ---
 
-## F. Flere workflows og profiles
+## F. Flere domain-oriented workflows og profiles
 
-Der findes kun ét workflow og én central profile.
+Der findes nu fire selvstændige workflows og fire profiles, som dækker AI-, lean-, orchestrated- og review-heavy delivery.
 
-For at systemet reelt kan anbefale forskellige setups, mangler eksempelvis:
+For at udvide setup-domænet yderligere mangler eksempelvis:
 
-### Workflows
+### Fremtidige workflows
 
 ```text
-simple-delivery
 test-first-delivery
-review-heavy-delivery
 security-gated-delivery
 documentation-first
 data-pipeline-delivery
-ai-evaluation-delivery
+web-api-delivery
+library-delivery
 ```
 
-### Profiles
+### Fremtidige profiles
 
 ```text
 web-api
-ai-application
 data-pipeline
 library
 cli-tool
-microservice-platform
+security-critical
+documentation-only
 ```
 
-Uden flere workflows og profiles vil flere setups hovedsageligt blive kosmetiske varianter.
+Nye setups skal fortsat have egne faglige kontrakter og må ikke blot være kosmetiske varianter af eksisterende bundles.
 
 ---
 
@@ -1130,6 +1131,59 @@ Aktuel status:
 * `data-pipeline` — næste kandidat
 * `web-api` — planlagt
 * `library` — planlagt
+
+### Framework-kompatibilitetsaudit — implementeret og valideret
+
+Alle fire eksisterende setups er nu valideret som reelt anvendelige med de to understøttede target-frameworks:
+
+* OpenCode
+* VS Code Copilot
+
+Auditten omfatter:
+
+* `ai-application-greenfield`
+* `lean-delivery-greenfield`
+* `orchestrated-delivery-greenfield`
+* `review-heavy-delivery-greenfield`
+
+Følgende framework-fejl og kontraktmangler blev fundet og rettet:
+
+1. `opencode.json` genererede tidligere ugyldige agentsti-strenge. OpenCode-agenter opdages nu fra `.opencode/agents/`, mens konfigurationen indeholder gyldigt schema og `default_agent`.
+2. Workflowets state→agent-bindinger og `defaultFailureRoute` projekteres nu til resolutionen.
+3. `Orchestrator` genereres som OpenCode `primary` og `default_agent`; workflowets fagagenter genereres som `subagent`.
+4. OpenCode-permissions afledes fail-fast fra target-adapterens permission profiles.
+5. Alle genererede skills har nu YAML-frontmatter med `name` og trigger-orienteret `description`, så OpenCode indlæser dem.
+6. Resolved skills deduplikeres deterministisk.
+7. VS Code Copilot-agenter får eksplicitte `tools` fra adapterens permission mapping i stedet for implicit adgang til alle tools.
+8. Native Copilot-handoffs genereres deterministisk fra workflowets transitions.
+9. Target-adapterne deklarerer ikke længere ikke-eksisterende templates eller runtime-output.
+10. Runtime context er eksplicit deaktiveret i Milepæl 2. Både `runtimeContext.enabled` og `failIfMissing` skal være `false`, indtil runtime-generering implementeres i Milepæl 4.
+11. En fælles topology-helper sikrer samme controller-, worker-, permission- og handofffortolkning på tværs af target-generatorerne.
+12. En permanent target-kompatibilitetsvalidator kontrollerer agents, skills, modes, permissions, tools, handoffs og fravær af ugyldige runtime-referencer.
+
+Nye permanente kommandoer:
+
+~~~text
+scripts/agentic/agentic-gen.sh validate-semantics
+scripts/agentic/agentic-gen.sh validate-target-compatibility
+scripts/agentic/agentic-gen.sh validate-target-runtime
+scripts/agentic/agentic-gen.sh test-target-runtime-e2e
+~~~
+
+Valideret resultat:
+
+* `agentic-gen.sh all` består med target-kompatibilitetsvalidering som del af pipeline.
+* `validate-target-runtime` består mod installeret OpenCode 1.17.10.
+* Alle fire setups består clean-consumer E2E for begge target-kontrakter.
+* OpenCode parser config, agents og skills for alle fire isolerede setups.
+* Gentaget init og generation er byte-identisk for 154 kumulative tracked filer.
+* Compilerens source payload forbliver byte-identisk.
+* Alle 366 negative gates består.
+* De nye negative gates afviser både `runtimeContext.enabled: true` og `runtimeContext.failIfMissing: true`.
+
+Framework-kompatibilitetsauditten er funktionelt afsluttet. Den afsluttende fulde regeneration, runtime-E2E og negative gate-suite består. Før ændringerne pushes, mangler kun driftkontrol, commit, `doctor-strict` og push.
+
+Der kan derefter fortsættes med næste fagligt selvstændige setup, aktuelt planlagt som `data-pipeline`.
 
 Tilføj fortsat først de registry-elementer, der gør hvert setup fagligt forskelligt.
 

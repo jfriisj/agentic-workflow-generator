@@ -5,22 +5,14 @@
   "outputPaths": {
     "agents": ".github/agents",
     "skills": ".github/skills",
-    "instructions": ".github/copilot-instructions.md",
-    "runtimeContext": ".runtime/context",
-    "resolution": ".runtime/resolution"
-  },
-  "templates": {
-    "agent": "templates/agent.md.hbs",
-    "skill": "templates/skill.md.hbs",
-    "instructions": "templates/copilot-instructions.md.hbs",
-    "runtimeContext": "templates/runtime-context.md.hbs"
+    "instructions": ".github/copilot-instructions.md"
   },
   "supportedFeatures": {
     "agents": true,
     "skills": true,
     "handoffs": true,
     "permissionProfiles": "partial",
-    "runtimeContext": "instruction-reference",
+    "runtimeContext": false,
     "toolRestrictions": "partial"
   },
   "permissionMapping": {

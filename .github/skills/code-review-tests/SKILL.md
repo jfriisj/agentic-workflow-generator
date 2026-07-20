@@ -1,3 +1,8 @@
+---
+name: "code-review-tests"
+description: "Use when reviewing test coverage, validation evidence, failure reporting, regression risk, and test reliability."
+---
+
 # Test Review Skill
 
 ## Purpose

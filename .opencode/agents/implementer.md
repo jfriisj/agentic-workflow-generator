@@ -1,6 +1,6 @@
 ---
-description: Implements approved work according to requirements, plan, and architecture.
-mode: primary
+description: "Implements approved work according to requirements, plan, and architecture."
+mode: subagent
 permission:
   edit: allow
   bash: allow
@@ -19,21 +19,9 @@ Implements approved work according to requirements, plan, and architecture.
 ## Operating Rules
 
 1. Stay inside your assigned role.
-2. Use only the generated runtime context for workflow-specific knowledge.
-3. Do not invent missing workflow state.
-4. If required runtime context is missing, stop and report `BLOCKED: Missing generated runtime context`.
-5. If required evidence is missing, stop and report `BLOCKED: Missing required evidence`.
-6. Do not override fail-closed gates.
-
-## Runtime Context Requirement
-
-Before doing any work, load this generated runtime context:
-
-~~~text
-.runtime/context/{{WORKFLOW_ID}}-Implementer.context.md
-~~~
-
-If the file is missing, do not continue.
+2. Do not invent missing workflow state.
+3. If required evidence is missing, stop and report `BLOCKED: Missing required evidence`.
+4. Do not override fail-closed gates.
 
 ## Permission Profile
 
@@ -54,8 +42,6 @@ implementation
 
 ## Resolved Skills
 
-- mvp-core-capabilities
-- mvp-core-capabilities
 - mvp-core-capabilities
 
 ## Must Not

@@ -1,3 +1,8 @@
+---
+name: "mvp-core-capabilities"
+description: "Use when a selected workflow agent needs the temporary shared MVP guidance for requirements, architecture, implementation, testing, QA, or security review."
+---
+
 # MVP Core Capabilities Skill Pack
 
 ## Purpose

@@ -6,23 +6,14 @@
     "agents": ".opencode/agents",
     "skills": ".opencode/skills",
     "instructions": "AGENTS.md",
-    "config": "opencode.json",
-    "runtimeContext": ".runtime/context",
-    "resolution": ".runtime/resolution"
-  },
-  "templates": {
-    "agent": "templates/agent.md.hbs",
-    "skill": "templates/skill.md.hbs",
-    "instructions": "templates/AGENTS.md.hbs",
-    "config": "templates/opencode.json.hbs",
-    "runtimeContext": "templates/runtime-context.md.hbs"
+    "config": "opencode.json"
   },
   "supportedFeatures": {
     "agents": true,
     "skills": true,
     "handoffs": "instruction-only",
     "permissionProfiles": true,
-    "runtimeContext": "instruction-reference",
+    "runtimeContext": false,
     "toolRestrictions": true
   },
   "permissionMapping": {

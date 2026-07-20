@@ -40,17 +40,10 @@ This repository uses generated agentic workflow infrastructure.
 2. Artifacts are workflow memory.
 3. The orchestrator owns routing and state transitions.
 4. Agents must stay within their role.
-5. Agents must use generated runtime context when available.
-6. Missing evidence must result in BLOCKED, not PASS.
-7. Generated files should not be manually edited unless the project explicitly allows overrides.
+5. Missing evidence must result in BLOCKED, not PASS.
+6. Generated files should not be manually edited unless the project explicitly allows overrides.
 
-## Generated Context
-
-Runtime context is generated under:
-
-~~~text
-.runtime/context/
-~~~
+## Generated Metadata
 
 Resolution metadata is generated under:
 

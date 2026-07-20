@@ -1,7 +1,7 @@
 {
   "name": "workflow-routing",
   "version": "0.1.0",
-  "description": "Workflow routing guidance for fail-closed gate-based agent orchestration.",
+  "description": "Use when the Orchestrator must route work through workflow states, gates, failures, and handoffs without bypassing evidence requirements.",
   "provides": [
     "workflow.route",
     "workflow.validate-state",

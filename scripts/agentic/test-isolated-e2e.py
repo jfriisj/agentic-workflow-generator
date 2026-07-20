@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import shutil
@@ -401,7 +402,26 @@ def snapshot_files(fixture_root: Path) -> dict[str, str]:
     return snapshot
 
 
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run every registered guided setup in an isolated consumer fixture."
+        )
+    )
+    parser.add_argument(
+        "--require-opencode-runtime",
+        action="store_true",
+        help=(
+            "Require OpenCode to parse each generated fixture's config, "
+            "agents, and skills."
+        ),
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
+    arguments = parse_arguments()
+
     print("== Isolated consumer end-to-end test ==")
 
     source_snapshot_before = snapshot_source_payload()
@@ -448,6 +468,25 @@ def main() -> int:
                 "PASS: Generated output is valid.",
             )
             assert_generated_outputs(fixture_root)
+            compatibility_command = [
+                "scripts/agentic/agentic-gen.sh",
+                (
+                    "validate-target-runtime"
+                    if arguments.require_opencode_runtime
+                    else "validate-target-compatibility"
+                ),
+            ]
+            expected_compatibility_text = (
+                "PASS: OpenCode runtime parsed generated config, agents, and skills."
+                if arguments.require_opencode_runtime
+                else "PASS: Target compatibility validation succeeded"
+            )
+
+            run_command(
+                fixture_root,
+                compatibility_command,
+                expected_compatibility_text,
+            )
 
             first_snapshot = snapshot_files(fixture_root)
 
@@ -461,6 +500,11 @@ def main() -> int:
                 fixture_root,
                 ["scripts/agentic/agentic-gen.sh", "all"],
                 "PASS: Generated output is valid.",
+            )
+            run_command(
+                fixture_root,
+                compatibility_command,
+                expected_compatibility_text,
             )
 
             second_snapshot = snapshot_files(fixture_root)
@@ -522,14 +566,19 @@ def main() -> int:
         f"consumer fixtures. Checked {completed_setups} setup(s)."
     )
     print(
-        "PASS: Targets, resolution, and lockfile were generated and "
-        "validated for every setup."
+        "PASS: Targets, resolution, lockfile, framework permissions, "
+        "tools, and handoffs were generated and validated for every setup."
     )
     print(
         "PASS: Repeated guided init and generation were byte-identical "
         f"across {total_tracked_files} cumulative tracked file(s)."
     )
     print("PASS: Compiler source payload remained byte-identical.")
+
+    if arguments.require_opencode_runtime:
+        print(
+            "PASS: OpenCode runtime parsed every registered isolated setup."
+        )
 
     return 0
 
