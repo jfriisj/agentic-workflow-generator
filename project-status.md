@@ -575,22 +575,33 @@ Det er nu en reel dokumentationsdrift, selv om generated-output drift er grøn.
 
 ---
 
-## E. `init-from-bundle.py` vokser for meget
+## E. ✅ Guided init er opdelt i mindre moduler
 
-Guided dialog, setup-materialisering, filskrivning, rollback, argument parsing og bundle init ligger nu i samme fil.
+`init-from-bundle.py` er nu reduceret til offentlig CLI, bundle-/config-materialisering, validering og transaktionel skrivning.
 
-Det fungerer, men filen er blevet stor.
+De udtrukne ansvar er:
 
-Før vi føjer MCP, brownfield discovery og flere setup-typer til, bør ansvaret opdeles, eksempelvis:
+~~~text
+init_support.py
+  → fælles paths, JSON-hjælpere og setup-loader
 
-```text
-init_from_bundle.py
-guided_init.py
 setup_materializer.py
-transactional_write.py
-```
+  → deterministisk parsing, validering og materialisering af setup-profiler
 
-Det bør ske uden at ændre den offentlige CLI eller anbefalingsmodellen.
+guided_init.py
+  → TTY-krav, setup-valg, spørgsmål, back-navigation, plan og bekræftelse
+~~~
+
+Den offentlige CLI og setup-modellen er uændret. `agentic-gen.sh check` kræver og syntakvaliderer alle moduler.
+
+Regressionerne er valideret med:
+
+* guided `--dry-run`,
+* guided init-idempotens,
+* bundle init-idempotens,
+* alle **359 negative gates**, inklusive PTY-tests for defaults, cancellation og back-navigation.
+
+Transaktionel skrivning er foreløbig bevaret i CLI-modulet, fordi det fortsat er tæt koblet til validering og commit/rollback-orkestreringen. Det kan udtrækkes senere, hvis flere init-flows får samme behov.
 
 ---
 
@@ -989,7 +1000,7 @@ Dette bør være næste fokus, før MCP.
 2. ✅ Dokumentér både interactive og deterministic flows.
 3. ✅ Tilføj `--dry-run`.
 4. ✅ Ret `back`-navigationen.
-5. Del `init-from-bundle.py` op i mindre moduler.
+5. ✅ Del `init-from-bundle.py` op i mindre moduler.
 6. Tilføj mindst to nye reelle setups.
 7. Lav en ekstern eller isoleret end-to-end fixture.
 

@@ -13,8 +13,8 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 69,
-    "contentHash": "sha256:da0ae3d21b5f70ec96623f3cfef2c32f2c2c892e58472389d900eda979545c90",
+    "fileCount": 72,
+    "contentHash": "sha256:6daa58f4cd9f9802238fe661d8fa0066d450ad5177d247fdec49fcfccb4655e3",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -198,8 +198,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:a223e7be226c252da181fc2b474c467986d3b9bdab9799b30eab602d0dfc808e",
-        "sizeBytes": 15609
+        "sha256": "sha256:1b463d9af0f683f00dcf005861ec56ed585f5f8e49f24df88ff9369cc11ec8ea",
+        "sizeBytes": 15937
       },
       {
         "path": "scripts/agentic/cleanup-generated-output.py",
@@ -227,9 +227,19 @@
         "sizeBytes": 7654
       },
       {
+        "path": "scripts/agentic/guided_init.py",
+        "sha256": "sha256:565faf16fa964f40aeac2d794e198da30a5ef4c82c39b603fcaa79592afba1c7",
+        "sizeBytes": 12549
+      },
+      {
         "path": "scripts/agentic/init-from-bundle.py",
-        "sha256": "sha256:407afb8df55fab018fe7929f9ebdc5da78e0d0d12db9445b7ff2cc28c4558c0c",
-        "sizeBytes": 41781
+        "sha256": "sha256:b7cf65b3137e32f97bdfa2efbf5428760fb4a6530a8a3a25cd954cb0f04068da",
+        "sizeBytes": 18250
+      },
+      {
+        "path": "scripts/agentic/init_support.py",
+        "sha256": "sha256:87e11142d301aa70582af88a1120a43d21f15ed9c4ce05d6ed0bdd8c227aeed2",
+        "sizeBytes": 2265
       },
       {
         "path": "scripts/agentic/install-git-hooks.sh",
@@ -245,6 +255,11 @@
         "path": "scripts/agentic/resolve-agentic-config.py",
         "sha256": "sha256:584c35e6571a7e9ca8a71166505c0eb100a9c76d76623f55c2f2edfcb6fa134e",
         "sizeBytes": 9394
+      },
+      {
+        "path": "scripts/agentic/setup_materializer.py",
+        "sha256": "sha256:85cfc395a574cb9a07cf77f7b28e0f07e3a68435ef0203d27d88e1259ac6b09c",
+        "sizeBytes": 13630
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
