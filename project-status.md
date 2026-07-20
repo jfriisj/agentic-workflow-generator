@@ -17,23 +17,23 @@ registry
 
 Det officielle projektmål er netop at omsætte et deklarativt registry af agents, skills, workflows, bundles, artifacts, gates og target adapters til platformsspecifik konfiguration på en reproducerbar og fail-fast måde. ([GitHub][1])
 
-Det seneste committed og pushed checkpoint er:
+Det seneste implementeringscheckpoint for framework-auditten er:
 
 ```text
-53018a2 Update AI milestone status
+8e13da3 Validate target framework compatibility
 ```
 
 Og den aktuelle arbejdende tilstand er:
 
 * milepæl 1 er afsluttet, valideret og pushed til `origin/main`
 * milepæl 2 er i gang, og første `ai-application` vertical slice er afsluttet
-* framework-kompatibilitetsauditten for OpenCode og VS Code Copilot er funktionelt afsluttet i working tree
+* framework-kompatibilitetsauditten for OpenCode og VS Code Copilot er afsluttet og committed
 * alle 4 setups består isoleret clean-consumer generation og framework-validering
 * OpenCode 1.17.10 parser config, agents og skills for alle 4 isolerede setups
 * hele `agentic-gen.sh all`-pipelinen består
 * alle **366 negative gates** består
-* de aktuelle framework-auditændringer er endnu ikke committed eller pushed
-* afsluttende driftkontrol, `doctor-strict`, commit og push mangler
+* framework-auditten er committed som `8e13da3` og valideret med `doctor-strict`
+* leverancen er afsluttet med driftkontrol, `doctor-strict` og push til `origin/main`
 
 ---
 
@@ -1181,7 +1181,7 @@ Valideret resultat:
 * Alle 366 negative gates består.
 * De nye negative gates afviser både `runtimeContext.enabled: true` og `runtimeContext.failIfMissing: true`.
 
-Framework-kompatibilitetsauditten er funktionelt afsluttet. Den afsluttende fulde regeneration, runtime-E2E og negative gate-suite består. Før ændringerne pushes, mangler kun driftkontrol, commit, `doctor-strict` og push.
+Framework-kompatibilitetsauditten er afsluttet, committed som `8e13da3`, valideret med `doctor-strict` og pushed til `origin/main`. Den fulde regeneration, runtime-E2E og alle 366 negative gates består.
 
 Der kan derefter fortsættes med næste fagligt selvstændige setup, aktuelt planlagt som `data-pipeline`.
 
