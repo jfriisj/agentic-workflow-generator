@@ -20,7 +20,7 @@ Det officielle projektmål er netop at omsætte et deklarativt registry af agent
 Det seneste checkpoint er:
 
 ```text
-afedd9f Fix guided init back navigation
+ac25a6f Split guided init into focused modules
 ```
 
 Og den aktuelle tilstand er:
@@ -28,7 +28,7 @@ Og den aktuelle tilstand er:
 * `doctor-strict` består
 * alle **359 negative gates** består
 * working tree er ren
-* `main` er pushed til GitHub
+* modulopdelingen er committed lokalt og klar til push
 * både interaktiv og ikke-interaktiv initialisering virker
 
 ---
