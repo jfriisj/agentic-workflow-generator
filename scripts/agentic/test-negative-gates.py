@@ -339,6 +339,136 @@ def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
         shutil.rmtree(worktree.parent, ignore_errors=True)
 
 
+def expect_guided_dry_run(
+    name: str,
+    extra_args: list[str],
+    expected_answer_line: str,
+    expected_targets_line: str,
+) -> tuple[bool, str]:
+    worktree = copy_repo_to_temp()
+
+    profile_path = worktree / ".agentic" / "setup-profile.json"
+    config_path = worktree / ".agentic" / "agentic.json"
+
+    try:
+        tracked_paths = (profile_path, config_path)
+        before: dict[Path, tuple[bytes, int]] = {}
+
+        for tracked_path in tracked_paths:
+            if not tracked_path.is_file():
+                return (
+                    False,
+                    f"{name}: required file was missing before test: "
+                    f"{tracked_path}",
+                )
+
+            before[tracked_path] = (
+                tracked_path.read_bytes(),
+                tracked_path.stat().st_mtime_ns,
+            )
+
+        command = [
+            "scripts/agentic/agentic-gen.sh",
+            "init",
+            "--guided",
+            "--setup",
+            "orchestrated-delivery-greenfield",
+            "--dry-run",
+            *extra_args,
+        ]
+        result = run(worktree, command)
+
+        if result.returncode != 0:
+            return (
+                False,
+                f"{name}: expected success, but command failed.\n\n"
+                f"Output:\n{result.stdout}",
+            )
+
+        required_output = (
+            "== Generated Setup Plan ==",
+            expected_answer_line,
+            expected_targets_line,
+            "PASS: Guided dry-run validated setup "
+            "'orchestrated-delivery-greenfield'; no files were written.",
+        )
+
+        for expected_text in required_output:
+            if expected_text not in result.stdout:
+                return (
+                    False,
+                    f"{name}: expected text was not found: "
+                    f"{expected_text!r}\n\n"
+                    f"Output:\n{result.stdout}",
+                )
+
+        forbidden_output = (
+            "PASS: Initialized .agentic/setup-profile.json",
+            "PASS: Initialized .agentic/agentic.json",
+        )
+
+        for forbidden_text in forbidden_output:
+            if forbidden_text in result.stdout:
+                return (
+                    False,
+                    f"{name}: dry-run emitted write-success text: "
+                    f"{forbidden_text!r}\n\n"
+                    f"Output:\n{result.stdout}",
+                )
+
+        for tracked_path, (
+            expected_bytes,
+            expected_mtime_ns,
+        ) in before.items():
+            if not tracked_path.is_file():
+                return (
+                    False,
+                    f"{name}: dry-run removed file: {tracked_path}",
+                )
+
+            actual_bytes = tracked_path.read_bytes()
+            actual_mtime_ns = tracked_path.stat().st_mtime_ns
+
+            if actual_bytes != expected_bytes:
+                return (
+                    False,
+                    f"{name}: dry-run changed file contents: "
+                    f"{tracked_path}",
+                )
+
+            if actual_mtime_ns != expected_mtime_ns:
+                return (
+                    False,
+                    f"{name}: dry-run rewrote file: {tracked_path}",
+                )
+
+        return True, f"PASS: {name}"
+    finally:
+        shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+def expect_guided_dry_run_defaults() -> tuple[bool, str]:
+    return expect_guided_dry_run(
+        "guided dry-run preserves files with default recommendations",
+        [],
+        "target-platforms: "
+        "opencode-and-vscode-copilot [recommended]",
+        "targets: opencode, vscode-copilot",
+    )
+
+
+def expect_guided_dry_run_opencode_override() -> tuple[bool, str]:
+    return expect_guided_dry_run(
+        "guided dry-run preserves files with target override",
+        [
+            "--answer",
+            "target-platforms=opencode-only",
+        ],
+        "target-platforms: opencode-only [compatible]",
+        "targets: opencode",
+    )
+
+
 
 def assert_cleanup_apply_removed_file(worktree: Path) -> tuple[bool, str]:
     path = worktree / ".github" / "agents" / "cleanup-apply-test.agent.md"
@@ -7009,6 +7139,31 @@ def main() -> int:
         ),
         (
             "failure",
+            "guided dry-run fails without guided mode",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--bundle",
+                "orchestrated-delivery",
+                "--dry-run",
+            ],
+            no_mutation,
+            "--dry-run requires --guided",
+        ),
+        (
+            "failure",
+            "interactive guided dry-run fails without an attached terminal",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--dry-run",
+            ],
+            no_mutation,
+            "Interactive --guided requires an attached terminal",
+        ),
+        (
+            "failure",
             "guided init fails when answer is used without an explicit setup",
             [
                 "scripts/agentic/agentic-gen.sh",
@@ -7470,9 +7625,11 @@ def main() -> int:
         ),
     ]
 
-    interactive_tests = [
+    custom_tests = [
         expect_interactive_guided_defaults,
         expect_interactive_guided_cancel_preserves_files,
+        expect_guided_dry_run_defaults,
+        expect_guided_dry_run_opencode_override,
     ]
 
     failures: list[str] = []
@@ -7494,8 +7651,8 @@ def main() -> int:
         if not passed:
             failures.append(message)
 
-    for interactive_test in interactive_tests:
-        passed, message = interactive_test()
+    for custom_test in custom_tests:
+        passed, message = custom_test()
         print(message)
 
         if not passed:
@@ -7506,7 +7663,7 @@ def main() -> int:
         print(f"FAIL: {len(failures)} negative gate test(s) failed.")
         return 1
 
-    total_tests = len(tests) + len(interactive_tests)
+    total_tests = len(tests) + len(custom_tests)
 
     print()
     print(f"PASS: All {total_tests} negative gate tests passed.")

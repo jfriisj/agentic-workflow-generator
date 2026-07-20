@@ -49,6 +49,43 @@ This mode does not prompt for input.
 
 It selects the registered recommended defaults unless explicit answer overrides are supplied.
 
+### Guided dry-run
+
+Use `--dry-run` to materialize and validate the complete guided result without writing either output file:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield \
+  --dry-run
+~~~
+
+Dry-run:
+
+~~~text
+materializes the setup profile
+materializes the active Agentic configuration
+validates both candidates in a temporary directory
+prints the complete setup plan
+does not request confirmation
+does not write or rewrite .agentic/setup-profile.json
+does not write or rewrite .agentic/agentic.json
+~~~
+
+Answer overrides can be combined with dry-run:
+
+~~~bash
+scripts/agentic/agentic-gen.sh init \
+  --guided \
+  --setup orchestrated-delivery-greenfield \
+  --answer target-platforms=opencode-only \
+  --dry-run
+~~~
+
+Interactive `--guided --dry-run` still requires an attached terminal because the questions must be answered interactively.
+
+`--dry-run` cannot be used with direct `--bundle` initialization.
+
 ### Direct bundle initialization
 
 Use direct bundle initialization when no guided project-shaping step is needed:
@@ -271,6 +308,11 @@ fallback policy violations
 guided-init idempotency
 interactive default happy path through a pseudo-TTY
 interactive cancellation with no file writes
+guided dry-run with default recommendations
+guided dry-run with target override
+guided dry-run file and timestamp preservation
+--dry-run without --guided
+interactive --guided --dry-run without a TTY
 ~~~
 
 ## Current limitation

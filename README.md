@@ -121,6 +121,7 @@ scripts/agentic/agentic-gen.sh validate-generated
 scripts/agentic/agentic-gen.sh validate-idempotency
 scripts/agentic/agentic-gen.sh init --guided
 scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield
+scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --dry-run
 scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --answer target-platforms=opencode-only
 scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
 scripts/agentic/agentic-gen.sh validate-init-idempotency --guided --setup orchestrated-delivery-greenfield
@@ -169,6 +170,8 @@ The active configuration is written to:
 ```
 
 Interactive `--guided` requires an attached terminal. Non-interactive automation must use an explicit `--setup`.
+
+Add `--dry-run` to materialize, validate, and print the complete guided setup plan without writing or rewriting either Agentic configuration file.
 
 See [Guided initialization](docs/guided-init.md) for the complete contract.
 

@@ -5,6 +5,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,8 @@ CONFIG_PATH = ROOT / ".agentic" / "agentic.json"
 SETUP_PROFILE_PATH = ROOT / ".agentic" / "setup-profile.json"
 SETUP_PROFILE_VALIDATOR = ROOT / "scripts" / "agentic" / "validate-setup-profile.py"
 SETUP_REGISTRY_VALIDATOR = ROOT / "scripts" / "agentic" / "validate-setup-registry.py"
+CONFIG_VALIDATOR = ROOT / "scripts" / "agentic" / "validate-agentic-config.sh"
+CONFIG_SCHEMA_PATH = ROOT / ".agentic" / "schemas" / "agentic.schema.json"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -867,12 +870,14 @@ def confirm_guided_plan() -> None:
     )
 
 
-def validate_setup_profile() -> None:
+def validate_setup_profile(
+    profile_path: Path = SETUP_PROFILE_PATH,
+) -> None:
     if not SETUP_PROFILE_VALIDATOR.is_file():
         raise ValueError(f"Required setup profile validator not found: {SETUP_PROFILE_VALIDATOR}")
 
     result = subprocess.run(
-        [sys.executable, str(SETUP_PROFILE_VALIDATOR)],
+        [sys.executable, str(SETUP_PROFILE_VALIDATOR), str(profile_path)],
         cwd=ROOT,
         text=True,
         stdout=subprocess.PIPE,
@@ -882,6 +887,60 @@ def validate_setup_profile() -> None:
 
     if result.returncode != 0:
         raise ValueError("setup profile validation failed:\n" + result.stdout.rstrip())
+
+
+def validate_agentic_config(config_path: Path) -> None:
+    if not CONFIG_VALIDATOR.is_file():
+        raise ValueError(
+            f"Required Agentic config validator not found: {CONFIG_VALIDATOR}"
+        )
+
+    if not CONFIG_SCHEMA_PATH.is_file():
+        raise ValueError(
+            f"Required Agentic config schema not found: {CONFIG_SCHEMA_PATH}"
+        )
+
+    result = subprocess.run(
+        [
+            "bash",
+            str(CONFIG_VALIDATOR),
+            str(config_path),
+            str(CONFIG_SCHEMA_PATH),
+        ],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        raise ValueError(
+            "Agentic config validation failed:\n"
+            + result.stdout.rstrip()
+        )
+
+
+def validate_guided_dry_run(
+    setup_profile: dict[str, Any],
+    config: dict[str, Any],
+) -> None:
+    with tempfile.TemporaryDirectory(
+        prefix="agentic-guided-dry-run-"
+    ) as temp_directory:
+        candidate_directory = Path(temp_directory)
+        candidate_profile_path = (
+            candidate_directory / "setup-profile.json"
+        )
+        candidate_config_path = (
+            candidate_directory / "agentic.json"
+        )
+
+        write_json(candidate_profile_path, setup_profile)
+        write_json(candidate_config_path, config)
+
+        validate_setup_profile(candidate_profile_path)
+        validate_agentic_config(candidate_config_path)
 
 
 def restore_file(path: Path, previous_content: bytes | None) -> None:
@@ -1001,6 +1060,14 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Guided setup answer override in question=value format. May be repeated.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help=(
+            "Materialize, validate, and print a guided setup plan "
+            "without writing files."
+        ),
+    )
     args = parser.parse_args()
 
     if args.guided:
@@ -1013,6 +1080,8 @@ def parse_args() -> argparse.Namespace:
             parser.error("--setup requires --guided")
         if args.answer:
             parser.error("--answer requires --guided")
+        if args.dry_run:
+            parser.error("--dry-run requires --guided")
         if not args.bundle:
             parser.error("one of --bundle or --guided is required")
 
@@ -1051,6 +1120,15 @@ def main() -> int:
                 selected_agents=agents,
                 selected_targets=targets,
             )
+
+            if args.dry_run:
+                validate_guided_dry_run(setup_profile, config)
+                print_guided_plan(setup_profile)
+                print(
+                    "PASS: Guided dry-run validated setup "
+                    f"'{setup_name}'; no files were written."
+                )
+                return 0
 
             if interactive:
                 print_guided_plan(setup_profile)

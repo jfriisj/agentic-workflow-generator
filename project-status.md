@@ -949,7 +949,6 @@ Fundamentet, det interaktive flow og bruger-/CLI-dokumentationen fungerer, men d
 * flere setups,
 * flere workflows/profiles,
 * bedre UX,
-* dry-run,
 * ekstern end-to-end fixture.
 
 ## Den fulde langsigtede vision
@@ -978,7 +977,7 @@ Dette bør være næste fokus, før MCP.
 
 1. ✅ Opdater README og lav `docs/guided-init.md`.
 2. ✅ Dokumentér både interactive og deterministic flows.
-3. Tilføj `--dry-run`.
+3. ✅ Tilføj `--dry-run`.
 4. Ret `back`-navigationen.
 5. Del `init-from-bundle.py` op i mindre moduler.
 6. Tilføj mindst to nye reelle setups.

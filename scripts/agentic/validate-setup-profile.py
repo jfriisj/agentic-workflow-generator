@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any
@@ -488,8 +489,25 @@ def validate_setup_profile(profile_path: Path) -> list[str]:
     return errors
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate a materialized Agentic guided setup profile."
+    )
+    parser.add_argument(
+        "profile_path",
+        nargs="?",
+        default=str(DEFAULT_PROFILE_PATH),
+        help=(
+            "Setup profile path. "
+            "Defaults to .agentic/setup-profile.json."
+        ),
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
-    profile_path = Path(DEFAULT_PROFILE_PATH)
+    args = parse_args()
+    profile_path = Path(args.profile_path)
 
     errors = validate_setup_profile(profile_path)
 
