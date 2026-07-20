@@ -20,17 +20,18 @@ Det officielle projektmål er netop at omsætte et deklarativt registry af agent
 Det seneste committed checkpoint er:
 
 ```text
-cde9b31 Add distinct guided delivery setups
+c98fc8b Add isolated guided init end-to-end fixture
 ```
 
 Og den aktuelle arbejdende tilstand er:
 
-* milepæl 1 punkt 7 er implementeret, men endnu ikke committed
+* milepæl 1 punkt 7 er implementeret og committed
 * den isolerede clean-consumer end-to-end fixture består
 * hele `agentic-gen.sh all`-pipelinen består
 * alle **361 negative gates** består
-* working tree indeholder de intentionelle milepæl 1 punkt 7-ændringer
-* afsluttende `doctor-strict`, commit og push mangler stadig
+* `doctor-strict` består
+* working tree er ren
+* push til `origin/main` mangler stadig
 
 ---
 
@@ -573,7 +574,7 @@ Testen verificerer også, at compilerens source payload forbliver byte-identisk,
 
 Arbejdet afdækkede en reel clean-init-fejl: nye projekter fik tomme `languageProfiles` og `runtimeProfiles`, selv om resolution-validatoren kræver ikke-tomme lister. Profilkontrakten kræver nu eksplicitte `recommendedLanguageProfiles` og `recommendedRuntimeProfiles`, og `init-from-bundle.py` materialiserer dem fra bundlens registrerede profil.
 
-Den isolerede fixture, hele happy-path-pipelinen og alle **361 negative gates** består. Dermed er milepæl 1 punkt 7 funktionelt afsluttet; afsluttende commit, `doctor-strict` og push mangler fortsat.
+Den isolerede fixture, hele happy-path-pipelinen og alle **361 negative gates** består. Committet `c98fc8b` er oprettet, `doctor-strict` består, og working tree er ren. Dermed er milepæl 1 punkt 7 afsluttet; kun push til `origin/main` mangler.
 
 Den resterende faglige bredde hører til milepæl 2. De næste naturlige domain-oriented setups er:
 
@@ -1090,7 +1091,7 @@ Dette bør være næste fokus, før MCP.
 6. ✅ Tilføj mindst to nye reelle setups.
 7. ✅ Lav en ekstern eller isoleret end-to-end fixture.
 
-**Resultat:** Milepæl 1 er funktionelt implementeret som grundlag for en troværdig `v0.1` agentic setup compiler. Afsluttende commit, `doctor-strict` og push udføres som sidste validering.
+**Resultat:** Milepæl 1 er implementeret, committed og valideret med `doctor-strict` som grundlag for en troværdig `v0.1` agentic setup compiler. Kun push til `origin/main` mangler.
 
 ---
 
