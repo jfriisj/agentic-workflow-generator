@@ -6803,10 +6803,23 @@ def main() -> int:
         ),
         (
             "failure",
-            "guided init fails when setup argument is missing",
+            "interactive guided init fails without an attached terminal",
             ["scripts/agentic/agentic-gen.sh", "init", "--guided"],
             break_init_from_bundle_unknown_bundle,
-            "--guided requires --setup",
+            "Interactive --guided requires an attached terminal",
+        ),
+        (
+            "failure",
+            "guided init fails when answer is used without an explicit setup",
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--answer",
+                "project-type=ai-application",
+            ],
+            break_init_from_bundle_unknown_bundle,
+            "--answer requires --setup when used with --guided",
         ),
         (
             "failure",

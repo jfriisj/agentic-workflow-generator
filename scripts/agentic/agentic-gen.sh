@@ -9,6 +9,7 @@ usage() {
 Usage:
   scripts/agentic/agentic-gen.sh validate-environment
   scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
+  scripts/agentic/agentic-gen.sh init --guided
   scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
   scripts/agentic/agentic-gen.sh validate
   scripts/agentic/agentic-gen.sh resolve

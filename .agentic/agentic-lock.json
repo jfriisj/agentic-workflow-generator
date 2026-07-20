@@ -14,7 +14,7 @@
       "scripts/agentic/*.sh"
     ],
     "fileCount": 69,
-    "contentHash": "sha256:887174707121323a97e012d74a8486d017dd1331a5bac0e0dc8385c80917f334",
+    "contentHash": "sha256:2999313da4c36acfbbce80d0956aeca07d971fb83ff6e10e3af3c35cedf1ab3e",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -198,8 +198,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:1bf06f42bd4f2d0f834795cf3eb5fc37a43740b6050719133e7a7bf8da2b7700",
-        "sizeBytes": 15484
+        "sha256": "sha256:e7c866a5085351a4092d6d6c78c72c5483aa8303923255fdc1314cc427b95559",
+        "sizeBytes": 15531
       },
       {
         "path": "scripts/agentic/cleanup-generated-output.py",
@@ -228,8 +228,8 @@
       },
       {
         "path": "scripts/agentic/init-from-bundle.py",
-        "sha256": "sha256:80b81a5f62f3ce46d95fbc61b7433aed38fdfd3bd402e3daef9342ea729139c1",
-        "sizeBytes": 26424
+        "sha256": "sha256:3c2860b57f83c54d4b2e166c6117e3152846673db8d6b3e9b22d587d61ba85d8",
+        "sizeBytes": 39351
       },
       {
         "path": "scripts/agentic/install-git-hooks.sh",
@@ -248,8 +248,8 @@
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:7f8dcf5451049335b873023186910964d2a9519d62699e05f2939074077a0352",
-        "sizeBytes": 282506
+        "sha256": "sha256:7623f8c94949b5157049f1b5cac7f160f1ffd9baaeea44f38a83c2879c7968b8",
+        "sizeBytes": 282986
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
