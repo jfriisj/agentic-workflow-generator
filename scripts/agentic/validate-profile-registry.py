@@ -126,9 +126,12 @@ def validate_profile_references(
                     "must be provided by a registered skill"
                 )
 
-    recommended_runtime_profiles = profile.get("recommendedRuntimeProfiles")
-    if recommended_runtime_profiles is not None:
-        errors.extend(validate_string_list(path, profile, "recommendedRuntimeProfiles"))
+    for key in (
+        "recommendedLanguageProfiles",
+        "recommendedRuntimeProfiles",
+    ):
+        if profile.get(key) is not None:
+            errors.extend(validate_string_list(path, profile, key))
 
     version = profile.get("version")
     if version is not None and (not isinstance(version, str) or not version.strip()):
@@ -172,9 +175,21 @@ def validate_profile_file(
         "recommendedSkills",
         "recommendedWorkflows",
         "recommendedTargets",
+        "recommendedLanguageProfiles",
         "recommendedRuntimeProfiles",
     ]:
         errors.extend(validate_string_list(path, profile, key))
+
+    for key in (
+        "recommendedLanguageProfiles",
+        "recommendedRuntimeProfiles",
+    ):
+        value = profile.get(key)
+
+        if not isinstance(value, list) or not value:
+            errors.append(
+                f"{path}: {key} must be a non-empty list"
+            )
 
     defaults = profile.get("defaults")
     if defaults is not None and not isinstance(defaults, dict):

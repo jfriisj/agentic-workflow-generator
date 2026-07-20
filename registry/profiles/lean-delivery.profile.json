@@ -26,6 +26,9 @@
     "review.tests",
     "review.security"
   ],
+  "recommendedLanguageProfiles": [
+    "language-agnostic"
+  ],
   "recommendedRuntimeProfiles": [
     "local",
     "ci"

@@ -71,9 +71,42 @@ def load_workflow(workflow_name: str) -> dict[str, Any]:
     return load_registry_object(ROOT / "registry" / "workflows" / f"{workflow_name}.workflow.json", workflow_name, "workflow")
 
 
-def existing_config_or_default() -> dict[str, Any]:
+def load_profile(profile_name: str) -> tuple[Path, dict[str, Any]]:
+    path = ROOT / "registry" / "profiles" / f"{profile_name}.profile.json"
+    return path, load_registry_object(path, profile_name, "profile")
+
+
+def require_non_empty_string_list(
+    data: dict[str, Any],
+    key: str,
+    path: Path,
+) -> list[str]:
+    values = require_string_list(data, key, path)
+
+    if not values:
+        raise ValueError(f"{path}: {key} must be a non-empty list")
+
+    return values
+
+
+def existing_config_or_default(
+    profile_name: str,
+    profile_path: Path,
+    profile: dict[str, Any],
+) -> dict[str, Any]:
     if CONFIG_PATH.is_file():
         return load_json(CONFIG_PATH)
+
+    language_profiles = require_non_empty_string_list(
+        profile,
+        "recommendedLanguageProfiles",
+        profile_path,
+    )
+    runtime_profiles = require_non_empty_string_list(
+        profile,
+        "recommendedRuntimeProfiles",
+        profile_path,
+    )
 
     return {
         "$schema": "./schemas/agentic.schema.json",
@@ -81,9 +114,9 @@ def existing_config_or_default() -> dict[str, Any]:
             "name": ROOT.name,
             "type": "agentic-project",
             "description": f"Generated agentic configuration for {ROOT.name}.",
-            "languageProfiles": [],
-            "runtimeProfiles": [],
-            "architectureProfile": "generated-from-bundle",
+            "languageProfiles": language_profiles,
+            "runtimeProfiles": runtime_profiles,
+            "architectureProfile": profile_name,
         },
         "generator": {
             "name": "agentic-gen",
@@ -366,9 +399,19 @@ def materialize_config(
 ) -> dict[str, Any]:
     bundle_path, bundle = load_bundle(bundle_name)
 
+    profile_name = require_string(bundle, "profile", bundle_path)
     bundle_workflow = require_string(bundle, "workflow", bundle_path)
     bundle_targets = require_string_list(bundle, "targets", bundle_path)
     bundle_agents = require_string_list(bundle, "agents", bundle_path)
+
+    profile_path, profile = load_profile(profile_name)
+    profile_workflow = require_string(profile, "workflow", profile_path)
+
+    if profile_workflow != bundle_workflow:
+        raise ValueError(
+            f"{profile_path}: profile workflow '{profile_workflow}' "
+            f"must match bundle workflow '{bundle_workflow}'"
+        )
 
     workflow_name = selected_workflow or bundle_workflow
     target_names = selected_targets or bundle_targets
@@ -387,7 +430,11 @@ def materialize_config(
 
     workflow = load_workflow(workflow_name)
 
-    existing = existing_config_or_default()
+    existing = existing_config_or_default(
+        profile_name,
+        profile_path,
+        profile,
+    )
 
     generated = {
         "$schema": existing.get("$schema", "./schemas/agentic.schema.json"),

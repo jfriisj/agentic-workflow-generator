@@ -17,19 +17,20 @@ registry
 
 Det officielle projektmål er netop at omsætte et deklarativt registry af agents, skills, workflows, bundles, artifacts, gates og target adapters til platformsspecifik konfiguration på en reproducerbar og fail-fast måde. ([GitHub][1])
 
-Det seneste checkpoint er:
+Det seneste committed checkpoint er:
 
 ```text
-ac25a6f Split guided init into focused modules
+cde9b31 Add distinct guided delivery setups
 ```
 
-Og den aktuelle tilstand er:
+Og den aktuelle arbejdende tilstand er:
 
-* `doctor-strict` består
-* alle **359 negative gates** består
-* working tree er ren
-* modulopdelingen er committed lokalt og klar til push
-* både interaktiv og ikke-interaktiv initialisering virker
+* milepæl 1 punkt 7 er implementeret, men endnu ikke committed
+* den isolerede clean-consumer end-to-end fixture består
+* hele `agentic-gen.sh all`-pipelinen består
+* alle **361 negative gates** består
+* working tree indeholder de intentionelle milepæl 1 punkt 7-ændringer
+* afsluttende `doctor-strict`, commit og push mangler stadig
 
 ---
 
@@ -453,6 +454,7 @@ Projektet har nu:
 * referencevalidering,
 * semantiske validators,
 * idempotency-tests,
+* isoleret clean-consumer end-to-end test,
 * drift detection,
 * output ownership,
 * negative gates,
@@ -538,6 +540,40 @@ docs/adding-guided-setups.md
 ```
 
 Guiden beskriver registry-kontrakter, workflow-regler, klassifikationssemantik, stabil test-fixture-praksis, implementeringsrækkefølge og definition of done for nye setups.
+
+### Milepæl 1 punkt 7 — isoleret end-to-end fixture
+
+Den nye kommando:
+
+```text
+scripts/agentic/agentic-gen.sh test-isolated-e2e
+```
+
+opretter et midlertidigt clean-consumer projekt med kun compilerens autoritative source payload:
+
+```text
+registry/
+scripts/agentic/
+.agentic/schemas/
+```
+
+Fixture-testen beviser derefter hele forløbet:
+
+```text
+ren consumer-mappe
+  → deterministic guided init
+  → komplet all-pipeline
+  → resolution og lockfile
+  → VS Code Copilot- og OpenCode-output
+  → gentaget init og generation
+  → byte-identisk resultat
+```
+
+Testen verificerer også, at compilerens source payload forbliver byte-identisk, og at den midlertidige fixture fjernes fail-fast.
+
+Arbejdet afdækkede en reel clean-init-fejl: nye projekter fik tomme `languageProfiles` og `runtimeProfiles`, selv om resolution-validatoren kræver ikke-tomme lister. Profilkontrakten kræver nu eksplicitte `recommendedLanguageProfiles` og `recommendedRuntimeProfiles`, og `init-from-bundle.py` materialiserer dem fra bundlens registrerede profil.
+
+Den isolerede fixture, hele happy-path-pipelinen og alle **361 negative gates** består. Dermed er milepæl 1 punkt 7 funktionelt afsluttet; afsluttende commit, `doctor-strict` og push mangler fortsat.
 
 Den resterende faglige bredde hører til milepæl 2. De næste naturlige domain-oriented setups er:
 
@@ -648,7 +684,7 @@ Regressionerne er valideret med:
 * guided `--dry-run`,
 * guided init-idempotens,
 * bundle init-idempotens,
-* alle **359 negative gates**, inklusive PTY-tests for defaults, cancellation og back-navigation.
+* alle **361 negative gates**, inklusive PTY-tests for defaults, cancellation og back-navigation.
 
 Transaktionel skrivning er foreløbig bevaret i CLI-modulet, fordi det fortsat er tæt koblet til validering og commit/rollback-orkestreringen. Det kan udtrækkes senere, hvis flere init-flows får samme behov.
 
@@ -973,18 +1009,19 @@ examples/ai-application/
 examples/data-pipeline/
 ```
 
-En reel acceptance test bør være:
+Den isolerede acceptance test er nu implementeret som:
 
 ```text
-tom mappe
-  → installer generator
-  → init --guided eller deterministic setup
-  → generate
-  → doctor-strict
-  → valid target output
+ren midlertidig consumer-mappe
+  → kopiér compilerens source payload
+  → deterministic guided init
+  → komplet all-pipeline
+  → validér begge targets
+  → gentag og kontrollér byte-identisk output
+  → kontrollér uændrede compiler-kilder
 ```
 
-Det vil bevise, at generatoren ikke kun virker inde i sit eget repository.
+Det beviser, at initialisering og generation fungerer uden repositoryets eksisterende config, resolution, lockfile eller target-output. En senere distribution-milepæl skal stadig bevise installation fra et publiceret artifact frem for en isoleret kopi af source payloaden.
 
 ---
 
@@ -1012,14 +1049,14 @@ De svære dele omkring determinisme, ejerskab, drift og fail-closed validation e
 
 ## Guided-init MVP
 
-**Omkring 70–75 %**
+**Omkring 80–85 %**
 
-Fundamentet, det interaktive flow og bruger-/CLI-dokumentationen fungerer, men der mangler:
+Fundamentet, det interaktive flow, bruger-/CLI-dokumentationen og en isoleret clean-consumer end-to-end fixture fungerer. Den resterende bredde er primært:
 
-* flere setups,
+* flere domain-oriented setups,
 * flere workflows/profiles,
-* bedre UX,
-* ekstern end-to-end fixture.
+* bedre anbefalings-UX,
+* egentlig distribution og installation uden source-kopi.
 
 ## Den fulde langsigtede vision
 
@@ -1051,9 +1088,9 @@ Dette bør være næste fokus, før MCP.
 4. ✅ Ret `back`-navigationen.
 5. ✅ Del `init-from-bundle.py` op i mindre moduler.
 6. ✅ Tilføj mindst to nye reelle setups.
-7. Lav en ekstern eller isoleret end-to-end fixture.
+7. ✅ Lav en ekstern eller isoleret end-to-end fixture.
 
-**Resultat:** En troværdig `v0.1` som agentic setup compiler.
+**Resultat:** Milepæl 1 er funktionelt implementeret som grundlag for en troværdig `v0.1` agentic setup compiler. Afsluttende commit, `doctor-strict` og push udføres som sidste validering.
 
 ---
 

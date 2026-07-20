@@ -35,6 +35,7 @@ scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh coverage
   scripts/agentic/agentic-gen.sh generate [vscode-copilot|opencode|all]
   scripts/agentic/agentic-gen.sh validate-generated
+  scripts/agentic/agentic-gen.sh test-isolated-e2e
   scripts/agentic/agentic-gen.sh test-negative
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -88,6 +89,8 @@ Commands:
              Validate generated target output files.
   validate-init-idempotency
              Validate init determinism for .agentic/agentic.json and guided setup profiles.
+  test-isolated-e2e
+             Run guided init and generation from a clean isolated consumer fixture.
   test-negative
              Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
@@ -144,6 +147,7 @@ check_scripts() {
   require_file "scripts/agentic/setup_materializer.py"
   require_file "scripts/agentic/guided_init.py"
   require_file "scripts/agentic/validate-init-idempotency.py"
+  require_file "scripts/agentic/test-isolated-e2e.py"
   require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
@@ -174,6 +178,7 @@ check_scripts() {
   python -m py_compile "scripts/agentic/setup_materializer.py"
   python -m py_compile "scripts/agentic/guided_init.py"
   python -m py_compile "scripts/agentic/validate-init-idempotency.py"
+  python -m py_compile "scripts/agentic/test-isolated-e2e.py"
   python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   python -m py_compile "scripts/agentic/validate-registry-references.py"
   python -m py_compile "scripts/agentic/validate-registry-schemas.py"
@@ -281,6 +286,10 @@ run_doctor() {
 
   echo "== Happy path verification =="
   run_quiet_verify "all" || return 1
+  echo ""
+
+  echo "== Isolated consumer end-to-end test =="
+  scripts/agentic/test-isolated-e2e.py || return 1
   echo ""
 
   echo "== Negative gate tests =="
@@ -440,6 +449,9 @@ case "$COMMAND" in
     ;;
   validate-init-idempotency)
     python scripts/agentic/validate-init-idempotency.py "${@:2}"
+    ;;
+  test-isolated-e2e)
+    scripts/agentic/test-isolated-e2e.py
     ;;
   test-negative)
     scripts/agentic/test-negative-gates.py

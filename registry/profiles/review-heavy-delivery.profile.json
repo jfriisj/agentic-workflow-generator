@@ -32,6 +32,9 @@
     "qa.verify-acceptance-criteria",
     "qa.validate-evidence"
   ],
+  "recommendedLanguageProfiles": [
+    "language-agnostic"
+  ],
   "recommendedRuntimeProfiles": [
     "docker",
     "ci"

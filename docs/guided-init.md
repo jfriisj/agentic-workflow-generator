@@ -305,11 +305,24 @@ Run the full pipeline:
 
 ~~~bash
 scripts/agentic/agentic-gen.sh all
+scripts/agentic/agentic-gen.sh test-isolated-e2e
 scripts/agentic/agentic-gen.sh test-negative
 scripts/agentic/agentic-gen.sh doctor-strict
 ~~~
 
 ## Automated coverage
+
+The isolated consumer end-to-end fixture verifies:
+
+~~~text
+clean consumer project with no generated configuration
+deterministic guided setup materialization
+complete resolve, lock, generation, and validation pipeline
+valid VS Code Copilot and OpenCode output
+byte-identical repeated init and generation
+unchanged compiler source payload
+fail-fast temporary fixture cleanup
+~~~
 
 The negative-gate suite covers:
 
