@@ -4,6 +4,28 @@ Opdateret: 24. juli 2026
 
 Denne fil er projektets autoritative status og roadmap. Den skal kun indeholde den aktuelle tilstand, afsluttede hovedleverancer, kendte mangler og næste prioriterede arbejde.
 
+## Slutmål
+
+`agentic-workflow-generator` skal være en deterministisk, fail-fast compiler, der kan omsætte en valideret og genanvendelig registry-komposition til et komplet, target-specifikt agentisk udviklingsmiljø.
+
+En bruger skal kunne vælge et setup eller et bundle og uden manuel efterredigering få genereret agenter, skills, workflows, permissions, handoffs, artifact-kontrakter og targetkonfiguration, som er konsistente med hinanden og kan anvendes direkte i det valgte framework.
+
+Projektet betragtes som færdigt, når følgende er opfyldt:
+
+* Registry-modellen understøtter genanvendelige agentprofiler, konkrete agent-instances, role bindings, separation policies, capabilities, skills, artifact contracts, workflows, permission-profiler og target adapters.
+* Den samme registry kan sammensætte både kompakte generalistsetups og specialiserede teams uden at svække sikkerhedsinvarianter eller kræve duplikerede agentdefinitioner.
+* Setup- og bundlekompositionen ejer alle konkrete runtimevalg, herunder agent-instances, roller, skills, capabilities, permissions, artifacts og krav om separation of duties.
+* Alle workflows er fail-closed og har entydige state owners, controller-binding, transitions, gates, evidenskrav, `BLOCKED`-routing samt definerede retry- og eskalationsgrænser.
+* Artifact contracts kan validere status, provenance, revision, inputreferencer og reproducerbar evidens ved workflow-gates.
+* Genereret output bevarer den fulde semantik fra registryet og er gyldigt, konsistent og operationelt anvendeligt for hvert understøttet target.
+* Init, resolution, generation, lockfile og manifest er deterministiske, idempotente og byte-identiske ved gentaget kørsel med samme input.
+* Ugyldige registries, usikre kompositioner, manglende bindings og outputdrift afvises eksplicit uden fallback eller silent degradation.
+* Alle registrerede setups kan initialiseres og genereres fra et tomt, isoleret consumer-repository og bestå schema-, semantic-, compatibility-, runtime- og negative-gate-tests.
+* Nye agents, skills, workflows, artifacts, setups, bundles, profiles og targets kan tilføjes gennem dokumenterede kontrakter uden ændringer i compilerens kerne, medmindre et nyt domænekoncept introduceres.
+* Dokumentation, schemas, validators, genereret output og `project-status.md` beskriver den samme implementerede model.
+
+Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er ikke i sig selv en modelhost, en autonom runtime-orchestrator eller en erstatning for de frameworks, som outputtet genereres til.
+
 ## Aktuel status
 
 Projektet fungerer som en deterministisk og fail-fast compiler:
@@ -23,7 +45,7 @@ registry
 
 ~~~text
 Agents:          8
-Skills:          5
+Skills:         10
 Capabilities:   21
 Artifacts:       7
 Workflows:       4
@@ -121,27 +143,26 @@ agentic-gen.sh test-negative
 
 agentic-gen.sh validate-manifest
   PASS: 2 targets og 53 genererede filer
+
+agentic-gen.sh doctor-strict
+  PASS
+  PASS: 373 negative gate tests
+  PASS: Working tree is clean
 ~~~
 
 OpenCode 1.17.10 parser config, agents og skills for alle fire isolerede setups.
 
 Gentaget init og generation er byte-identisk.
 
-## Aktuel working tree
+## Aktuel repositorytilstand
 
-Working tree indeholder tilsigtede, endnu ikke committede registry-hardening-ændringer:
+Registry-hardening-fasen er committed og pushed til `main`:
 
-* Chen-målmodel og synkroniseret arkitekturdokumentation
-* migrering fra `allowedAgents` til rådgivende `recommendedAgents`
-* migrering fra skillnavneafhængigheder til `requiresCapabilities`
-* udvidet skill-validator og negative gates
-* tidligere registry- og generatorforbedringer fra den igangværende hardening
+~~~text
+79bfe7c Harden registry skills and document agent instance model
+~~~
 
-Lockfile, resolution, aktiv konfiguration, targetoutput og outputmanifest er regenereret af den grønne pipeline.
-
-Outputmanifestet validerer mod 2 targets og 53 genererede filer.
-
-`doctor-strict` køres efter commit, så kontrollen også kan bevise en ren working tree.
+Post-commit `doctor-strict` består med alle 373 negative gate-tests, og working tree var ren ved push.
 
 ## Registry-audit — vigtigste fund
 
