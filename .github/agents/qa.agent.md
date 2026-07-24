@@ -44,7 +44,7 @@ read-only
 
 ## Resolved Skills
 
-- mvp-core-capabilities
+- qa-acceptance-validation
 
 ## Must Not
 

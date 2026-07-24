@@ -1,0 +1,16 @@
+{
+  "name": "security-review",
+  "version": "0.1.0",
+  "description": "Use when reviewing changed code and configuration for concrete security risks, unsafe trust boundaries, and missing mitigations.",
+  "provides": [
+    "review.security"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2400
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "CodeReviewer"
+  ]
+}

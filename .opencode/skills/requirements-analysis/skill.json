@@ -1,0 +1,17 @@
+{
+  "name": "requirements-analysis",
+  "version": "0.1.0",
+  "description": "Use when eliciting requirements, resolving scope and constraints, and defining measurable acceptance criteria.",
+  "provides": [
+    "requirements.elicit",
+    "requirements.define-acceptance-criteria"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2400
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "Requirements"
+  ]
+}

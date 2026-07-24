@@ -648,9 +648,14 @@ def assert_ai_application_composition(
         ],
         "skills": [
             "ai-evaluation",
+            "architecture-design",
             "code-review-clean-code",
             "code-review-tests",
-            "mvp-core-capabilities",
+            "implementation-engineering",
+            "qa-acceptance-validation",
+            "requirements-analysis",
+            "security-review",
+            "test-execution",
             "workflow-routing",
         ],
         "artifacts": [
@@ -4625,9 +4630,9 @@ def break_bundle_registry_agent_capability_missing_bundle_skill(worktree: Path) 
         skills = data.get("skills")
         if not isinstance(skills, list):
             raise RuntimeError("bundle skills must be a list before mutation")
-        if "mvp-core-capabilities" not in skills:
-            raise RuntimeError("bundle skills must contain mvp-core-capabilities before mutation")
-        skills.remove("mvp-core-capabilities")
+        if "requirements-analysis" not in skills:
+            raise RuntimeError("bundle skills must contain requirements-analysis before mutation")
+        skills.remove("requirements-analysis")
 
     awg_mutate_default_bundle(worktree, mutate)
 
@@ -5031,6 +5036,92 @@ def break_skill_registry_empty_version(worktree: Path) -> None:
     path = first_skill_json_file(worktree)
     data = load_json(path)
     data["version"] = ""
+    write_json(path, data)
+
+
+def break_skill_registry_recommended_agents_invalid_type(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["recommendedAgents"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_skill_registry_recommended_agent_missing_reference(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["recommendedAgents"] = ["DoesNotExist"]
+    write_json(path, data)
+
+
+def break_skill_registry_duplicate_recommended_agent(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    agents = data.get("recommendedAgents")
+
+    if not isinstance(agents, list) or not agents:
+        raise RuntimeError(
+            "recommendedAgents must be a non-empty list before mutation"
+        )
+
+    agents.append(agents[0])
+    write_json(path, data)
+
+
+def break_skill_registry_requires_capabilities_invalid_type(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["requiresCapabilities"] = "not-a-list"
+    write_json(path, data)
+
+
+def break_skill_registry_required_capability_missing_reference(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    data["requiresCapabilities"] = ["capability.does.not.exist"]
+    write_json(path, data)
+
+
+def break_skill_registry_duplicate_required_capability(
+    worktree: Path,
+) -> None:
+    first_path, second_path = first_two_skill_json_files(worktree)
+    first = load_json(first_path)
+    second = load_json(second_path)
+    second_provides = second.get("provides")
+
+    if not isinstance(second_provides, list) or not second_provides:
+        raise RuntimeError(
+            "second skill provides must be a non-empty list before mutation"
+        )
+
+    capability = second_provides[0]
+    first["requiresCapabilities"] = [capability, capability]
+    write_json(first_path, first)
+
+
+def break_skill_registry_requires_own_capability(
+    worktree: Path,
+) -> None:
+    path = first_skill_json_file(worktree)
+    data = load_json(path)
+    provides = data.get("provides")
+
+    if not isinstance(provides, list) or not provides:
+        raise RuntimeError(
+            "skill provides must be a non-empty list before mutation"
+        )
+
+    data["requiresCapabilities"] = [provides[0]]
     write_json(path, data)
 
 def break_artifact_type_folder_mismatch(worktree: Path) -> None:
@@ -7241,6 +7332,55 @@ def main() -> int:
         ),
         (
             "failure",
+            "skill registry validation fails when recommendedAgents has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_recommended_agents_invalid_type,
+            "recommendedAgents must be a list when present",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when recommended agent is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_recommended_agent_missing_reference,
+            "recommendedAgents entry 'DoesNotExist' must reference an existing agent",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when recommended agent is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_duplicate_recommended_agent,
+            "recommendedAgents[1] is duplicated",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when requiresCapabilities has invalid type",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_requires_capabilities_invalid_type,
+            "requiresCapabilities must be a list when present",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when required capability is missing",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_required_capability_missing_reference,
+            "requiresCapabilities entry 'capability.does.not.exist' must reference an existing capability",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when required capability is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_duplicate_required_capability,
+            "requiresCapabilities[1] is duplicated",
+        ),
+        (
+            "failure",
+            "skill registry validation fails when skill requires its own capability",
+            ["scripts/agentic/agentic-gen.sh", "validate-skills"],
+            break_skill_registry_requires_own_capability,
+            "is provided by the same skill",
+        ),
+        (
+            "failure",
             "workflow registry validation fails when name does not match file",
             ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
             break_workflow_registry_name_file_mismatch,
@@ -7597,7 +7737,7 @@ def main() -> int:
             "bundle registry validation fails when agent capability is not covered by bundle skills",
             ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
             break_bundle_registry_agent_capability_missing_bundle_skill,
-            "bundle agent 'Architect' capability 'architecture.design' is not provided by bundle skills",
+            "bundle agent 'Requirements' capability 'requirements.elicit' is not provided by bundle skills",
         ),
         (
             "failure",

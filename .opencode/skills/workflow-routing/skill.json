@@ -7,12 +7,12 @@
     "workflow.validate-state",
     "workflow.handoff"
   ],
-  "requires": [],
-  "allowedAgents": [
-    "Orchestrator"
-  ],
   "contentPath": "SKILL.md",
   "contextBudget": {
     "maxTokens": 1800
-  }
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "Orchestrator"
+  ]
 }

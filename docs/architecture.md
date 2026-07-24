@@ -6,6 +6,33 @@ It takes a registry-based source of truth and generates target-specific agent co
 
 The architecture is intentionally deterministic, fail-fast, and validation-heavy.
 
+## Conceptual domain model
+
+The target domain model is maintained as a Chen entity-relationship diagram:
+
+~~~text
+docs/diagrams/agentic-domain-model-chen.puml
+~~~
+
+A rendered SVG is maintained beside the source:
+
+~~~text
+docs/diagrams/agentic-domain-model-chen.svg
+~~~
+
+The diagram is authoritative for entity boundaries and conceptual relationships. JSON schemas, registry validators, materialization, resolution, and target generation must remain consistent with it.
+
+The central composition chain is:
+
+~~~text
+Agent profile
+  -> Agent instance
+  -> Role binding
+  -> Workflow state and gate
+~~~
+
+Agent profiles and skill recommendations are reusable defaults. The active bundle owns concrete agent instances, role bindings, capabilities, selected skills, instance-level permissions, artifacts, guardrails, controller authority, and separation policies.
+
 ## High-level flow
 
 ```text
@@ -71,8 +98,8 @@ Each registry area has a specific responsibility.
 
 | Registry area | Responsibility |
 |---|---|
-| `agents/` | Agent roles, responsibilities, capabilities, permissions, and produced artifacts |
-| `skills/` | Capability providers used to satisfy agent capability requirements |
+| `agents/` | Reusable agent profiles with recommended responsibilities, capabilities, permission defaults, and boundaries |
+| `skills/` | Composable capability providers available to validated workflow-role bindings |
 | `workflows/` | State machine, transitions, gates, start state, terminal states, and fail-closed routing |
 | `bundles/` | Complete deployable composition of workflow, agents, skills, artifacts, profile, and targets |
 | `artifacts/` | Output contracts required by gates and produced by agents |
@@ -114,6 +141,42 @@ profile workflow matches bundle workflow
 ```
 
 This makes a bundle more than a list of references. It becomes a deployable composition.
+
+## Composition binding direction
+
+The current MVP derives active capabilities, permissions, and produced artifacts directly from static agent definitions. That model is being replaced because it prevents compact setups from assigning several responsibilities to one agent.
+
+The target model introduces concrete agent instances and explicit role bindings.
+
+An agent instance selects:
+
+~~~text
+agent profile
+effective permission profile
+shared-context policy
+~~~
+
+A role binding selects:
+
+~~~text
+binding type: state owner or workflow controller
+assigned agent instance
+workflow state when binding type is state owner
+required capabilities
+selected skills
+produced artifacts
+role-specific responsibilities
+role-specific guardrails
+~~~
+
+Every non-terminal workflow state has exactly one state-owner binding.
+
+Every workflow has exactly one controller binding. The controller binding owns
+routing authority but does not own a workflow state or gate.
+
+One agent instance may serve several role bindings. Its effective permission
+profile must satisfy every assigned binding and must map successfully through
+every enabled target adapter.
 
 ## Init from bundle
 
@@ -304,7 +367,9 @@ Agents declare capabilities.
 
 Skills provide capabilities.
 
-Capability coverage verifies that every required agent capability is covered by registered skills and that duplicate skill capability providers are rejected.
+Global capability coverage verifies that every declared capability has exactly one registered skill provider.
+
+Composition validation must separately verify that each workflow-role binding selects the capabilities and skills required by that role. It must not require every setup containing an agent profile to install all capabilities recommended by that profile.
 
 Run:
 

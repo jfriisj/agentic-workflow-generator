@@ -134,6 +134,72 @@ def run_command(
     return result.stdout
 
 
+def stale_generated_output_paths(
+    fixture_root: Path,
+) -> tuple[Path, ...]:
+    return (
+        fixture_root
+        / ".github"
+        / "agents"
+        / "stale-generated-agent.agent.md",
+        fixture_root
+        / ".github"
+        / "skills"
+        / "stale-generated-skill"
+        / "SKILL.md",
+        fixture_root
+        / ".github"
+        / "skills"
+        / "stale-generated-skill"
+        / "skill.json",
+        fixture_root
+        / ".opencode"
+        / "agents"
+        / "stale-generated-agent.md",
+        fixture_root
+        / ".opencode"
+        / "skills"
+        / "stale-generated-skill"
+        / "SKILL.md",
+        fixture_root
+        / ".opencode"
+        / "skills"
+        / "stale-generated-skill"
+        / "skill.json",
+    )
+
+
+def inject_stale_generated_outputs(fixture_root: Path) -> None:
+    for stale_path in stale_generated_output_paths(fixture_root):
+        if stale_path.exists():
+            raise RuntimeError(
+                "Stale-output fixture path already exists: "
+                f"{stale_path.relative_to(fixture_root)}"
+            )
+
+        stale_path.parent.mkdir(parents=True, exist_ok=True)
+        stale_path.write_text(
+            "stale generated output\n",
+            encoding="utf-8",
+        )
+
+
+def assert_stale_generated_outputs_removed(
+    fixture_root: Path,
+) -> None:
+    remaining = [
+        str(path.relative_to(fixture_root))
+        for path in stale_generated_output_paths(fixture_root)
+        if path.exists()
+    ]
+
+    if remaining:
+        raise RuntimeError(
+            "Repeated generation retained stale owned output: "
+            + ", ".join(remaining)
+        )
+
+
 def assert_clean_start(fixture_root: Path) -> None:
     forbidden_paths = (
         fixture_root / ".agentic" / "agentic.json",
@@ -490,6 +556,8 @@ def main() -> int:
 
             first_snapshot = snapshot_files(fixture_root)
 
+            inject_stale_generated_outputs(fixture_root)
+
             run_command(
                 fixture_root,
                 init_command,
@@ -501,6 +569,7 @@ def main() -> int:
                 ["scripts/agentic/agentic-gen.sh", "all"],
                 "PASS: Generated output is valid.",
             )
+            assert_stale_generated_outputs_removed(fixture_root)
             run_command(
                 fixture_root,
                 compatibility_command,
@@ -568,6 +637,10 @@ def main() -> int:
     print(
         "PASS: Targets, resolution, lockfile, framework permissions, "
         "tools, and handoffs were generated and validated for every setup."
+    )
+    print(
+        "PASS: Repeated generation removed injected stale agent and "
+        "skill output for every setup."
     )
     print(
         "PASS: Repeated guided init and generation were byte-identical "

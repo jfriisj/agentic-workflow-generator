@@ -10,19 +10,46 @@ Target-specific differences must be handled by target adapters.
 
 ## 2. Main Entities
 
+The conceptual relationships are defined in:
+
+~~~text
+docs/diagrams/agentic-domain-model-chen.puml
+~~~
+
+Main entities:
+
 ~~~text
 Project
+Setup
+SetupQuestion
+SetupOption
+Bundle
+Profile
 Workflow
-Agent
+WorkflowState
+Transition
+Gate
+AgentProfile
+AgentInstance
+RoleBinding
+SeparationPolicy
 Capability
 Skill
-Gate
-Artifact
-RuntimeContext
+ArtifactContract
 PermissionProfile
-Target
 TargetAdapter
+RuntimeContext
 Lockfile
+OutputManifest
+~~~
+
+The model distinguishes reusable registry definitions from concrete runtime composition:
+
+~~~text
+AgentProfile = reusable defaults and recommendations
+AgentInstance = concrete generated worker
+RoleBinding = authoritative workflow assignment
+SeparationPolicy = explicit independence requirement
 ~~~
 
 ## 3. Project
@@ -68,9 +95,11 @@ A workflow contains:
 - handoff rules
 - failure rules
 
-## 5. Agent
+## 5. Agent Profile
 
-An agent is a role-specific worker.
+An agent profile is a reusable registry definition with safe defaults and
+recommendations. It is not a concrete generated worker and does not own an
+immutable runtime assignment.
 
 Example:
 
@@ -79,26 +108,117 @@ Example:
   "name": "CodeReviewer",
   "role": "code-quality-gate",
   "description": "Reviews code for correctness, maintainability, tests, and security risks.",
-  "responsibilities": [
+  "recommendedResponsibilities": [
     "Review changed code",
-    "Run lightweight validation",
-    "Create code review artifact",
+    "Create code review evidence",
     "Reject unsafe or unmaintainable implementation"
   ],
-  "mustNot": [
-    "Implement feature behavior",
-    "Change workflow routing",
-    "Approve release"
+  "defaultGuardrails": [
+    "Do not implement feature behavior",
+    "Do not change workflow routing",
+    "Do not approve release"
   ],
-  "capabilities": [
+  "recommendedCapabilities": [
     "review.clean-code",
     "review.tests",
     "review.security"
   ],
-  "permissionProfile": "read-only"
+  "defaultPermissionProfile": "read-only"
 }
 ~~~
 
+Recommendations do not prevent a validated composition from assigning a
+different capability, skill, responsibility, or permission profile.
+
+## 5.1 Agent Instance
+
+An agent instance is a concrete worker owned by one bundle.
+
+Example:
+
+~~~json
+{
+  "id": "delivery-worker",
+  "profile": "CodeReviewer",
+  "displayName": "Delivery Worker",
+  "permissionProfile": "implementation",
+  "sharedContextPolicy": "shared-with-assigned-bindings"
+}
+~~~
+
+One agent instance may serve several role bindings. It materializes the union
+of their required capabilities, selected skills, responsibilities, and
+guardrails.
+
+Each agent instance has exactly one effective permission profile. The profile
+must be selected explicitly and must satisfy every assigned role binding.
+Validation must fail rather than silently broaden permissions.
+
+## 5.2 Role Binding
+
+A role binding is the authoritative assignment of workflow responsibility to
+an agent instance.
+
+Example:
+
+~~~json
+{
+  "roleName": "implementation",
+  "bindingType": "state-owner",
+  "agentInstance": "delivery-worker",
+  "workflowState": "Implementer",
+  "requiredCapabilities": [
+    "implementation.code",
+    "implementation.update-tests"
+  ],
+  "selectedSkills": [
+    "implementation-engineering"
+  ],
+  "produces": [
+    "ImplementationReport"
+  ],
+  "responsibilities": [
+    "Implement the approved change"
+  ],
+  "guardrails": [
+    "Do not self-approve implementation"
+  ]
+}
+~~~
+
+A role binding has one of two binding types:
+
+- `state-owner`: owns exactly one non-terminal workflow state and its gate
+- `workflow-controller`: owns routing authority but no workflow state or gate
+
+Every non-terminal workflow state has exactly one state-owner binding.
+
+Every workflow has exactly one workflow-controller binding.
+
+A role binding cannot be both a state owner and a workflow controller.
+
+## 5.3 Separation Policy
+
+A separation policy declares when selected role bindings must use distinct
+agent instances.
+
+Example:
+
+~~~json
+{
+  "id": "implementation-review-separation",
+  "mode": "required",
+  "roleBindings": [
+    "implementation",
+    "code-review"
+  ],
+  "requireDistinctInstances": true,
+  "reason": "Implementation must not approve its own work."
+}
+~~~
+
+Separation is bundle-specific. It must not be implemented as a global lock
+between agent profile names and skills.
 ## 6. Capability
 
 A capability is a stable interface.
@@ -112,13 +232,20 @@ Example:
 }
 ~~~
 
-Capabilities decouple agents from concrete skill implementations.
+Capabilities decouple workflow roles and agent profiles from concrete skill implementations.
 
-Correct dependency:
+The composition owns the concrete assignment:
 
 ~~~text
-Agent -> Capability -> Skill
+Setup
+  -> Bundle
+  -> Agent instance
+  -> Role binding
+  -> Required capabilities
+  -> Selected skills
 ~~~
+
+An agent's registry capabilities are recommendations and defaults. They must not force every setup containing that agent to install the complete default skill set.
 
 ## 7. Skill
 
@@ -136,10 +263,10 @@ Example:
     "review.naming",
     "review.readability"
   ],
-  "requires": [
-    "code-review-standards"
+  "requiresCapabilities": [
+    "requirements.define-acceptance-criteria"
   ],
-  "allowedAgents": [
+  "recommendedAgents": [
     "CodeReviewer"
   ],
   "contentPath": "SKILL.md",
@@ -148,6 +275,10 @@ Example:
   }
 }
 ~~~
+
+`recommendedAgents` is advisory metadata. It documents the most common specialist assignment but does not prevent another agent from receiving the skill through a validated setup or bundle.
+
+Skills provide working methods and capability implementations. Authorization, artifact ownership, workflow routing, and separation of duties belong to the concrete composition and its gates.
 
 ## 8. Gate
 
@@ -245,6 +376,8 @@ Example:
 ~~~
 
 Target adapters translate permission profiles to platform-specific output.
+
+An agent profile may recommend a default permission profile. The effective permission profile belongs to the concrete agent instance, because each generated worker has one target-level permission configuration. It must satisfy every role binding assigned to that instance and map successfully through every enabled target adapter.
 
 ## 12. Target
 

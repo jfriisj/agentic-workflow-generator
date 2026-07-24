@@ -1,0 +1,18 @@
+{
+  "name": "implementation-engineering",
+  "version": "0.1.0",
+  "description": "Use when implementing or refactoring approved behavior and updating tests while preserving requirement and architecture alignment.",
+  "provides": [
+    "implementation.code",
+    "implementation.refactor",
+    "implementation.update-tests"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2800
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "Implementer"
+  ]
+}

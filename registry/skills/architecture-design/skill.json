@@ -1,0 +1,17 @@
+{
+  "name": "architecture-design",
+  "version": "0.1.0",
+  "description": "Use when designing system boundaries, evaluating architectural alternatives, and documenting evidence-based tradeoffs.",
+  "provides": [
+    "architecture.design",
+    "architecture.evaluate-tradeoffs"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2600
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "Architect"
+  ]
+}

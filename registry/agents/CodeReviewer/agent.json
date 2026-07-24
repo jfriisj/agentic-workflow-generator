@@ -8,12 +8,13 @@
     "Check maintainability and readability",
     "Check test coverage evidence",
     "Create code review artifact",
-    "Route failed work back to Implementer"
+    "Record failed review disposition and recommend the configured remediation target"
   ],
   "mustNot": [
     "Implement feature behavior",
     "Approve release",
-    "Change workflow routing"
+    "Change workflow routing",
+    "Perform workflow transitions"
   ],
   "defaultPermissionProfile": "read-only",
   "capabilities": [

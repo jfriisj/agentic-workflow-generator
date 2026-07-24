@@ -46,6 +46,18 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def reset_owned_directory(path: Path) -> None:
+    if path.is_symlink():
+        raise RuntimeError(f"Refusing to reset owned output through symlink: {path}")
+
+    if path.exists():
+        if not path.is_dir():
+            raise RuntimeError(f"Owned output path is not a directory: {path}")
+        shutil.rmtree(path)
+
+    path.mkdir(parents=True, exist_ok=False)
+
+
 def slugify(value: str) -> str:
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", value)
     value = value.replace("_", "-").replace(" ", "-")
@@ -326,8 +338,8 @@ def main() -> int:
     adapter = load_json(ROOT / adapter_path_raw)
     topology = derive_workflow_topology(resolution)
 
-    AGENTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    SKILLS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    reset_owned_directory(AGENTS_OUTPUT_DIR)
+    reset_owned_directory(SKILLS_OUTPUT_DIR)
 
     for resolved_agent in resolution.get("agents", []):
         agent_name = resolved_agent["name"]

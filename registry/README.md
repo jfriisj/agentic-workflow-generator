@@ -1,102 +1,127 @@
 # Agentic Registry
 
-This registry contains reusable agentic workflow definitions.
+This registry contains reusable, platform-neutral definitions used by the
+Agentic Workflow Generator compiler.
 
 The registry is the source for:
 
-- agents
+- agent profiles
 - skills
+- capabilities
 - workflows
+- bundles
 - profiles
+- setups
+- artifact contracts
 - target adapters
-- templates
-- validators
 
-The project config in `.agentic/agentic.json` references concepts from this registry.
+The active project configuration is materialized under:
 
-## Registry Principle
+~~~text
+.agentic/agentic.json
+~~~
 
-The project defines what it wants.
+## Registry principle
+
+The project selects a validated composition.
 
 The registry defines reusable building blocks.
 
-The compiler resolves:
+The compiler resolves and materializes:
 
-```text
-Project config
-  -> Workflow profile
-  -> Agents
-  -> Capabilities
-  -> Skills
-  -> Gates
+~~~text
+Setup
+  -> Bundle
+  -> Profile and workflow
+  -> Agent instances
+  -> Role bindings
+  -> Capabilities and skills
+  -> Permissions and guardrails
+  -> Gates and artifact contracts
   -> Target adapters
   -> Generated output
-```
+~~~
 
-## MVP Scope
+## Conceptual domain model
 
-The MVP registry is local and committed to the repository.
+The authoritative conceptual entity and relationship model is:
+
+~~~text
+docs/diagrams/agentic-domain-model-chen.puml
+~~~
+
+The rendered SVG is:
+
+~~~text
+docs/diagrams/agentic-domain-model-chen.svg
+~~~
+
+The central target-model distinction is:
+
+~~~text
+Agent profile
+  -> Agent instance
+  -> Role binding
+  -> Workflow state and gate
+~~~
+
+An agent profile contains reusable defaults and recommendations.
+
+An agent instance is a concrete worker generated for a bundle. It owns one
+effective permission profile and materializes the combined requirements of
+all role bindings assigned to it.
+
+A role binding owns role-specific capabilities, selected skills, artifact
+responsibility, responsibilities, and guardrails.
+
+A state-owner binding owns exactly one non-terminal workflow state and its
+gate. A workflow-controller binding owns routing authority but no state or
+gate. Every workflow has exactly one controller binding.
+
+A separation policy declares when two or more role bindings must use distinct
+agent instances.
+
+## Composition rules
+
+Skills are composable capability providers.
+
+A skill may recommend common agent profiles, but recommendations must not
+prevent another agent instance from receiving the skill through a validated
+composition.
+
+Profiles provide recommendations and compatibility metadata.
+
+Bundles select the effective workflow and concrete composition.
+
+Setups select registered bundles through validated guided choices.
+
+Hard restrictions are reserved for explicit safety invariants:
+
+- fail-closed execution
+- validated and unambiguous transitions
+- required gate evidence
+- explicit separation of duties
+- target-compatible permissions
+- no implicit fallback
+
+## Current implementation status
+
+The current MVP still materializes capabilities, permission defaults, and
+artifact responsibility directly from static agent definitions.
+
+The target composition-binding model is documented but not yet fully
+implemented.
+
+Until that migration is complete, validators must continue to fail closed and
+must not silently emulate the target model.
+
+## Registry scope
+
+The registry is local and committed to this repository.
 
 Later versions may support:
 
-* global registry
-* Git-based registry
-* remote registry
-* versioned registry packages
-  EOF
-
-cat > registry/targets/vscode-copilot/adapter.json <<'EOF'
-{
-"name": "vscode-copilot",
-"version": "0.1.0",
-"description": "Target adapter for generating GitHub Copilot custom agents and skills for VS Code.",
-"outputPaths": {
-"agents": ".github/agents",
-"skills": ".github/skills",
-"instructions": ".github/copilot-instructions.md",
-"runtimeContext": ".runtime/context",
-"resolution": ".runtime/resolution"
-},
-"templates": {
-"agent": "templates/agent.md.hbs",
-"skill": "templates/skill.md.hbs",
-"instructions": "templates/copilot-instructions.md.hbs",
-"runtimeContext": "templates/runtime-context.md.hbs"
-},
-"supportedFeatures": {
-"agents": true,
-"skills": true,
-"handoffs": true,
-"permissionProfiles": "partial",
-"runtimeContext": "instruction-reference",
-"toolRestrictions": "partial"
-},
-"permissionMapping": {
-"read-only": {
-"tools": [
-"search",
-"read/readFile"
-],
-"notes": "Read-only agents should not edit files or run destructive commands."
-},
-"implementation": {
-"tools": [
-"search",
-"read/readFile",
-"edit/editFiles",
-"execute/runInTerminal",
-"execute/testFailure"
-],
-"notes": "Implementation agents may edit files and run relevant validation commands."
-},
-"test-runner": {
-"tools": [
-"search",
-"read/readFile",
-"execute/runInTerminal",
-"execute/testFailure"
-],
-"notes": "Test runner agents may execute validation commands but should not own product design decisions."
-}
-}
-}
+- global registries
+- Git-based registries
+- remote registries
+- versioned registry packages

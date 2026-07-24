@@ -5,13 +5,12 @@
   "provides": [
     "review.tests"
   ],
-  "requires": [],
-  "allowedAgents": [
-    "CodeReviewer",
-    "TestRunner"
-  ],
   "contentPath": "SKILL.md",
   "contextBudget": {
     "maxTokens": 1600
-  }
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "CodeReviewer"
+  ]
 }

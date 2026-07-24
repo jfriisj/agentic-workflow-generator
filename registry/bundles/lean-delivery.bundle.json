@@ -14,7 +14,10 @@
   "skills": [
     "code-review-clean-code",
     "code-review-tests",
-    "mvp-core-capabilities",
+    "implementation-engineering",
+    "requirements-analysis",
+    "security-review",
+    "test-execution",
     "workflow-routing"
   ],
   "artifacts": [

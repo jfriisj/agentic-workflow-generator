@@ -13,13 +13,13 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 93,
-    "contentHash": "sha256:15684b0d0514cc05af306c842de4263fbee9c0d6bbb1ca0fd9f96f3a9efc15e9",
+    "fileCount": 103,
+    "contentHash": "sha256:577ec13653ebe6cbf82247f267a1ca186780013ea42f7f7a6935686a897960ad",
     "files": [
       {
         "path": ".agentic/agentic.json",
-        "sha256": "sha256:e4f5421fbc5ab849c1f644c7cbac0ed44ac2c30d4255a3e0711ae4501e8f568c",
-        "sizeBytes": 7805
+        "sha256": "sha256:f78d4e7c14396a53cb9117e03d01c7baccae29407dc892bbef2c5a8f2d36f7aa",
+        "sizeBytes": 7944
       },
       {
         "path": ".agentic/schemas/agentic.schema.json",
@@ -43,8 +43,8 @@
       },
       {
         "path": "registry/agents/CodeReviewer/agent.json",
-        "sha256": "sha256:a1d3c6e3a26851c97501a34729ac3bd0cb1b95c66a25628ed290e71b67d62d00",
-        "sizeBytes": 721
+        "sha256": "sha256:ccfd04da9b134bf80b314001961d13a429bf66b0fbe6145446910f6708a8f5f3",
+        "sizeBytes": 800
       },
       {
         "path": "registry/agents/Implementer/agent.json",
@@ -53,8 +53,8 @@
       },
       {
         "path": "registry/agents/Orchestrator/agent.json",
-        "sha256": "sha256:59cf0f98adea7bb4d8c3a9457dcf05b04a60f98fdd5fe52175afaf2e9eef3229",
-        "sizeBytes": 744
+        "sha256": "sha256:d876412606a9a8f105d08a9e765297b3615a4cacbff17ddb30222cd3ab755f14",
+        "sizeBytes": 862
       },
       {
         "path": "registry/agents/QA/agent.json",
@@ -143,23 +143,23 @@
       },
       {
         "path": "registry/bundles/ai-application.bundle.json",
-        "sha256": "sha256:f0c9539a0e29c0d35f545705433f7c990009a184e7e3733a77c26fa062f02c46",
-        "sizeBytes": 790
+        "sha256": "sha256:1a1377534a3a85d7529af18e6d7f7d598be1ec394443e91b9f00712878edd701",
+        "sizeBytes": 928
       },
       {
         "path": "registry/bundles/lean-delivery.bundle.json",
-        "sha256": "sha256:2cf45878f80738c614c2e943756c349777f39a544655e9c0358f304ccaeb1e9c",
-        "sizeBytes": 662
+        "sha256": "sha256:5473bfde7ded1b72b2dac78ebf55631b89c480900342d42cb7eb9ddd24ca2da6",
+        "sizeBytes": 741
       },
       {
         "path": "registry/bundles/orchestrated-delivery.bundle.json",
-        "sha256": "sha256:7a54a554a908c157bab5a00fc8fce079bda563de6344ef71e38aa5e38f35e43b",
-        "sizeBytes": 733
+        "sha256": "sha256:ed9880373b6a440312ecce79361249400beedc6f9c6201ac9ecfd4d51f02cba0",
+        "sizeBytes": 871
       },
       {
         "path": "registry/bundles/review-heavy-delivery.bundle.json",
-        "sha256": "sha256:6ffebf42df5b3b47a5b068ddc0949b2761bc10852acd6f2cab3e76d524327006",
-        "sizeBytes": 749
+        "sha256": "sha256:8294f140ecd0337d37e5e6cbb0ca15accacd6554eeb0b59497da6a458f8839c9",
+        "sizeBytes": 887
       },
       {
         "path": "registry/profiles/ai-application.profile.json",
@@ -183,23 +183,23 @@
       },
       {
         "path": "registry/setups/ai-application-greenfield.setup.json",
-        "sha256": "sha256:c3e94ec0aa3d9c26af23d1b06d1dde208f08459dc960eedcaa6e158fe5948b6c",
-        "sizeBytes": 6318
+        "sha256": "sha256:00bd1934d71748e0ce99b211f4662475542e11eb439cbf9d0c18615a50f78def",
+        "sizeBytes": 6654
       },
       {
         "path": "registry/setups/lean-delivery-greenfield.setup.json",
-        "sha256": "sha256:719fe7d7fc72a3bbad165fcf9e9842b6585b0a76aca587571c714cea46f1b2ba",
-        "sizeBytes": 6258
+        "sha256": "sha256:6d5ad223fb2cfecb3c55983f7513b31db4cfd5892f2f8559b5352e91583dd549",
+        "sizeBytes": 6561
       },
       {
         "path": "registry/setups/orchestrated-delivery-greenfield.setup.json",
-        "sha256": "sha256:94cc79597df8eb43a6da118cf485371c3874c782c9fcfbec58d02b76b3750700",
-        "sizeBytes": 7521
+        "sha256": "sha256:598e3fc11889e60c7aad21efec7fcf3b21677a99d8cb99fe10ecc32a44b85233",
+        "sizeBytes": 8045
       },
       {
         "path": "registry/setups/review-heavy-delivery-greenfield.setup.json",
-        "sha256": "sha256:2cd6fb2abb8441d735a74ba32e2195aba64105863b9019ce387ef80d5993de04",
-        "sizeBytes": 5927
+        "sha256": "sha256:9e937794fadedd8a7a3c5cf1f9b350b282a747b8b1c3f68260bd96687225a794",
+        "sizeBytes": 6263
       },
       {
         "path": "registry/skills/ai-evaluation/SKILL.md",
@@ -208,8 +208,18 @@
       },
       {
         "path": "registry/skills/ai-evaluation/skill.json",
-        "sha256": "sha256:db3c5cb22417fb24ac29065aa87a5f0e8a16f628d836d4448b94c7920681e5ef",
-        "sizeBytes": 440
+        "sha256": "sha256:3a1f528d496a34cd591c1424b025b7dbcbdf709341c68df569d3f2d5e2cf9068",
+        "sizeBytes": 456
+      },
+      {
+        "path": "registry/skills/architecture-design/SKILL.md",
+        "sha256": "sha256:5440b5c663049c063ba94b73e7ad1760e5dfaaefde6b179b3099d98814b09766",
+        "sizeBytes": 2972
+      },
+      {
+        "path": "registry/skills/architecture-design/skill.json",
+        "sha256": "sha256:ffc60910f17d5e6a0cc94b1f9f1f86627736ee5d5cd4f34306170ac51da4f6ef",
+        "sizeBytes": 436
       },
       {
         "path": "registry/skills/code-review-clean-code/SKILL.md",
@@ -218,8 +228,8 @@
       },
       {
         "path": "registry/skills/code-review-clean-code/skill.json",
-        "sha256": "sha256:8dcb793702664a6b6017668de6b95d1807196c18966911435f77bdeef47d3aa2",
-        "sizeBytes": 372
+        "sha256": "sha256:0b095ebb72afd25a935a396038b7955fa9d080df4c8c170c22ad7f360b80e988",
+        "sizeBytes": 388
       },
       {
         "path": "registry/skills/code-review-tests/SKILL.md",
@@ -228,28 +238,68 @@
       },
       {
         "path": "registry/skills/code-review-tests/skill.json",
-        "sha256": "sha256:abd5e9db480aac699a96d885d5d603ec094574183ae18877d1c45277e71ebe56",
-        "sizeBytes": 387
+        "sha256": "sha256:e90c1318d5139b60752b0b85f5ac29e790fd751cce30b3594612f380d5e8f682",
+        "sizeBytes": 385
       },
       {
-        "path": "registry/skills/mvp-core-capabilities/SKILL.md",
-        "sha256": "sha256:2c7e8dff5b2dc31dd18be86d56e862d383628c5a88b932565b3ec90cf2b5dd58",
-        "sizeBytes": 972
+        "path": "registry/skills/implementation-engineering/SKILL.md",
+        "sha256": "sha256:7a17308d8309f6aa9b87b06f0a6bf399f0c81b0acb3048813118addea4dd7fac",
+        "sizeBytes": 3259
       },
       {
-        "path": "registry/skills/mvp-core-capabilities/skill.json",
-        "sha256": "sha256:9cb7bbcac28765e199a187c0b0db2e03e649e8785d42d3fb1be8faa312a760ca",
-        "sizeBytes": 865
+        "path": "registry/skills/implementation-engineering/skill.json",
+        "sha256": "sha256:9a39afec57d7e28b99decb85a9d5bcca6ca42575f84d9ff6b3588e1e287fe24e",
+        "sizeBytes": 484
+      },
+      {
+        "path": "registry/skills/qa-acceptance-validation/SKILL.md",
+        "sha256": "sha256:0ec8a3e46e89cde8f5b53777363e18e777b99dfa6dcc827f1336ae30fedd58fe",
+        "sizeBytes": 2614
+      },
+      {
+        "path": "registry/skills/qa-acceptance-validation/skill.json",
+        "sha256": "sha256:4e05d48a118005400904a51a682dc322646c9b545eef80958fec079f3ed452c6",
+        "sizeBytes": 410
+      },
+      {
+        "path": "registry/skills/requirements-analysis/SKILL.md",
+        "sha256": "sha256:e1128823807333378759d4be5a93e5732571ea3b38158cd0e13e0aa78f997a6f",
+        "sizeBytes": 2748
+      },
+      {
+        "path": "registry/skills/requirements-analysis/skill.json",
+        "sha256": "sha256:f2b40d354e4a84a6665647922788d58dddf1033d734e6a86a9bacc36f56a8ea8",
+        "sizeBytes": 441
+      },
+      {
+        "path": "registry/skills/security-review/SKILL.md",
+        "sha256": "sha256:7d965d0a0f853ac5c0e29d71ae7f6e7d9c4e059b31178397c8fcb626287777bd",
+        "sizeBytes": 3093
+      },
+      {
+        "path": "registry/skills/security-review/skill.json",
+        "sha256": "sha256:1182de3217fcef002d76bd4110e2b86aa58ca82e3e65bf93384e843cf4ab5ca3",
+        "sizeBytes": 402
+      },
+      {
+        "path": "registry/skills/test-execution/SKILL.md",
+        "sha256": "sha256:3f26256f5b3b6bb6dd19ed03ca2e74c3dae509f74a10cce80739e7d0afc198bd",
+        "sizeBytes": 2787
+      },
+      {
+        "path": "registry/skills/test-execution/skill.json",
+        "sha256": "sha256:c00466bc8148547afbf52f16fc750d44214d77e93dc7a3788f818bdaf001ab71",
+        "sizeBytes": 438
       },
       {
         "path": "registry/skills/workflow-routing/SKILL.md",
-        "sha256": "sha256:7c2bad41298c170cf6684e77104ebbbdedcd579b6549707c9591bf846753e9fa",
-        "sizeBytes": 741
+        "sha256": "sha256:ce65931617ed810c11c3fa2ce5ec5d040d96031a1d013d74a1609cd302326719",
+        "sizeBytes": 976
       },
       {
         "path": "registry/skills/workflow-routing/skill.json",
-        "sha256": "sha256:ba997f7caf000c19a4538e1b3810c5ff21e9051713295cd061d7bdcb8909caf1",
-        "sizeBytes": 450
+        "sha256": "sha256:afc9a942b082ff57282f8d6745ea6f3806f3e90e4bc7b2bc82b218f86c9bcf5d",
+        "sizeBytes": 466
       },
       {
         "path": "registry/targets/opencode/adapter.json",
@@ -298,8 +348,8 @@
       },
       {
         "path": "scripts/agentic/generate-opencode.py",
-        "sha256": "sha256:4c4824acddbd08bde4f414c693c21157676f33e03bec6062ead4f27145ef95fb",
-        "sizeBytes": 10237
+        "sha256": "sha256:10802cf71e8574d421ce520d4234a11593faabc03e68704b7475787a25a70505",
+        "sizeBytes": 10581
       },
       {
         "path": "scripts/agentic/generate-output-manifest.py",
@@ -308,8 +358,8 @@
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",
-        "sha256": "sha256:73fee677f686770255d04860ef104bbd4f99a1395586339f05248c3aa1cf8ee2",
-        "sizeBytes": 9892
+        "sha256": "sha256:4b12ccd3bbc5373798dd1aadca077f393afb631ba57409bf9b194644b6f06b78",
+        "sizeBytes": 10236
       },
       {
         "path": "scripts/agentic/guided_init.py",
@@ -353,13 +403,13 @@
       },
       {
         "path": "scripts/agentic/test-isolated-e2e.py",
-        "sha256": "sha256:1f38d9f2906672a3f38be0194de8d19e5fa8ebe54515d18dc7988ac6c194bde0",
-        "sizeBytes": 17386
+        "sha256": "sha256:7ecd6481701c5dabf949d6acdc558ff0a1a42d74ec754349cd3adea6f7772def",
+        "sizeBytes": 19309
       },
       {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:e1f3ee387a0cdddd166f6b41da0fca6baa2a79784919d341d92d99805e835cf9",
-        "sizeBytes": 304622
+        "sha256": "sha256:803926ee7e481a9de31b9795a1b3f70253762fbcd1572c4115ef48449c0d97c5",
+        "sizeBytes": 309516
       },
       {
         "path": "scripts/agentic/test-output-manifest-negative.py",
@@ -458,8 +508,8 @@
       },
       {
         "path": "scripts/agentic/validate-skill-registry.py",
-        "sha256": "sha256:8667d15d1263365f4dc0d1e67723e1570ca341dc025915aa2933e98e6b935317",
-        "sizeBytes": 5829
+        "sha256": "sha256:98552959eab6d6ae6994b13cb0068e2d962edbd769f746273f78ccab92988fc5",
+        "sizeBytes": 9981
       },
       {
         "path": "scripts/agentic/validate-target-adapter-semantics.py",

@@ -41,7 +41,7 @@ read-only
 
 ## Resolved Skills
 
-- mvp-core-capabilities
+- architecture-design
 
 ## Must Not
 

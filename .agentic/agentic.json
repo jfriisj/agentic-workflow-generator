@@ -92,7 +92,8 @@
       "mustNot": [
         "Implement feature behavior",
         "Approve release",
-        "Change workflow routing"
+        "Change workflow routing",
+        "Perform workflow transitions"
       ]
     },
     {
@@ -124,7 +125,9 @@
       "mustNot": [
         "Implement product code",
         "Override gates without evidence",
-        "Perform domain-specific review"
+        "Perform domain-specific review",
+        "Invent workflow transitions",
+        "Route work without a unique validated transition"
       ]
     },
     {

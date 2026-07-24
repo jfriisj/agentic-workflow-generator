@@ -42,7 +42,7 @@ test-runner
 
 ## Resolved Skills
 
-- mvp-core-capabilities
+- test-execution
 
 ## Must Not
 

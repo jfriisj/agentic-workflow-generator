@@ -5,12 +5,12 @@
   "provides": [
     "review.clean-code"
   ],
-  "requires": [],
-  "allowedAgents": [
-    "CodeReviewer"
-  ],
   "contentPath": "SKILL.md",
   "contextBudget": {
     "maxTokens": 1800
-  }
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "CodeReviewer"
+  ]
 }

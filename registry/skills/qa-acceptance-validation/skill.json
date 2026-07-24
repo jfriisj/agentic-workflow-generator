@@ -1,0 +1,17 @@
+{
+  "name": "qa-acceptance-validation",
+  "version": "0.1.0",
+  "description": "Use when verifying acceptance criteria against independent test, review, and artifact evidence.",
+  "provides": [
+    "qa.verify-acceptance-criteria",
+    "qa.validate-evidence"
+  ],
+  "contentPath": "SKILL.md",
+  "contextBudget": {
+    "maxTokens": 2400
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "QA"
+  ]
+}

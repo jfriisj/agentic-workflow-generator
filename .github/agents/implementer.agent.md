@@ -52,7 +52,7 @@ implementation
 
 ## Resolved Skills
 
-- mvp-core-capabilities
+- implementation-engineering
 
 ## Must Not
 

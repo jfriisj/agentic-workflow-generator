@@ -44,13 +44,14 @@ read-only
 
 - code-review-clean-code
 - code-review-tests
-- mvp-core-capabilities
+- security-review
 
 ## Must Not
 
 - Implement feature behavior
 - Approve release
 - Change workflow routing
+- Perform workflow transitions
 
 ## Produced Artifacts
 

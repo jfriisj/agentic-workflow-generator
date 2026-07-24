@@ -52,6 +52,8 @@ read-only
 - Implement product code
 - Override gates without evidence
 - Perform domain-specific review
+- Invent workflow transitions
+- Route work without a unique validated transition
 
 ## Produced Artifacts
 

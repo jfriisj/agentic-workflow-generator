@@ -135,13 +135,13 @@
       "resolvedCapabilities": [
         {
           "capability": "architecture.design",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "architecture-design",
+          "skillPath": "registry/skills/architecture-design/skill.json"
         },
         {
           "capability": "architecture.evaluate-tradeoffs",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "architecture-design",
+          "skillPath": "registry/skills/architecture-design/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -190,8 +190,8 @@
         },
         {
           "capability": "review.security",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "security-review",
+          "skillPath": "registry/skills/security-review/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -229,18 +229,18 @@
       "resolvedCapabilities": [
         {
           "capability": "implementation.code",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "implementation-engineering",
+          "skillPath": "registry/skills/implementation-engineering/skill.json"
         },
         {
           "capability": "implementation.refactor",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "implementation-engineering",
+          "skillPath": "registry/skills/implementation-engineering/skill.json"
         },
         {
           "capability": "implementation.update-tests",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "implementation-engineering",
+          "skillPath": "registry/skills/implementation-engineering/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -307,13 +307,13 @@
       "resolvedCapabilities": [
         {
           "capability": "qa.verify-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "qa-acceptance-validation",
+          "skillPath": "registry/skills/qa-acceptance-validation/skill.json"
         },
         {
           "capability": "qa.validate-evidence",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "qa-acceptance-validation",
+          "skillPath": "registry/skills/qa-acceptance-validation/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -351,13 +351,13 @@
       "resolvedCapabilities": [
         {
           "capability": "requirements.elicit",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "requirements-analysis",
+          "skillPath": "registry/skills/requirements-analysis/skill.json"
         },
         {
           "capability": "requirements.define-acceptance-criteria",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "requirements-analysis",
+          "skillPath": "registry/skills/requirements-analysis/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -397,18 +397,18 @@
       "resolvedCapabilities": [
         {
           "capability": "test.run",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "test-execution",
+          "skillPath": "registry/skills/test-execution/skill.json"
         },
         {
           "capability": "test.report",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "test-execution",
+          "skillPath": "registry/skills/test-execution/skill.json"
         },
         {
           "capability": "test.diagnose-failure",
-          "skill": "mvp-core-capabilities",
-          "skillPath": "registry/skills/mvp-core-capabilities/skill.json"
+          "skill": "test-execution",
+          "skillPath": "registry/skills/test-execution/skill.json"
         }
       ],
       "missingCapabilities": [],
@@ -453,7 +453,7 @@
   "summary": {
     "agentCount": 7,
     "targetCount": 2,
-    "availableSkillCount": 5,
+    "availableSkillCount": 10,
     "producedArtifactBindingCount": 6,
     "errorCount": 0,
     "errors": []

@@ -39,9 +39,14 @@
             ],
             "skills": [
               "ai-evaluation",
+              "architecture-design",
               "code-review-clean-code",
               "code-review-tests",
-              "mvp-core-capabilities",
+              "implementation-engineering",
+              "qa-acceptance-validation",
+              "requirements-analysis",
+              "security-review",
+              "test-execution",
               "workflow-routing"
             ],
             "artifacts": [
@@ -178,9 +183,14 @@
     ],
     "skills": [
       "ai-evaluation",
+      "architecture-design",
       "code-review-clean-code",
       "code-review-tests",
-      "mvp-core-capabilities",
+      "implementation-engineering",
+      "qa-acceptance-validation",
+      "requirements-analysis",
+      "security-review",
+      "test-execution",
       "workflow-routing"
     ],
     "artifacts": [

@@ -41,7 +41,7 @@ read-only
 
 ## Resolved Skills
 
-- mvp-core-capabilities
+- requirements-analysis
 
 ## Must Not
 

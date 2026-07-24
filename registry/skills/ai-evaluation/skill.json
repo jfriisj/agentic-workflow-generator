@@ -7,12 +7,12 @@
     "ai.evaluate-safety",
     "ai.evaluate-operational-risks"
   ],
-  "requires": [],
-  "allowedAgents": [
-    "AIEvaluator"
-  ],
   "contentPath": "SKILL.md",
   "contextBudget": {
     "maxTokens": 2400
-  }
+  },
+  "requiresCapabilities": [],
+  "recommendedAgents": [
+    "AIEvaluator"
+  ]
 }
