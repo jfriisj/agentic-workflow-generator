@@ -23,7 +23,7 @@ registry
 
 ~~~text
 Agents:          8
-Skills:          5
+Skills:         10
 Capabilities:   21
 Artifacts:       7
 Workflows:       4
@@ -121,27 +121,26 @@ agentic-gen.sh test-negative
 
 agentic-gen.sh validate-manifest
   PASS: 2 targets og 53 genererede filer
+
+agentic-gen.sh doctor-strict
+  PASS
+  PASS: 373 negative gate tests
+  PASS: Working tree is clean
 ~~~
 
 OpenCode 1.17.10 parser config, agents og skills for alle fire isolerede setups.
 
 Gentaget init og generation er byte-identisk.
 
-## Aktuel working tree
+## Aktuel repositorytilstand
 
-Working tree indeholder tilsigtede, endnu ikke committede registry-hardening-ændringer:
+Registry-hardening-fasen er committed og pushed til `main`:
 
-* Chen-målmodel og synkroniseret arkitekturdokumentation
-* migrering fra `allowedAgents` til rådgivende `recommendedAgents`
-* migrering fra skillnavneafhængigheder til `requiresCapabilities`
-* udvidet skill-validator og negative gates
-* tidligere registry- og generatorforbedringer fra den igangværende hardening
+~~~text
+79bfe7c Harden registry skills and document agent instance model
+~~~
 
-Lockfile, resolution, aktiv konfiguration, targetoutput og outputmanifest er regenereret af den grønne pipeline.
-
-Outputmanifestet validerer mod 2 targets og 53 genererede filer.
-
-`doctor-strict` køres efter commit, så kontrollen også kan bevise en ren working tree.
+Post-commit `doctor-strict` består med alle 373 negative gate-tests, og working tree var ren ved push.
 
 ## Registry-audit — vigtigste fund
 
