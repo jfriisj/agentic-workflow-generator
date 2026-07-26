@@ -2,7 +2,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from jsonschema.exceptions import ValidationError
 
+import agentic_workflow_generator.validation.artifacts as artifacts_module
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
     JsonValue,
@@ -486,3 +488,23 @@ def test_array_item_error_uses_indexed_location() -> None:
     assert diagnostic.code == SCHEMA_DIAGNOSTIC
     assert diagnostic.location == "$.requiredHeadings[0]"
     assert diagnostic.message == ("requiredHeadings.0 must be a non-empty string")
+
+
+def test_artifact_schema_wrapper_helpers_delegate() -> None:
+    error = ValidationError(
+        "invalid heading",
+        path=["requiredHeadings", 0],
+    )
+
+    assert artifacts_module._schema_error_sort_key(
+        error
+    ) == (
+        (
+            "requiredHeadings",
+            "0",
+        ),
+        "invalid heading",
+    )
+    assert artifacts_module._schema_error_location(
+        error
+    ) == "$.requiredHeadings[0]"

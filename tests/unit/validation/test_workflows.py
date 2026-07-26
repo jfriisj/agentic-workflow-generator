@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from jsonschema.exceptions import ValidationError
+
+import agentic_workflow_generator.validation.workflows as workflows_module
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
     read_json_object,
@@ -245,4 +248,30 @@ def test_transition_event_must_match_required_artifact_status() -> None:
     assert any(
         diagnostic.code == ARTIFACT_STATUS_EVENT_DIAGNOSTIC
         for diagnostic in result.diagnostics
+    )
+
+
+def test_workflow_schema_wrapper_helpers_delegate() -> None:
+    path_error = ValidationError(
+        "invalid transition",
+        path=["transitions", 0, "on"],
+    )
+    required_error = ValidationError(
+        "name is required",
+        validator="required",
+        validator_value=["name"],
+        instance={},
+    )
+
+    assert workflows_module._schema_error_sort_key(
+        path_error
+    ) == (
+        "transitions.0.on",
+        "invalid transition",
+    )
+    assert (
+        workflows_module._missing_required_field(
+            required_error
+        )
+        == "name"
     )

@@ -68,13 +68,19 @@ registry
 * Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller, stabile diagnostics og midlertidige tynde launchers.
 * Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og legacy-schema-parse-pipelinen uden fallback eller parallel autoritet.
 * CLI-laget anvender fælles diagnostic-rendering og et typed setup-validation context.
-* Pylint duplicate-code er konfigureret som dev-gate og består med rating 10,00/10.
+* Pylint duplicate-code er konfigureret som dev-gate for `src/agentic_workflow_generator` og består med rating 10,00/10.
 * Setup registry og setup profiles er migreret til version `0.2.0`.
 * Setupvalg ejer kun `bundle` og `targets`; profile, workflow, agent-instances, role bindings, skills, capabilities, permissions og artifacts ejes af det valgte bundle.
 * Legacyfelterne `defaultBundle`, `finalRecommendation`, question-level classification-lister, option `recommends` samt setup-profile-felterne `profile` og `workflow` er fjernet uden fallback.
 * Den offentlige setup-registry-CLI validerer 4 setupfiler og 12 spørgsmål, og den materialiserede `.agentic/setup-profile.json` består den nye setup-profile-validator.
 * Den typed setupmaterialiseringsservice producerer immutable `SetupProfile`-objekter, anvender answer overrides eller default options og afviser ukendte, blocked eller modstridende valg fail-fast.
-* Den typed guided-init application service adskiller terminal-IO fra selection og materialisering, validerer før writes og bevarer back-navigation, cancellation, dry-run og transaktionel rollback.
+* Den typed guided-init application service adskiller terminal-IO fra selection og materialisering, validerer før writes og bevarer back-navigation, cancellation og dry-run.
+* En typed initialization service loader hele registryet til et valideret immutable snapshot, compiler bundle-ejet runtimeautoritet til én canonical `CompiledComposition` og serialiserer den direkte til den aktive konfiguration.
+* `.agentic/agentic.json` og `.agentic/schemas/agentic.schema.json` er migreret til schemaVersion `0.2.0` med fulde agent-instances, role bindings, state ownership, controller binding, workflow gates, artifact production og separation constraints. Legacyfelterne `agents` og `gates` afvises.
+* Initialization commit-grænsen schema-validerer alle outputs før side effects, springer byte-identiske filer over og skriver guided setup-profil samt aktiv konfiguration som én flerfilstransaktion med fail-fast rollback.
+* Den offentlige init-CLI anvender kun typed application services. Direct bundle init, non-interactive guided init, answer overrides, dry-run, interaktivt setupvalg, back-navigation, cancellation og confirmation er bevaret uden raw registry- eller kompositionslogik i CLI-laget.
+* `scripts/agentic/init-from-bundle.py` er reduceret til en tynd launcher. De obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
+* Den fokuserede init-migrationsgate består med 39 tests samt script- og JSON-syntaxkontrol.
 * Alle fire setups materialiserer gyldige profiler med defaults, OpenCode-only og VS Code Copilot-only.
 * `target-platforms` er nu den eneste spørgsmålsdimension, der ejer targetvalget; dobbelt target-autoritet er fjernet fra `project-domain` og `project-type`.
 * Global capability coverage bruger nu `roleBindings[].requiredCapabilities` som autoritativt runtimekrav.
@@ -86,8 +92,6 @@ registry
 ### Endnu ikke migreret eller afsluttet
 
 * typed domain models og validators for targets
-* migration af `init-from-bundle.py`, fuld bundlematerialisering og de resterende setup-relaterede init-consumers
-* `agentic.schema.json` og den aktive runtimekonfiguration
 * `validate-registry-references.py`
 * resolution-format, resolver og resolution-validator
 * lockfile-inputmodellen efter den endelige compilerstruktur
@@ -174,6 +178,10 @@ agentic-gen.sh test-target-runtime-e2e
   PASS for alle 4 setups
   OpenCode runtime parser alle setups
 
+Disse to E2E-kommandoer tilhører den historiske før-migrationspipeline.
+Det legacy `test-isolated-e2e.py` er nu fjernet; init-E2E ligger under
+pytest, mens target-runtime-E2E genetableres i target-slicen.
+
 agentic-gen.sh test-negative
   PASS: 373 negative gate tests
 
@@ -244,12 +252,12 @@ dedikeret bundle-testpakke
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 129 source files
-  PASS: 576 tests
-  PASS: Pylint duplicate-code, rating 10.00/10
-  Senest separat målte coverage-baseline:
-    PASS: 2.999 statements
-    PASS: 952 branches
+  PASS: strict mypy for 145 source files
+  PASS: 678 tests
+  PASS: Pylint duplicate-code for src/agentic_workflow_generator, rating 10.00/10
+  Aktuel samlet coverage-baseline:
+    PASS: 3.574 statements
+    PASS: 982 branches
     PASS: 100 procent coverage
 
 validate-setups
@@ -404,11 +412,8 @@ De tidligere statiske låse er fjernet fra agent-, workflow- og bundle-registrye
 
 Legacy-antagelser findes fortsat i downstream-koden og skal fjernes helt fra:
 
-* `setup_materializer.py`
-* `guided_init.py`
-* `init-from-bundle.py`
 * `resolve-agentic-config.py`
-* runtime-schemaet og den aktive konfiguration
+* resolution-schemaet og resolution-validatoren
 * output-manifestet
 * targetgeneratorerne
 * generated-output validators
@@ -446,8 +451,7 @@ Workflowmodellen mangler blandt andet:
 
 * Profile metadata er rådgivende, mens bundle er autoritativ for workflow og konkret runtimekomposition.
 * Setup-schemaet og setup-profile-schemaet duplikerer ikke længere bundle-ejede profile-, workflow-, agent-, skill- eller artifactvalg.
-* Den eksisterende legacy-materializer forventer fortsat de fjernede felter `defaultBundle`, `finalRecommendation` og option `recommends` og kan derfor ikke anvendes som den nye materialiseringsimplementation.
-* `init-from-bundle.py` forventer fortsat `selected.workflow`, selv om setup-profilen nu kun indeholder `selected.bundle` og `selected.targets`.
+* Setupmaterialisering og init læser nu kun `selected.bundle` og `selected.targets`; bundle compiler resten af den konkrete runtimekomposition.
 * `orchestrated-delivery-greenfield` indeholder fortsat forældet tekst om, at et dedikeret review-heavy-workflow ikke er registreret.
 * Flere compatible setupvalg ændrer kun klassifikation og begrundelse, men ikke den valgte bundlekomposition; dette skal vurderes som registry-indhold efter hardening-fasen.
 
@@ -585,8 +589,8 @@ Planlagt rækkefølge:
 9. typed setupmaterialisering — afsluttet
 10. real-registry- og setup-profile-integration — afsluttet
 11. guided init application service — afsluttet
-12. resterende setup-relaterede init-consumers — næste
-13. targets
+12. resterende setup-relaterede init-consumers — afsluttet
+13. targets — næste
 
 Permission-profile-slicen omfatter nu:
 
@@ -970,16 +974,16 @@ public CLI
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 129 source files
-  PASS: 576 tests
-  PASS: Pylint duplicate-code, rating 10.00/10
-  Senest separat målte coverage-baseline:
-    PASS: 2.999 statements
-    PASS: 952 branches
+  PASS: strict mypy for 145 source files
+  PASS: 678 tests
+  PASS: Pylint duplicate-code for src/agentic_workflow_generator, rating 10.00/10
+  Aktuel samlet coverage-baseline:
+    PASS: 3.574 statements
+    PASS: 982 branches
     PASS: 100 procent coverage
 ~~~
 
-Den typed setupmaterialiseringsservice og guided-init application service er implementeret under application-laget og integreret med registry-loading og setup-profile-validation. De resterende init-consumers mangler fortsat og må ikke repareres gennem raw-dict compatibility logic.
+Den typed setupmaterialiseringsservice, guided-init application service og initialization service er implementeret under application-laget og integreret med valideret registry-loading, canonical bundlekomposition, setup-profile-validation og transaktionelle writes. Den offentlige init-consumer er migreret uden raw-dict compatibility logic.
 
 Materialiseringsintegrationen er valideret med:
 
@@ -999,12 +1003,12 @@ real-registry integration
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 129 source files
-  PASS: 576 tests
-  PASS: Pylint duplicate-code, rating 10.00/10
-  Senest separat målte coverage-baseline:
-    PASS: 2.999 statements
-    PASS: 952 branches
+  PASS: strict mypy for 145 source files
+  PASS: 678 tests
+  PASS: Pylint duplicate-code for src/agentic_workflow_generator, rating 10.00/10
+  Aktuel samlet coverage-baseline:
+    PASS: 3.574 statements
+    PASS: 982 branches
     PASS: 100 procent coverage
 ~~~
 
@@ -1018,6 +1022,27 @@ dedikeret guided-init testpakke
   PASS: 58 statements
   PASS: 20 branches
   PASS: 100 procent coverage
+~~~
+
+De resterende init-consumers er migreret:
+
+* `validate-init-idempotency` delegerer gennem en tynd launcher til den
+  typed `cli.init_idempotency`-grænse.
+* Gentagen direct og guided init valideres gennem
+  `InitializationService`, typed planer og byte-identiske commits.
+* Clean-consumer init-E2E ligger under `tests/e2e` og dækker alle fire
+  registrerede setups uden legacy resolution- eller target-antagelser.
+* `scripts/agentic/test-isolated-e2e.py` og dets offentlige
+  `test-isolated-e2e`/`test-target-runtime-e2e`-routes er fjernet.
+* Target-generation og runtime-E2E migreres separat i target-slicen.
+
+~~~text
+fokuseret afsluttende init-consumer-gate
+  PASS: Ruff
+  PASS: strict mypy
+  PASS: 18 tests
+  PASS: script syntax
+  PASS: JSON syntax
 ~~~
 
 For hver resterende slice:
@@ -1093,29 +1118,28 @@ For hver resterende slice:
 
 ## Næste konkrete opgave
 
-Migrér `init-from-bundle.py` og de resterende setup-relaterede init-consumers til den typed application- og bundlekompositionsmodel.
+Migrér target-registryet og targetmaterialiseringen til typed domain-, validation- og compilergrænser.
 
-Guided init er nu implementeret som typed application service med adskilt terminal-IO, deterministisk setupmaterialisering, validering før writes, cancellation, back-navigation, dry-run og transaktionel rollback.
+Init-slicen er afsluttet isoleret: bundle ejer hele den konkrete runtimekomposition, setup ejer kun bundle og targets, aktiv konfiguration serialiseres fra `CompiledComposition`, og den offentlige init-rute er en typed CLI med transaktionelle writes.
 
 Arbejdet skal nu:
 
-1. lade bundle eje effektiv profile, workflow, agent-instances, role bindings, skills, capabilities, permissions og artifacts
-2. stoppe al læsning af `selected.profile` og `selected.workflow`
-3. erstatte raw-dict-komposition med typed inputs og outputs
-4. validere den materialiserede setup-profil før øvrige init-side effects
-5. bevare atomiske writes og fail-fast rollback
-6. tilføje isolerede unit- og integrationstests uden den fulde legacy-pipeline
-7. reducere eller fjerne de tilsvarende scripts under `scripts/agentic`
+1. indføre typed immutable target adapter-modeller og strukturerede validators
+2. lade targetgeneratorerne modtage `CompiledComposition` frem for raw registry eller legacy aktiv konfiguration
+3. bevare role-binding responsibilities, guardrails, permissions, artifact contracts og fuld workflow-routing inklusive `BLOCKED`
+4. harmonisere OpenCode- og VS Code Copilot-materialisering uden target-specifik semantisk drift
+5. migrere target compatibility-, generated-output- og runtime-validering til de nye compileroutputs
+6. fjerne de tilsvarende legacy scripts og projections i samme vertikale slices
 
 Arbejdet må ikke:
 
 * genindføre legacyfelter eller compatibility projections
-* placere ny application- eller domænelogik under `scripts/agentic`
-* lade terminal-UI eller launchers eje kompositionssemantik
-* skrive delvise filer ved cancellation eller failure
+* lade targetgeneratorer læse rå registrydata
+* udlede agentidentitet fra workflow state-navne eller agentprofilmapper
+* miste bundle-ejet runtimeautoritet mellem compiler og targetoutput
 * bruge `test-negative-gates.py` eller hele legacy-pipelinen som komponentgate
 
-Efter migrationen af de resterende init-consumers er næste vertikale registry-slice targets.
+Næste vertikale registry-slice er targets.
 
 ## Autoritativ domænemodel
 

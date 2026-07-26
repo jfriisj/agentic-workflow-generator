@@ -159,7 +159,6 @@ scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-green
 scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --answer target-platforms=opencode-only
 scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
 scripts/agentic/agentic-gen.sh validate-init-idempotency --guided --setup orchestrated-delivery-greenfield
-scripts/agentic/agentic-gen.sh test-isolated-e2e
 scripts/agentic/agentic-gen.sh test-negative
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
@@ -303,7 +302,6 @@ Recommended local flow:
 
 ```bash
 scripts/agentic/agentic-gen.sh all
-scripts/agentic/agentic-gen.sh test-isolated-e2e
 scripts/agentic/agentic-gen.sh test-negative
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
@@ -347,8 +345,11 @@ scripts/agentic/
   agentic-gen.sh
   validate-*.py
   generate-*.py
-  test-isolated-e2e.py
   test-negative-gates.py
+
+tests/
+  e2e/
+    test_initialization.py
 
 docs/
   core-domain-model.md
@@ -381,10 +382,10 @@ lockfile structure
 generated output
 generation idempotency
 init idempotency
-isolated clean-consumer end-to-end generation
+typed clean-consumer initialization E2E
 negative gates
 ```
 
-The isolated end-to-end test copies only the compiler source payload into a clean temporary consumer project, runs guided init and the complete generation pipeline, validates both targets, and proves repeated execution is byte-identical without modifying the source repository.
+The typed initialization end-to-end test materializes every registered setup into a clean temporary consumer project and proves repeated commits are byte-identical. Target generation and runtime parsing are validated separately and are being migrated in the target slice.
 
 The negative gate suite intentionally breaks contracts to prove the validators fail closed.

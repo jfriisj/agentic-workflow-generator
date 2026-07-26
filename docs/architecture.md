@@ -121,7 +121,7 @@ Each registry area has one responsibility.
 | `bundles/` | Concrete deployable composition of instances, bindings, workflow, skills, artifacts, permissions, targets and separation policies |
 | `permission-profiles/` | Reusable effective permission definitions selected by concrete agent instances |
 | `profiles/` | Higher-level advisory workflow and project metadata |
-| `setups/` | Guided selection of bundle, profile, workflow and enabled targets |
+| `setups/` | Guided selection of bundle and enabled targets; the selected bundle owns profile, workflow and concrete runtime composition |
 | `skills/` | Composable capability providers selected by role bindings |
 | `targets/` | Target adapter ownership and permission-mapping contracts |
 | `workflows/` | State machine, transitions, gates, start state, terminal states and fail-closed routing |
@@ -198,9 +198,9 @@ Agent profiles and profiles remain advisory. They must not become implicit fallb
 
 ## Composition binding direction
 
-The current MVP derives active capabilities, permissions, and produced artifacts directly from static agent definitions. That model is being replaced because it prevents compact setups from assigning several responsibilities to one agent.
+The active compiler model uses concrete agent instances and explicit role bindings. Static agent profiles remain reusable advisory definitions and are not runtime authority.
 
-The target model introduces concrete agent instances and explicit role bindings.
+This composition model allows one validated agent instance to serve several role bindings while preserving explicit capabilities, permissions, artifact ownership, responsibilities, guardrails and separation constraints.
 
 An agent instance selects:
 
@@ -240,9 +240,13 @@ The command:
 scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
 ```
 
-materializes the active `.agentic/agentic.json` from the selected bundle.
+loads a fully validated typed registry snapshot, compiles the selected bundle into one canonical `CompiledComposition`, validates its serialized boundary and materializes `.agentic/agentic.json`.
 
-The generated config keeps project-level settings from the existing config and derives active workflow, agents, gates, and targets from registry data.
+The active configuration preserves existing project metadata and contains the bundle-owned profile, workflow, targets, agent instances, role bindings, permissions, skills, artifact contracts, state ownership, controller binding, workflow gates, artifact production and separation constraints.
+
+Guided initialization selects only a bundle and enabled targets. It validates the setup profile and active configuration before side effects, then writes `.agentic/setup-profile.json` and `.agentic/agentic.json` as one transactional operation. Cancellation, dry-run and validation failure write no partial files.
+
+`scripts/agentic/init-from-bundle.py` is only a thin launcher. CLI code owns argument parsing, terminal interaction and rendering, while application and compiler layers own all composition and write semantics.
 
 The init step is validated for idempotency:
 
@@ -250,7 +254,7 @@ The init step is validated for idempotency:
 scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
 ```
 
-This ensures that running init repeatedly does not create drift.
+This ensures that running init repeatedly does not create drift or rewrite byte-identical outputs.
 
 ## Active config
 

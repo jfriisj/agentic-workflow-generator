@@ -72,5 +72,21 @@ class AtomicWriteError(PathInfrastructureError):
     """Raised when an atomic filesystem write fails."""
 
 
+class TransactionRollbackError(InfrastructureError):
+    """Raised when a failed multi-file write cannot be fully restored."""
+
+    def __init__(
+        self,
+        original_error: Exception,
+        restoration_errors: tuple[str, ...],
+    ) -> None:
+        self.original_error = original_error
+        self.restoration_errors = restoration_errors
+        super().__init__(
+            f"{original_error}; additionally failed to restore "
+            + "; ".join(restoration_errors)
+        )
+
+
 class HashReadError(PathInfrastructureError):
     """Raised when a file cannot be hashed."""

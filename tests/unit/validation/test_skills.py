@@ -2,7 +2,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from jsonschema.exceptions import ValidationError
 
+import agentic_workflow_generator.validation.skills as skills_module
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
     JsonValue,
@@ -508,3 +510,23 @@ def test_multiple_semantic_errors_are_deterministic() -> None:
         SELF_REQUIRED_CAPABILITY_DIAGNOSTIC,
         UNKNOWN_REQUIRED_CAPABILITY_DIAGNOSTIC,
     )
+
+
+def test_skill_schema_wrapper_helpers_delegate() -> None:
+    error = ValidationError(
+        "invalid capability",
+        path=["provides", 0],
+    )
+
+    assert skills_module._schema_error_sort_key(
+        error
+    ) == (
+        (
+            "provides",
+            "0",
+        ),
+        "invalid capability",
+    )
+    assert skills_module._schema_error_location(
+        error
+    ) == "$.provides[0]"

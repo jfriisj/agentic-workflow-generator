@@ -184,3 +184,273 @@ def test_atomic_write_reports_cleanup_failure(
     assert len(temporary_files) == 1
 
     original_unlink(temporary_files[0])
+
+
+def test_transactional_write_bytes_updates_all_files(
+    tmp_path: Path,
+) -> None:
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    first.write_bytes(b"old-first")
+
+    from agentic_workflow_generator.infrastructure import (
+        transactional_write_bytes,
+    )
+
+    transactional_write_bytes(
+        {
+            first: b"new-first",
+            second: b"new-second",
+        }
+    )
+
+    assert first.read_bytes() == b"new-first"
+    assert second.read_bytes() == b"new-second"
+
+
+def test_transactional_write_bytes_restores_all_files_on_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    first.write_bytes(b"old-first")
+    second.write_bytes(b"old-second")
+
+    import agentic_workflow_generator.infrastructure.filesystem as filesystem_module
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_write_bytes,
+    )
+
+    original_write = filesystem_module.atomic_write_bytes
+    calls = 0
+
+    def fail_second_write(
+        path: Path,
+        content: bytes,
+    ) -> None:
+        nonlocal calls
+        calls += 1
+
+        if calls == 2:
+            raise AtomicWriteError(
+                path,
+                "injected failure",
+            )
+
+        original_write(path, content)
+
+    monkeypatch.setattr(
+        filesystem_module,
+        "atomic_write_bytes",
+        fail_second_write,
+    )
+
+    with pytest.raises(
+        AtomicWriteError,
+        match="injected failure",
+    ):
+        transactional_write_bytes(
+            {
+                first: b"new-first",
+                second: b"new-second",
+            }
+        )
+
+    assert first.read_bytes() == b"old-first"
+    assert second.read_bytes() == b"old-second"
+
+
+def test_transactional_write_bytes_removes_new_file_on_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    created = tmp_path / "created.json"
+    failing = tmp_path / "failing.json"
+
+    import agentic_workflow_generator.infrastructure.filesystem as filesystem_module
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_write_bytes,
+    )
+
+    original_write = filesystem_module.atomic_write_bytes
+    calls = 0
+
+    def fail_second_write(
+        path: Path,
+        content: bytes,
+    ) -> None:
+        nonlocal calls
+        calls += 1
+
+        if calls == 2:
+            raise AtomicWriteError(
+                path,
+                "injected failure",
+            )
+
+        original_write(path, content)
+
+    monkeypatch.setattr(
+        filesystem_module,
+        "atomic_write_bytes",
+        fail_second_write,
+    )
+
+    with pytest.raises(AtomicWriteError):
+        transactional_write_bytes(
+            {
+                created: b"created",
+                failing: b"never-written",
+            }
+        )
+
+    assert not created.exists()
+    assert not failing.exists()
+
+
+def test_transactional_write_bytes_rejects_empty_transaction() -> None:
+    from agentic_workflow_generator.infrastructure import (
+        transactional_write_bytes,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="at least one file",
+    ):
+        transactional_write_bytes({})
+
+
+def test_transactional_write_reports_rollback_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    first.write_bytes(b"old-first")
+    second.write_bytes(b"old-second")
+
+    import agentic_workflow_generator.infrastructure.filesystem as filesystem_module
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        TransactionRollbackError,
+        transactional_write_bytes,
+    )
+
+    original_write = filesystem_module.atomic_write_bytes
+    calls = 0
+
+    def fail_write_and_restore(
+        path: Path,
+        content: bytes,
+    ) -> None:
+        nonlocal calls
+        calls += 1
+
+        if calls >= 2:
+            raise AtomicWriteError(
+                path,
+                "injected failure",
+            )
+
+        original_write(path, content)
+
+    monkeypatch.setattr(
+        filesystem_module,
+        "atomic_write_bytes",
+        fail_write_and_restore,
+    )
+
+    with pytest.raises(
+        TransactionRollbackError,
+        match="additionally failed to restore",
+    ) as captured:
+        transactional_write_bytes(
+            {
+                first: b"new-first",
+                second: b"new-second",
+            }
+        )
+
+    assert captured.value.restoration_errors
+
+
+def test_transactional_write_rejects_resolved_duplicate_paths(
+    tmp_path: Path,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        transactional_write_bytes,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="paths must be unique",
+    ):
+        transactional_write_bytes(
+            {
+                tmp_path / "output.json": b"first",
+                tmp_path
+                / "missing-directory"
+                / ".."
+                / "output.json": b"second",
+            }
+        )
+
+
+def test_transactional_write_rejects_missing_parent(
+    tmp_path: Path,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_write_bytes,
+    )
+
+    target = tmp_path / "missing" / "output.json"
+
+    with pytest.raises(
+        AtomicWriteError,
+        match="parent directory does not exist",
+    ):
+        transactional_write_bytes(
+            {
+                target: b"content",
+            }
+        )
+
+
+def test_transactional_write_wraps_snapshot_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_write_bytes,
+    )
+
+    target = tmp_path / "output.json"
+    target.write_bytes(b"old")
+    original_read_bytes = Path.read_bytes
+
+    def fail_target_snapshot(self: Path) -> bytes:
+        if self == target:
+            raise OSError("snapshot unavailable")
+
+        return original_read_bytes(self)
+
+    monkeypatch.setattr(
+        Path,
+        "read_bytes",
+        fail_target_snapshot,
+    )
+
+    with pytest.raises(
+        AtomicWriteError,
+        match="could not snapshot existing file",
+    ):
+        transactional_write_bytes(
+            {
+                target: b"new",
+            }
+        )

@@ -36,6 +36,10 @@ class ProjectPaths:
         return self.root / ".agentic" / "agentic.json"
 
     @property
+    def setup_profile(self) -> Path:
+        return self.root / ".agentic" / "setup-profile.json"
+
+    @property
     def generated_root(self) -> Path:
         return self.root / ".agentic" / "generated"
 

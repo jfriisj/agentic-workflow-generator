@@ -1,6 +1,9 @@
 from dataclasses import replace
 from pathlib import Path
 
+from jsonschema.exceptions import ValidationError
+
+import agentic_workflow_generator.validation.bundles as bundles_module
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
     read_json_object,
@@ -934,3 +937,17 @@ def test_separation_policy_binding_must_exist() -> None:
     result = validate(source(data=data))
 
     assert UNKNOWN_SEPARATION_BINDING_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_bundle_missing_required_field_wrapper_delegates() -> None:
+    error = ValidationError(
+        "name is required",
+        validator="required",
+        validator_value=["name"],
+        instance={},
+    )
+
+    assert (
+        bundles_module._missing_required_field(error)
+        == "name"
+    )

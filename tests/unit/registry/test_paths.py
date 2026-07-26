@@ -30,6 +30,9 @@ def test_project_paths_expose_canonical_locations(
     assert paths.registry_root == tmp_path / "registry"
     assert paths.schema_root == (tmp_path / ".agentic" / "schemas")
     assert paths.active_config == (tmp_path / ".agentic" / "agentic.json")
+    assert paths.setup_profile == (
+        tmp_path / ".agentic" / "setup-profile.json"
+    )
     assert paths.generated_root == (tmp_path / ".agentic" / "generated")
     assert paths.lockfile == (tmp_path / ".agentic" / "agentic-lock.json")
     assert paths.manifest == (

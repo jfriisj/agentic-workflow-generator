@@ -43,8 +43,6 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-generated
   scripts/agentic/agentic-gen.sh validate-target-compatibility
   scripts/agentic/agentic-gen.sh validate-target-runtime
-  scripts/agentic/agentic-gen.sh test-isolated-e2e
-  scripts/agentic/agentic-gen.sh test-target-runtime-e2e
   scripts/agentic/agentic-gen.sh test-negative
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all [vscode-copilot|opencode|all]
@@ -104,10 +102,6 @@ Commands:
              Require OpenCode to parse generated config, agents, and skills.
   validate-init-idempotency
              Validate init determinism for .agentic/agentic.json and guided setup profiles.
-  test-isolated-e2e
-             Run guided init and generation from a clean isolated consumer fixture.
-  test-target-runtime-e2e
-             Require OpenCode to parse every registered isolated setup.
   test-negative
              Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
@@ -163,11 +157,7 @@ check_scripts() {
   require_file "scripts/agentic/validate-workflow-registry.py"
   require_file "scripts/agentic/validate-profile-registry.py"
   require_file "scripts/agentic/init-from-bundle.py"
-  require_file "scripts/agentic/init_support.py"
-  require_file "scripts/agentic/setup_materializer.py"
-  require_file "scripts/agentic/guided_init.py"
   require_file "scripts/agentic/validate-init-idempotency.py"
-  require_file "scripts/agentic/test-isolated-e2e.py"
   require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
@@ -197,11 +187,7 @@ check_scripts() {
   uv run python -m py_compile "scripts/agentic/validate-workflow-registry.py"
   uv run python -m py_compile "scripts/agentic/validate-profile-registry.py"
   uv run python -m py_compile "scripts/agentic/init-from-bundle.py"
-  uv run python -m py_compile "scripts/agentic/init_support.py"
-  uv run python -m py_compile "scripts/agentic/setup_materializer.py"
-  uv run python -m py_compile "scripts/agentic/guided_init.py"
   uv run python -m py_compile "scripts/agentic/validate-init-idempotency.py"
-  uv run python -m py_compile "scripts/agentic/test-isolated-e2e.py"
   uv run python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   uv run python -m py_compile "scripts/agentic/validate-registry-references.py"
   uv run python -m py_compile "scripts/agentic/validate-registry-schemas.py"
@@ -314,7 +300,6 @@ run_doctor() {
   echo ""
 
   echo "== Isolated consumer end-to-end test =="
-  scripts/agentic/test-isolated-e2e.py || return 1
   echo ""
 
   echo "== Negative gate tests =="
@@ -484,12 +469,6 @@ case "$COMMAND" in
     ;;
   validate-init-idempotency)
     uv run python scripts/agentic/validate-init-idempotency.py "${@:2}"
-    ;;
-  test-isolated-e2e)
-    scripts/agentic/test-isolated-e2e.py
-    ;;
-  test-target-runtime-e2e)
-    scripts/agentic/test-isolated-e2e.py --require-opencode-runtime
     ;;
   test-negative)
     scripts/agentic/test-negative-gates.py "${@:2}"

@@ -12,108 +12,56 @@
     "architectureProfile": "platform-neutral-workflow-compiler"
   },
   "workflow": {
-    "profile": "orchestrated-delivery",
+    "name": "orchestrated-delivery",
+    "version": "0.2.0",
+    "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
     "startState": "Requirements",
     "terminalStates": [
       "Done",
       "Blocked"
     ],
+    "defaultFailureState": "Blocked",
     "failClosed": true,
     "states": [
       {
         "name": "Requirements",
-        "gate": {
-          "name": "requirements-review",
-          "blocking": true,
-          "requiredCapabilities": [
-            "requirements.elicit",
-            "requirements.define-acceptance-criteria"
-          ],
-          "requiredArtifacts": [
-            "Requirements"
-          ]
-        }
+        "terminal": false,
+        "gate": "requirements-review"
       },
       {
         "name": "Architect",
-        "gate": {
-          "name": "architecture-review",
-          "blocking": true,
-          "requiredCapabilities": [
-            "architecture.design",
-            "architecture.evaluate-tradeoffs"
-          ],
-          "requiredArtifacts": [
-            "ArchitectureDecision"
-          ]
-        }
+        "terminal": false,
+        "gate": "architecture-review"
       },
       {
         "name": "Implementer",
-        "gate": {
-          "name": "implementation-complete",
-          "blocking": true,
-          "requiredCapabilities": [
-            "implementation.code",
-            "implementation.refactor",
-            "implementation.update-tests"
-          ],
-          "requiredArtifacts": [
-            "ImplementationReport"
-          ]
-        }
+        "terminal": false,
+        "gate": "implementation-complete"
       },
       {
         "name": "TestRunner",
-        "gate": {
-          "name": "test-review",
-          "blocking": true,
-          "requiredCapabilities": [
-            "test.run",
-            "test.report",
-            "test.diagnose-failure"
-          ],
-          "requiredArtifacts": [
-            "TestReport"
-          ]
-        }
+        "terminal": false,
+        "gate": "test-review"
       },
       {
         "name": "CodeReviewer",
-        "gate": {
-          "name": "code-review",
-          "blocking": true,
-          "requiredCapabilities": [
-            "review.clean-code",
-            "review.tests",
-            "review.security"
-          ],
-          "requiredArtifacts": [
-            "CodeReview"
-          ]
-        }
+        "terminal": false,
+        "gate": "code-review"
       },
       {
         "name": "QA",
-        "gate": {
-          "name": "qa-review",
-          "blocking": true,
-          "requiredCapabilities": [
-            "qa.verify-acceptance-criteria",
-            "qa.validate-evidence"
-          ],
-          "requiredArtifacts": [
-            "QAReport"
-          ]
-        }
+        "terminal": false,
+        "gate": "qa-review"
       },
       {
         "name": "Done",
-        "terminal": true
+        "terminal": true,
+        "gate": null
       },
       {
         "name": "Blocked",
-        "terminal": true
+        "terminal": true,
+        "gate": null
       }
     ],
     "transitions": [
@@ -179,193 +127,7 @@
       }
     ]
   },
-  "agents": [
-    {
-      "name": "Architect",
-      "role": "architecture-design",
-      "registryPath": "registry/agents/Architect/agent.json",
-      "capabilities": [
-        "architecture.design",
-        "architecture.evaluate-tradeoffs"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "architecture.design",
-          "skill": "architecture-design",
-          "skillPath": "registry/skills/architecture-design/skill.json"
-        },
-        {
-          "capability": "architecture.evaluate-tradeoffs",
-          "skill": "architecture-design",
-          "skillPath": "registry/skills/architecture-design/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "CodeReviewer",
-      "role": "code-quality-gate",
-      "registryPath": "registry/agents/CodeReviewer/agent.json",
-      "capabilities": [
-        "review.clean-code",
-        "review.tests",
-        "review.security"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "review.clean-code",
-          "skill": "code-review-clean-code",
-          "skillPath": "registry/skills/code-review-clean-code/skill.json"
-        },
-        {
-          "capability": "review.tests",
-          "skill": "code-review-tests",
-          "skillPath": "registry/skills/code-review-tests/skill.json"
-        },
-        {
-          "capability": "review.security",
-          "skill": "security-review",
-          "skillPath": "registry/skills/security-review/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "Implementer",
-      "role": "implementation",
-      "registryPath": "registry/agents/Implementer/agent.json",
-      "capabilities": [
-        "implementation.code",
-        "implementation.refactor",
-        "implementation.update-tests"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "implementation.code",
-          "skill": "implementation-engineering",
-          "skillPath": "registry/skills/implementation-engineering/skill.json"
-        },
-        {
-          "capability": "implementation.refactor",
-          "skill": "implementation-engineering",
-          "skillPath": "registry/skills/implementation-engineering/skill.json"
-        },
-        {
-          "capability": "implementation.update-tests",
-          "skill": "implementation-engineering",
-          "skillPath": "registry/skills/implementation-engineering/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "Orchestrator",
-      "role": "workflow-state-machine",
-      "registryPath": "registry/agents/Orchestrator/agent.json",
-      "capabilities": [
-        "workflow.route",
-        "workflow.validate-state",
-        "workflow.handoff"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "workflow.route",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        },
-        {
-          "capability": "workflow.validate-state",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        },
-        {
-          "capability": "workflow.handoff",
-          "skill": "workflow-routing",
-          "skillPath": "registry/skills/workflow-routing/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "QA",
-      "role": "quality-assurance",
-      "registryPath": "registry/agents/QA/agent.json",
-      "capabilities": [
-        "qa.verify-acceptance-criteria",
-        "qa.validate-evidence"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "qa.verify-acceptance-criteria",
-          "skill": "qa-acceptance-validation",
-          "skillPath": "registry/skills/qa-acceptance-validation/skill.json"
-        },
-        {
-          "capability": "qa.validate-evidence",
-          "skill": "qa-acceptance-validation",
-          "skillPath": "registry/skills/qa-acceptance-validation/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "Requirements",
-      "role": "requirements-analysis",
-      "registryPath": "registry/agents/Requirements/agent.json",
-      "capabilities": [
-        "requirements.elicit",
-        "requirements.define-acceptance-criteria"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "requirements.elicit",
-          "skill": "requirements-analysis",
-          "skillPath": "registry/skills/requirements-analysis/skill.json"
-        },
-        {
-          "capability": "requirements.define-acceptance-criteria",
-          "skill": "requirements-analysis",
-          "skillPath": "registry/skills/requirements-analysis/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    },
-    {
-      "name": "TestRunner",
-      "role": "validation",
-      "registryPath": "registry/agents/TestRunner/agent.json",
-      "capabilities": [
-        "test.run",
-        "test.report",
-        "test.diagnose-failure"
-      ],
-      "resolvedCapabilities": [
-        {
-          "capability": "test.run",
-          "skill": "test-execution",
-          "skillPath": "registry/skills/test-execution/skill.json"
-        },
-        {
-          "capability": "test.report",
-          "skill": "test-execution",
-          "skillPath": "registry/skills/test-execution/skill.json"
-        },
-        {
-          "capability": "test.diagnose-failure",
-          "skill": "test-execution",
-          "skillPath": "registry/skills/test-execution/skill.json"
-        }
-      ],
-      "missingCapabilities": [],
-      "produces": []
-    }
-  ],
+  "agents": [],
   "targets": [
     {
       "name": "opencode",
@@ -381,11 +143,13 @@
     }
   ],
   "summary": {
-    "agentCount": 7,
+    "agentCount": 0,
     "targetCount": 2,
     "availableSkillCount": 10,
     "producedArtifactBindingCount": 0,
-    "errorCount": 0,
-    "errors": []
+    "errorCount": 1,
+    "errors": [
+      "workflow.profile must be a non-empty string"
+    ]
   }
 }

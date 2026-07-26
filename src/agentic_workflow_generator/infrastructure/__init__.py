@@ -8,8 +8,13 @@ from .errors import (
     JsonReadError,
     JsonRootTypeError,
     JsonSerializationError,
+    TransactionRollbackError,
 )
-from .filesystem import atomic_write_bytes, atomic_write_text
+from .filesystem import (
+    atomic_write_bytes,
+    atomic_write_text,
+    transactional_write_bytes,
+)
 from .hashing import sha256_bytes, sha256_file
 from .json_io import (
     JsonObject,
@@ -30,6 +35,7 @@ __all__ = [
     "JsonRootTypeError",
     "JsonSerializationError",
     "JsonValue",
+    "TransactionRollbackError",
     "atomic_write_bytes",
     "atomic_write_text",
     "read_json",
@@ -37,5 +43,6 @@ __all__ = [
     "serialize_json",
     "sha256_bytes",
     "sha256_file",
+    "transactional_write_bytes",
     "write_json",
 ]

@@ -5,7 +5,9 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from jsonschema.exceptions import ValidationError
 
+import agentic_workflow_generator.validation.setup_profiles as setup_profiles_module
 from agentic_workflow_generator.domain import (
     Setup,
     SetupMode,
@@ -480,4 +482,16 @@ def test_conflicting_target_patches_are_rejected() -> None:
         diagnostic.code == SELECTION_CONFLICT_DIAGNOSTIC
         and diagnostic.location == "selected.targets"
         for diagnostic in result.diagnostics
+    )
+
+
+def test_setup_profile_schema_location_wrapper_delegates() -> None:
+    error = ValidationError(
+        "reason is required",
+        path=["answers", 0],
+    )
+
+    assert (
+        setup_profiles_module._schema_error_location(error)
+        == "$.answers[0]"
     )
