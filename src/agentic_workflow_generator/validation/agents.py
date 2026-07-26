@@ -19,7 +19,7 @@ from agentic_workflow_generator.infrastructure import (
 from agentic_workflow_generator.registry import RegistrySource
 from agentic_workflow_generator.validation.identity_support import (
     duplicate_name_diagnostics,
-    folder_name_mismatch_diagnostic,
+    folder_name_mismatch_diagnostics,
 )
 from agentic_workflow_generator.validation.schema_support import (
     field_schema_error_message,
@@ -290,14 +290,13 @@ def _validate_agent_semantics(
     profile = parsed.profile
     source_path = parsed.source_path
     diagnostics: list[Diagnostic] = []
-    folder_diagnostic = folder_name_mismatch_diagnostic(
-        profile.name,
-        source_path,
-        FOLDER_NAME_DIAGNOSTIC,
+    diagnostics.extend(
+        folder_name_mismatch_diagnostics(
+            profile.name,
+            source_path,
+            FOLDER_NAME_DIAGNOSTIC,
+        )
     )
-
-    if folder_diagnostic is not None:
-        diagnostics.append(folder_diagnostic)
 
     for capability in profile.recommended_capabilities:
         if capability in references.skill_capabilities:

@@ -8,29 +8,31 @@ from pathlib import Path
 from agentic_workflow_generator.domain import Diagnostic
 
 
-def folder_name_mismatch_diagnostic(
+def folder_name_mismatch_diagnostics(
     name: str,
     source_path: Path,
     diagnostic_code: str,
-) -> Diagnostic | None:
-    """Return a diagnostic when a registry name differs from its folder."""
+) -> tuple[Diagnostic, ...]:
+    """Return diagnostics when a registry name differs from its folder."""
 
     folder_name = source_path.parent.name
 
     if name == folder_name:
-        return None
+        return ()
 
-    return Diagnostic(
-        code=diagnostic_code,
-        message=(
-            f"name {name!r} does not match folder "
-            f"{folder_name!r}"
-        ),
-        source_path=source_path.as_posix(),
-        location="name",
-        related_identities=(
-            name,
-            folder_name,
+    return (
+        Diagnostic(
+            code=diagnostic_code,
+            message=(
+                f"name {name!r} does not match folder "
+                f"{folder_name!r}"
+            ),
+            source_path=source_path.as_posix(),
+            location="name",
+            related_identities=(
+                name,
+                folder_name,
+            ),
         ),
     )
 

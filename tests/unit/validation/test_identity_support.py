@@ -2,31 +2,31 @@ from pathlib import Path
 
 from agentic_workflow_generator.validation.identity_support import (
     duplicate_name_diagnostics,
-    folder_name_mismatch_diagnostic,
+    folder_name_mismatch_diagnostics,
 )
 
 
 def test_folder_name_mismatch_diagnostic() -> None:
     path = Path("registry/agents/Expected/agent.json")
 
-    assert folder_name_mismatch_diagnostic(
+    assert folder_name_mismatch_diagnostics(
         "Expected",
         path,
         "AWG-TEST-001",
-    ) is None
+    ) == ()
 
-    diagnostic = folder_name_mismatch_diagnostic(
+    diagnostics = folder_name_mismatch_diagnostics(
         "Actual",
         path,
         "AWG-TEST-001",
     )
 
-    assert diagnostic is not None
-    assert diagnostic.code == "AWG-TEST-001"
-    assert diagnostic.message == (
+    assert len(diagnostics) == 1
+    assert diagnostics[0].code == "AWG-TEST-001"
+    assert diagnostics[0].message == (
         "name 'Actual' does not match folder 'Expected'"
     )
-    assert diagnostic.related_identities == (
+    assert diagnostics[0].related_identities == (
         "Actual",
         "Expected",
     )
