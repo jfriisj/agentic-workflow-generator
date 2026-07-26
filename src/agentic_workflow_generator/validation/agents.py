@@ -17,6 +17,10 @@ from agentic_workflow_generator.infrastructure import (
     JsonValue,
 )
 from agentic_workflow_generator.registry import RegistrySource
+from agentic_workflow_generator.validation.identity_support import (
+    duplicate_name_diagnostics,
+    folder_name_mismatch_diagnostic,
+)
 from agentic_workflow_generator.validation.schema_support import (
     field_schema_error_message,
     first_duplicate_string,
@@ -286,23 +290,14 @@ def _validate_agent_semantics(
     profile = parsed.profile
     source_path = parsed.source_path
     diagnostics: list[Diagnostic] = []
-    folder_name = source_path.parent.name
+    folder_diagnostic = folder_name_mismatch_diagnostic(
+        profile.name,
+        source_path,
+        FOLDER_NAME_DIAGNOSTIC,
+    )
 
-    if profile.name != folder_name:
-        diagnostics.append(
-            Diagnostic(
-                code=FOLDER_NAME_DIAGNOSTIC,
-                message=(
-                    f"name {profile.name!r} does not match folder {folder_name!r}"
-                ),
-                source_path=source_path.as_posix(),
-                location="name",
-                related_identities=(
-                    profile.name,
-                    folder_name,
-                ),
-            )
-        )
+    if folder_diagnostic is not None:
+        diagnostics.append(folder_diagnostic)
 
     for capability in profile.recommended_capabilities:
         if capability in references.skill_capabilities:
@@ -352,32 +347,17 @@ def _validate_agent_semantics(
 def _validate_unique_names(
     parsed_agents: list[_ParsedAgent],
 ) -> tuple[Diagnostic, ...]:
-    seen: dict[str, Path] = {}
-    diagnostics: list[Diagnostic] = []
-
-    for parsed in parsed_agents:
-        name = parsed.profile.name
-        first_path = seen.get(name)
-
-        if first_path is None:
-            seen[name] = parsed.source_path
-            continue
-
-        diagnostics.append(
-            Diagnostic(
-                code=DUPLICATE_NAME_DIAGNOSTIC,
-                message=(
-                    f"agent name {name!r} is duplicated; "
-                    "first declared at "
-                    f"{first_path.as_posix()}"
-                ),
-                source_path=(parsed.source_path.as_posix()),
-                location="name",
-                related_identities=(name,),
+    return duplicate_name_diagnostics(
+        (
+            (
+                parsed.profile.name,
+                parsed.source_path,
             )
-        )
-
-    return tuple(diagnostics)
+            for parsed in parsed_agents
+        ),
+        DUPLICATE_NAME_DIAGNOSTIC,
+        'agent',
+    )
 
 
 def _schema_error_sort_key(

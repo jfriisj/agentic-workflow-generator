@@ -17,6 +17,9 @@ from agentic_workflow_generator.infrastructure import (
     JsonValue,
 )
 from agentic_workflow_generator.registry import RegistrySource
+from agentic_workflow_generator.validation.identity_support import (
+    duplicate_name_diagnostics,
+)
 from agentic_workflow_generator.validation.schema_support import (
     field_schema_error_message,
     first_duplicate_string,
@@ -385,31 +388,17 @@ def _validate_profile_semantics(
 def _validate_unique_names(
     parsed_profiles: list[_ParsedProfile],
 ) -> tuple[Diagnostic, ...]:
-    seen: dict[str, Path] = {}
-    diagnostics: list[Diagnostic] = []
-
-    for parsed in parsed_profiles:
-        name = parsed.profile.name
-        first_path = seen.get(name)
-
-        if first_path is None:
-            seen[name] = parsed.source_path
-            continue
-
-        diagnostics.append(
-            Diagnostic(
-                code=DUPLICATE_NAME_DIAGNOSTIC,
-                message=(
-                    f"profile name {name!r} is duplicated; "
-                    f"first declared at {first_path.as_posix()}"
-                ),
-                source_path=parsed.source_path.as_posix(),
-                location="name",
-                related_identities=(name,),
+    return duplicate_name_diagnostics(
+        (
+            (
+                parsed.profile.name,
+                parsed.source_path,
             )
-        )
-
-    return tuple(diagnostics)
+            for parsed in parsed_profiles
+        ),
+        DUPLICATE_NAME_DIAGNOSTIC,
+        'profile',
+    )
 
 
 def _schema_error_sort_key(
