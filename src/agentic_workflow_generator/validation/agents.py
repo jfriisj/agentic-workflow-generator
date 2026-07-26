@@ -21,6 +21,9 @@ from agentic_workflow_generator.validation.identity_support import (
     duplicate_name_diagnostics,
     folder_name_mismatch_diagnostics,
 )
+from agentic_workflow_generator.validation.pipeline_support import (
+    validate_and_parse_sources,
+)
 from agentic_workflow_generator.validation.schema_support import (
     field_schema_error_message,
     first_duplicate_string,
@@ -151,34 +154,17 @@ def validate_agent_registry(
 ) -> AgentValidationResult:
     """Validate advisory agent profiles without side effects."""
 
-    validator = Draft202012Validator(cast(Mapping[str, Any], schema))
-    parsed_agents: list[_ParsedAgent] = []
-    diagnostics: list[Diagnostic] = []
-
-    for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
-
-        if legacy_diagnostics:
-            continue
-
-        schema_diagnostics = _validate_schema(
-            source,
-            validator,
-        )
-        diagnostics.extend(schema_diagnostics)
-
-        if schema_diagnostics:
-            continue
-
-        parsed = _parse_agent(source)
-        parsed_agents.append(parsed)
-        diagnostics.extend(
-            _validate_agent_semantics(
-                parsed,
-                references,
-            )
-        )
+    validator = Draft202012Validator(
+        cast(Mapping[str, Any], schema)
+    )
+    parsed_agents, diagnostics = validate_and_parse_sources(
+        sources,
+        validator,
+        _validate_legacy_fields,
+        _validate_schema,
+        _parse_agent,
+        lambda parsed: _validate_agent_semantics(parsed, references),
+    )
 
     diagnostics.extend(_validate_unique_names(parsed_agents))
 

@@ -20,6 +20,9 @@ from agentic_workflow_generator.registry import RegistrySource
 from agentic_workflow_generator.validation.identity_support import (
     duplicate_name_diagnostics,
 )
+from agentic_workflow_generator.validation.pipeline_support import (
+    validate_and_parse_sources,
+)
 from agentic_workflow_generator.validation.schema_support import (
     field_schema_error_message,
     first_duplicate_string,
@@ -148,31 +151,17 @@ def validate_profile_registry(
 ) -> ProfileValidationResult:
     """Validate advisory project profiles without side effects."""
 
-    validator = Draft202012Validator(cast(Mapping[str, Any], schema))
-    parsed_profiles: list[_ParsedProfile] = []
-    diagnostics: list[Diagnostic] = []
-
-    for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
-
-        if legacy_diagnostics:
-            continue
-
-        schema_diagnostics = _validate_schema(source, validator)
-        diagnostics.extend(schema_diagnostics)
-
-        if schema_diagnostics:
-            continue
-
-        parsed = _parse_profile(source)
-        parsed_profiles.append(parsed)
-        diagnostics.extend(
-            _validate_profile_semantics(
-                parsed,
-                references,
-            )
-        )
+    validator = Draft202012Validator(
+        cast(Mapping[str, Any], schema)
+    )
+    parsed_profiles, diagnostics = validate_and_parse_sources(
+        sources,
+        validator,
+        _validate_legacy_fields,
+        _validate_schema,
+        _parse_profile,
+        lambda parsed: _validate_profile_semantics(parsed, references),
+    )
 
     diagnostics.extend(_validate_unique_names(parsed_profiles))
 

@@ -107,9 +107,11 @@ def validate_artifact_registry(
         if legacy_diagnostics:
             continue
 
-        schema_diagnostics = _validate_schema(
+        schema_diagnostics = custom_registry_schema_diagnostics(
             source,
             validator,
+            SCHEMA_DIAGNOSTIC,
+            _schema_error_message,
         )
         diagnostics.extend(schema_diagnostics)
 
@@ -153,18 +155,6 @@ def _validate_legacy_fields(
             related_identities=(field,),
         )
         for field in fields
-    )
-
-
-def _validate_schema(
-    source: RegistrySource,
-    validator: Draft202012Validator,
-) -> tuple[Diagnostic, ...]:
-    return custom_registry_schema_diagnostics(
-        source,
-        validator,
-        SCHEMA_DIAGNOSTIC,
-        _schema_error_message,
     )
 
 

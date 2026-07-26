@@ -23,6 +23,9 @@ from agentic_workflow_generator.registry import RegistrySource
 from agentic_workflow_generator.validation.identity_support import (
     duplicate_name_diagnostics,
 )
+from agentic_workflow_generator.validation.pipeline_support import (
+    validate_and_parse_sources,
+)
 from agentic_workflow_generator.validation.schema_support import (
     custom_registry_schema_diagnostics,
 )
@@ -124,27 +127,23 @@ def validate_skill_registry(
 ) -> SkillValidationResult:
     """Validate reusable skill definitions without side effects."""
 
-    validator = Draft202012Validator(cast(Mapping[str, Any], schema))
-    parsed_skills: list[_ParsedSkill] = []
-    diagnostics: list[Diagnostic] = []
-
-    for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
-
-        if legacy_diagnostics:
-            continue
-
-        schema_diagnostics = _validate_schema(
-            source,
-            validator,
-        )
-        diagnostics.extend(schema_diagnostics)
-
-        if schema_diagnostics:
-            continue
-
-        parsed_skills.append(_parse_skill(source))
+    validator = Draft202012Validator(
+        cast(Mapping[str, Any], schema)
+    )
+    parsed_skills, diagnostics = validate_and_parse_sources(
+        sources,
+        validator,
+        _validate_legacy_fields,
+        lambda source, active_validator: (
+            custom_registry_schema_diagnostics(
+                source,
+                active_validator,
+                SCHEMA_DIAGNOSTIC,
+                _schema_error_message,
+            )
+        ),
+        _parse_skill,
+    )
 
     providers, provider_diagnostics = _project_capability_providers(parsed_skills)
     capability_names = frozenset(provider.capability for provider in providers)
@@ -182,18 +181,6 @@ def _validate_legacy_fields(
             related_identities=(field,),
         )
         for field in fields
-    )
-
-
-def _validate_schema(
-    source: RegistrySource,
-    validator: Draft202012Validator,
-) -> tuple[Diagnostic, ...]:
-    return custom_registry_schema_diagnostics(
-        source,
-        validator,
-        SCHEMA_DIAGNOSTIC,
-        _schema_error_message,
     )
 
 

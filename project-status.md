@@ -30,7 +30,7 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret i det aktuelle working tree. Den typed, side-effect-free setupmaterialiseringsservice er implementeret og integreret med alle fire virkelige setup-registryfiler. Guided init, runtime-schema, resolution, targetgenerering og flere downstream-consumers anvender fortsat legacy-modellen.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Runtime-schema, bundle-init, resolution, targetgenerering og flere downstream-consumers anvender fortsat legacy-modellen.
 
 Repositoryet er derfor fortsat bevidst ikke globalt green. Den dokumenterede compilerarkitektur og den nye testarkitektur anvendes nu til kontrollerede vertikale migrations-slices uden compatibility projection eller fallback.
 
@@ -49,7 +49,7 @@ registry
 → validering
 ~~~
 
-### Implementeret i working tree
+### Implementeret på migrationsbranchen
 
 * 8 agentprofiler er migreret til version `0.2.0`.
 * Agentprofiler indeholder kun rådgivende responsibilities, guardrails, capabilities og default permission.
@@ -66,11 +66,15 @@ registry
 * 3 permission-profiler og tilhørende schema og semantisk validator er implementeret.
 * 8 agentprofiler og 10 skills har typed immutable domænemodeller, strikte schemaer og strukturerede semantiske validators.
 * Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller, stabile diagnostics og midlertidige tynde launchers.
+* Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og legacy-schema-parse-pipelinen uden fallback eller parallel autoritet.
+* CLI-laget anvender fælles diagnostic-rendering og et typed setup-validation context.
+* Pylint duplicate-code er konfigureret som dev-gate og består med rating 10,00/10.
 * Setup registry og setup profiles er migreret til version `0.2.0`.
 * Setupvalg ejer kun `bundle` og `targets`; profile, workflow, agent-instances, role bindings, skills, capabilities, permissions og artifacts ejes af det valgte bundle.
 * Legacyfelterne `defaultBundle`, `finalRecommendation`, question-level classification-lister, option `recommends` samt setup-profile-felterne `profile` og `workflow` er fjernet uden fallback.
 * Den offentlige setup-registry-CLI validerer 4 setupfiler og 12 spørgsmål, og den materialiserede `.agentic/setup-profile.json` består den nye setup-profile-validator.
 * Den typed setupmaterialiseringsservice producerer immutable `SetupProfile`-objekter, anvender answer overrides eller default options og afviser ukendte, blocked eller modstridende valg fail-fast.
+* Den typed guided-init application service adskiller terminal-IO fra selection og materialisering, validerer før writes og bevarer back-navigation, cancellation, dry-run og transaktionel rollback.
 * Alle fire setups materialiserer gyldige profiler med defaults, OpenCode-only og VS Code Copilot-only.
 * `target-platforms` er nu den eneste spørgsmålsdimension, der ejer targetvalget; dobbelt target-autoritet er fjernet fra `project-domain` og `project-type`.
 * Global capability coverage bruger nu `roleBindings[].requiredCapabilities` som autoritativt runtimekrav.
@@ -82,9 +86,8 @@ registry
 ### Endnu ikke migreret eller afsluttet
 
 * typed domain models og validators for targets
-* migration af `guided_init.py`, `setup_materializer.py` og setup-relaterede init-consumers
+* migration af `init-from-bundle.py`, fuld bundlematerialisering og de resterende setup-relaterede init-consumers
 * `agentic.schema.json` og den aktive runtimekonfiguration
-* `init-from-bundle.py` og fuld bundlematerialisering
 * `validate-registry-references.py`
 * resolution-format, resolver og resolution-validator
 * lockfile-inputmodellen efter den endelige compilerstruktur
@@ -187,7 +190,7 @@ OpenCode 1.17.10 parsede config, agents og skills for alle fire isolerede setups
 
 ### Aktuel migrationsstatus
 
-Følgende validering er observeret grøn isoleret i det aktuelle working tree:
+Følgende validering er observeret grøn isoleret på den aktuelle migrationsbranch:
 
 ~~~text
 validate-registry-schemas
@@ -241,11 +244,13 @@ dedikeret bundle-testpakke
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 116 source files
-  PASS: 552 tests
-  PASS: 2.940 statements
-  PASS: 932 branches
-  PASS: 100 procent coverage
+  PASS: strict mypy for 129 source files
+  PASS: 576 tests
+  PASS: Pylint duplicate-code, rating 10.00/10
+  Senest separat målte coverage-baseline:
+    PASS: 2.999 statements
+    PASS: 952 branches
+    PASS: 100 procent coverage
 
 validate-setups
   PASS: 4 setup files
@@ -317,7 +322,7 @@ Auditten den 24. juli 2026 viste:
 ingen pytest-, ruff-, mypy- eller coverage-konfiguration
 ~~~
 
-Auditten identificerede før de afsluttede validator-slices flere store legacy-komponenter. Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er siden erstattet af pakkebaserede implementationer med tynde midlertidige launchers. Setupmaterialisering, guided init, resolution, targetgenerering og pipeline-orchestrering forbliver endnu i legacy-strukturen.
+Auditten identificerede før de afsluttede validator-slices flere store legacy-komponenter. Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er siden erstattet af pakkebaserede implementationer med tynde midlertidige launchers. Setupmaterialisering og guided init er flyttet til typed application services. Bundle-init, resolution, targetgenerering og pipeline-orchestrering forbliver endnu i legacy-strukturen.
 
 Der findes omfattende duplikation af blandt andet:
 
@@ -330,7 +335,7 @@ Der findes omfattende duplikation af blandt andet:
 * targetgenerering
 * test-fixtures
 
-Working tree er ikke klar til commit eller push, før:
+Migrationen udføres på den pushede branch `refactor/validation-deduplication`. Branchen er sikret på origin, men er ikke klar til merge til `main`, før:
 
 * compilerarkitekturen er dokumenteret
 * refaktoreringen er opdelt i kontrollerede slices
@@ -352,12 +357,12 @@ Aktuelle problemer:
 * `agentic-gen.sh` fungerer både som CLI-router og pipeline-orchestrator
 * validators fortolker rå JSON uafhængigt af hinanden
 * resolver og targetgeneratorer har egne modelantagelser
-* samme validation helpers er implementeret i mange filer
+* validatorernes fælles schema-, identity- og pipeline-helpers er samlet under `validation/` og består duplicate-code-gaten
 * negative gates er samlet i én fil på mere end 9.000 linjer
 * komponenttests starter ofte hele pipelinen
 * tests er primært koblet til fejltekst frem for stabile diagnostics
 * der findes ingen tydelig dependency direction mellem CLI, application, domain, registry, compiler og targets
-* der findes ingen konfigureret formatter, linter, type checker eller unit-test-runner
+* `pytest`, Ruff, strict mypy, coverage og Pylint duplicate-code er konfigureret; legacy negative- og E2E-gates mangler fortsat migration
 
 `registry/core` er tomt og skal ikke bruges som placering for Python-kode. Registryet forbliver deklarativt compiler-input.
 
@@ -476,7 +481,7 @@ Workflowmodellen mangler blandt andet:
 * Refaktoreringen udføres i vertikale slices.
 * Hver slice skal fjerne den gamle implementation samtidig med, at den nye aktiveres.
 * Der må ikke eksistere parallel gammel og ny implementation eller compatibility alias.
-* Første kvalitetsbaseline er `pytest`, `ruff` og `mypy`.
+* Kvalitetsbaselinen er `pytest`, Ruff, strict mypy, coverage og Pylint duplicate-code.
 * Nye features, setups og targets er sat på pause under hardening-fasen.
 
 ### Domæne- og kompositionsmodel
@@ -579,8 +584,9 @@ Planlagt rækkefølge:
 8. setups og setup profiles — validator-slice afsluttet
 9. typed setupmaterialisering — afsluttet
 10. real-registry- og setup-profile-integration — afsluttet
-11. guided init og setup-relaterede init-consumers — næste
-12. targets
+11. guided init application service — afsluttet
+12. resterende setup-relaterede init-consumers — næste
+13. targets
 
 Permission-profile-slicen omfatter nu:
 
@@ -964,14 +970,16 @@ public CLI
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 116 source files
-  PASS: 552 tests
-  PASS: 2.940 statements
-  PASS: 932 branches
-  PASS: 100 procent coverage
+  PASS: strict mypy for 129 source files
+  PASS: 576 tests
+  PASS: Pylint duplicate-code, rating 10.00/10
+  Senest separat målte coverage-baseline:
+    PASS: 2.999 statements
+    PASS: 952 branches
+    PASS: 100 procent coverage
 ~~~
 
-Den typed setupmaterialiseringsservice er implementeret under application-laget og integreret med registry-loading og setup-profile-validation. Guided init og de øvrige init-consumers mangler fortsat og må ikke repareres gennem raw-dict compatibility logic.
+Den typed setupmaterialiseringsservice og guided-init application service er implementeret under application-laget og integreret med registry-loading og setup-profile-validation. De resterende init-consumers mangler fortsat og må ikke repareres gennem raw-dict compatibility logic.
 
 Materialiseringsintegrationen er valideret med:
 
@@ -991,10 +999,24 @@ real-registry integration
 
 samlet migreret Python-pakke
   PASS: Ruff
-  PASS: strict mypy for 116 source files
-  PASS: 552 tests
-  PASS: 2.940 statements
-  PASS: 932 branches
+  PASS: strict mypy for 129 source files
+  PASS: 576 tests
+  PASS: Pylint duplicate-code, rating 10.00/10
+  Senest separat målte coverage-baseline:
+    PASS: 2.999 statements
+    PASS: 952 branches
+    PASS: 100 procent coverage
+~~~
+
+Guided-init application service er valideret isoleret med:
+
+~~~text
+dedikeret guided-init testpakke
+  PASS: Ruff
+  PASS: strict mypy
+  PASS: 11 tests
+  PASS: 58 statements
+  PASS: 20 branches
   PASS: 100 procent coverage
 ~~~
 
@@ -1071,42 +1093,29 @@ For hver resterende slice:
 
 ## Næste konkrete opgave
 
-Migrér guided init og de setup-relaterede init-consumers til den typed application-arkitektur.
+Migrér `init-from-bundle.py` og de resterende setup-relaterede init-consumers til den typed application- og bundlekompositionsmodel.
 
-Arbejdet skal begynde med at auditere side effects, prompts, navigation, rollback og filwrites i:
+Guided init er nu implementeret som typed application service med adskilt terminal-IO, deterministisk setupmaterialisering, validering før writes, cancellation, back-navigation, dry-run og transaktionel rollback.
 
-~~~text
-scripts/agentic/guided_init.py
-scripts/agentic/setup_materializer.py
-scripts/agentic/init-from-bundle.py
-~~~
+Arbejdet skal nu:
 
-Det næste delmål skal:
-
-1. etablere en typed guided-init application service, der anvender setupmaterialiseringsservicen
-2. holde terminal-IO og prompt-navigation adskilt fra selection- og materialiseringspolitikken
-3. bevare back-navigation, cancellation, dry-run og transaktionel rollback
-4. skrive `.agentic/setup-profile.json` gennem den deterministiske JSON-infrastruktur
-5. validere setup-profilen før øvrige init-side effects
-6. stoppe al læsning af `selected.profile` og `selected.workflow`
-7. tilføje isolerede unit- og integrationstests uden den fulde legacy-pipeline
-
-Derefter skal:
-
-* `guided_init.py` reduceres til en tynd launcher eller fjernes
-* den gamle `setup_materializer.py` fjernes fuldstændigt
-* `init-from-bundle.py` migreres til bundle-ejet profile og workflow
-* isolated E2E migreres til den nye setup-kontrakt
+1. lade bundle eje effektiv profile, workflow, agent-instances, role bindings, skills, capabilities, permissions og artifacts
+2. stoppe al læsning af `selected.profile` og `selected.workflow`
+3. erstatte raw-dict-komposition med typed inputs og outputs
+4. validere den materialiserede setup-profil før øvrige init-side effects
+5. bevare atomiske writes og fail-fast rollback
+6. tilføje isolerede unit- og integrationstests uden den fulde legacy-pipeline
+7. reducere eller fjerne de tilsvarende scripts under `scripts/agentic`
 
 Arbejdet må ikke:
 
 * genindføre legacyfelter eller compatibility projections
 * placere ny application- eller domænelogik under `scripts/agentic`
-* lade terminal-UI eje selection- eller materialiseringssemantik
+* lade terminal-UI eller launchers eje kompositionssemantik
 * skrive delvise filer ved cancellation eller failure
 * bruge `test-negative-gates.py` eller hele legacy-pipelinen som komponentgate
 
-Efter fuld guided-init- og init-consumer-migration er næste vertikale registry-slice targets.
+Efter migrationen af de resterende init-consumers er næste vertikale registry-slice targets.
 
 ## Autoritativ domænemodel
 

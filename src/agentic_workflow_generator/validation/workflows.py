@@ -22,6 +22,9 @@ from agentic_workflow_generator.infrastructure import (
     JsonValue,
 )
 from agentic_workflow_generator.registry import RegistrySource
+from agentic_workflow_generator.validation.pipeline_support import (
+    validate_and_parse_sources,
+)
 from agentic_workflow_generator.validation.schema_support import (
     dot_path_registry_schema_diagnostics,
     dot_schema_error_location,
@@ -179,31 +182,17 @@ def validate_workflow_registry(
 ) -> WorkflowValidationResult:
     """Validate reusable workflows without side effects."""
 
-    validator = Draft202012Validator(cast(Mapping[str, Any], schema))
-    parsed_workflows: list[_ParsedWorkflow] = []
-    diagnostics: list[Diagnostic] = []
-
-    for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
-
-        if legacy_diagnostics:
-            continue
-
-        schema_diagnostics = _validate_schema(source, validator)
-        diagnostics.extend(schema_diagnostics)
-
-        if schema_diagnostics:
-            continue
-
-        parsed = _parse_workflow(source)
-        parsed_workflows.append(parsed)
-        diagnostics.extend(
-            _validate_workflow_semantics(
-                parsed,
-                references,
-            )
-        )
+    validator = Draft202012Validator(
+        cast(Mapping[str, Any], schema)
+    )
+    parsed_workflows, diagnostics = validate_and_parse_sources(
+        sources,
+        validator,
+        _validate_legacy_fields,
+        _validate_schema,
+        _parse_workflow,
+        lambda parsed: _validate_workflow_semantics(parsed, references),
+    )
 
     diagnostics.extend(_validate_unique_workflow_names(parsed_workflows))
 
