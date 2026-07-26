@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import errno
 import hashlib
 import json
@@ -12,9 +13,9 @@ import signal
 import subprocess
 import tempfile
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-
 
 ROOT = Path.cwd()
 
@@ -280,7 +281,9 @@ def expect_interactive_guided_defaults() -> tuple[bool, str]:
         shutil.rmtree(worktree.parent, ignore_errors=True)
 
 
-def expect_interactive_guided_first_question_back_returns_to_setup() -> tuple[bool, str]:
+def expect_interactive_guided_first_question_back_returns_to_setup() -> tuple[
+    bool, str
+]:
     name = "interactive guided init returns to setup selection from first question"
     worktree = copy_repo_to_temp()
 
@@ -350,7 +353,10 @@ def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
 
         for tracked_path in tracked_paths:
             if not tracked_path.is_file():
-                return False, f"{name}: required file was missing before test: {tracked_path}"
+                return (
+                    False,
+                    f"{name}: required file was missing before test: {tracked_path}",
+                )
 
             before[tracked_path] = (
                 tracked_path.read_bytes(),
@@ -386,7 +392,10 @@ def expect_interactive_guided_cancel_preserves_files() -> tuple[bool, str]:
             actual_mtime_ns = tracked_path.stat().st_mtime_ns
 
             if actual_bytes != expected_bytes:
-                return False, f"{name}: cancellation changed file contents: {tracked_path}"
+                return (
+                    False,
+                    f"{name}: cancellation changed file contents: {tracked_path}",
+                )
 
             if actual_mtime_ns != expected_mtime_ns:
                 return False, f"{name}: cancellation rewrote file: {tracked_path}"
@@ -415,8 +424,7 @@ def expect_guided_dry_run(
             if not tracked_path.is_file():
                 return (
                     False,
-                    f"{name}: required file was missing before test: "
-                    f"{tracked_path}",
+                    f"{name}: required file was missing before test: {tracked_path}",
                 )
 
             before[tracked_path] = (
@@ -489,8 +497,7 @@ def expect_guided_dry_run(
             if actual_bytes != expected_bytes:
                 return (
                     False,
-                    f"{name}: dry-run changed file contents: "
-                    f"{tracked_path}",
+                    f"{name}: dry-run changed file contents: {tracked_path}",
                 )
 
             if actual_mtime_ns != expected_mtime_ns:
@@ -508,8 +515,7 @@ def expect_guided_dry_run_defaults() -> tuple[bool, str]:
     return expect_guided_dry_run(
         "guided dry-run preserves files with default recommendations",
         [],
-        "target-platforms: "
-        "opencode-and-vscode-copilot [recommended]",
+        "target-platforms: opencode-and-vscode-copilot [recommended]",
         "targets: opencode, vscode-copilot",
     )
 
@@ -526,13 +532,14 @@ def expect_guided_dry_run_opencode_override() -> tuple[bool, str]:
     )
 
 
-
 def assert_cleanup_apply_removed_file(worktree: Path) -> tuple[bool, str]:
     path = worktree / ".github" / "agents" / "cleanup-apply-test.agent.md"
     if path.exists():
-        return False, f"cleanup apply did not remove expected file: {path.relative_to(worktree)}"
+        return (
+            False,
+            f"cleanup apply did not remove expected file: {path.relative_to(worktree)}",
+        )
     return True, "cleanup apply removed expected unmanaged file"
-
 
 
 def assert_guided_target_selection(
@@ -550,7 +557,10 @@ def assert_guided_target_selection(
 
     actual_selected_targets = selected.get("targets")
     if actual_selected_targets != expected_targets:
-        return False, f"setup-profile selected.targets was {actual_selected_targets!r}, expected {expected_targets!r}"
+        return (
+            False,
+            f"setup-profile selected.targets was {actual_selected_targets!r}, expected {expected_targets!r}",
+        )
 
     answers = setup_profile.get("answers")
     if not isinstance(answers, list):
@@ -568,7 +578,10 @@ def assert_guided_target_selection(
         return False, "setup-profile target-platforms answer must exist"
 
     if target_answer.get("selected") != expected_answer:
-        return False, f"target-platforms selected was {target_answer.get('selected')!r}, expected {expected_answer!r}"
+        return (
+            False,
+            f"target-platforms selected was {target_answer.get('selected')!r}, expected {expected_answer!r}",
+        )
 
     if target_answer.get("classification") != expected_classification:
         return False, (
@@ -581,12 +594,13 @@ def assert_guided_target_selection(
         return False, "agentic config targets must be a list"
 
     actual_config_targets = [
-        target.get("name")
-        for target in config_targets
-        if isinstance(target, dict)
+        target.get("name") for target in config_targets if isinstance(target, dict)
     ]
     if actual_config_targets != expected_targets:
-        return False, f"agentic config targets were {actual_config_targets!r}, expected {expected_targets!r}"
+        return (
+            False,
+            f"agentic config targets were {actual_config_targets!r}, expected {expected_targets!r}",
+        )
 
     return True, "guided target selection matched setup-profile and agentic config"
 
@@ -621,12 +635,8 @@ def assert_guided_vscode_copilot_only_targets(worktree: Path) -> tuple[bool, str
 def assert_ai_application_composition(
     worktree: Path,
 ) -> tuple[bool, str]:
-    setup_profile = load_json(
-        worktree / ".agentic" / "setup-profile.json"
-    )
-    config = load_json(
-        worktree / ".agentic" / "agentic.json"
-    )
+    setup_profile = load_json(worktree / ".agentic" / "setup-profile.json")
+    config = load_json(worktree / ".agentic" / "agentic.json")
 
     selected = setup_profile.get("selected")
     if not isinstance(selected, dict):
@@ -698,11 +708,7 @@ def assert_ai_application_composition(
     if not isinstance(agents, list):
         return False, "agentic config agents must be a list"
 
-    actual_agents = [
-        agent.get("name")
-        for agent in agents
-        if isinstance(agent, dict)
-    ]
+    actual_agents = [agent.get("name") for agent in agents if isinstance(agent, dict)]
 
     if actual_agents != expected["agents"]:
         return (
@@ -720,20 +726,10 @@ def break_capability_coverage(worktree: Path) -> None:
 
     changed = remove_string_from_nested_lists(data, "workflow.route")
     if not changed:
-        raise RuntimeError("Could not remove workflow.route from workflow-routing skill")
+        raise RuntimeError(
+            "Could not remove workflow.route from workflow-routing skill"
+        )
 
-    write_json(path, data)
-
-
-def break_workflow_terminal_state(worktree: Path) -> None:
-    path = worktree / "registry" / "workflows" / "orchestrated-delivery.workflow.json"
-    data = load_json(path)
-
-    terminal_states = data.setdefault("terminalStates", [])
-    if not isinstance(terminal_states, list):
-        raise RuntimeError("terminalStates must be a list for this test")
-
-    terminal_states.append("DefinitelyMissingTerminalState")
     write_json(path, data)
 
 
@@ -746,13 +742,7 @@ def break_generated_output(worktree: Path) -> None:
 
 
 def break_generated_selected_skill_output(worktree: Path) -> None:
-    path = (
-        worktree
-        / ".github"
-        / "skills"
-        / "code-review-clean-code"
-        / "SKILL.md"
-    )
+    path = worktree / ".github" / "skills" / "code-review-clean-code" / "SKILL.md"
     if not path.is_file():
         raise RuntimeError(
             f"Expected generated selected skill not found before mutation: {path}"
@@ -767,12 +757,10 @@ def break_cleanup_generated_apply(worktree: Path) -> None:
     path.write_text("# Cleanup apply test\n", encoding="utf-8")
 
 
-
 def break_cleanup_generated_dry_run(worktree: Path) -> None:
     path = worktree / ".github" / "agents" / "cleanup-dry-run-test.agent.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("# Cleanup dry-run test\n", encoding="utf-8")
-
 
 
 def break_cleanup_manifest_absolute_path(worktree: Path) -> None:
@@ -789,11 +777,12 @@ def break_cleanup_manifest_absolute_path(worktree: Path) -> None:
 
     owned_paths = first_target.get("ownedPaths")
     if not isinstance(owned_paths, list):
-        raise RuntimeError("first manifest target ownedPaths must be a list before mutation")
+        raise RuntimeError(
+            "first manifest target ownedPaths must be a list before mutation"
+        )
 
     owned_paths.append("/tmp/agentic-danger-test")
     write_json(path, data)
-
 
 
 def break_cleanup_manifest_parent_path(worktree: Path) -> None:
@@ -810,12 +799,12 @@ def break_cleanup_manifest_parent_path(worktree: Path) -> None:
 
     owned_paths = first_target.get("ownedPaths")
     if not isinstance(owned_paths, list):
-        raise RuntimeError("first manifest target ownedPaths must be a list before mutation")
+        raise RuntimeError(
+            "first manifest target ownedPaths must be a list before mutation"
+        )
 
     owned_paths.append("../outside-repo")
     write_json(path, data)
-
-
 
 
 def break_output_manifest_bundle_workflow_drift(worktree: Path) -> None:
@@ -837,7 +826,6 @@ def break_output_manifest_unsupported_schema_version(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_schema_version(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -849,30 +837,36 @@ def break_output_manifest_schema_version(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_generated_file_invalid_path_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["path"] = 123
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_empty_path(worktree: Path) -> None:
@@ -881,23 +875,30 @@ def break_output_manifest_generated_file_empty_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["path"] = ""
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_missing_path(worktree: Path) -> None:
@@ -906,23 +907,30 @@ def break_output_manifest_generated_file_missing_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry.pop("path", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_invalid_generated_file_entry_type(worktree: Path) -> None:
@@ -931,19 +939,24 @@ def break_output_manifest_invalid_generated_file_entry_type(worktree: Path) -> N
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     generated_files[0] = "not-an-object"
     write_json(path, data)
-
 
 
 def break_output_manifest_empty_generated_files(worktree: Path) -> None:
@@ -952,11 +965,15 @@ def break_output_manifest_empty_generated_files(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["generatedFiles"] = []
     first_target["generatedFileCount"] = 0
@@ -965,14 +982,13 @@ def break_output_manifest_empty_generated_files(worktree: Path) -> None:
     if isinstance(summary, dict):
         total_files = 0
         for target in targets:
-            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+            if isinstance(target, dict) and isinstance(
+                target.get("generatedFiles"), list
+            ):
                 total_files += len(target["generatedFiles"])
         summary["generatedFileCount"] = total_files
 
     write_json(path, data)
-
-
-
 
 
 def no_mutation(worktree: Path) -> None:
@@ -996,24 +1012,20 @@ def break_init_idempotency_by_changing_init_script(worktree: Path) -> None:
     path.write_text(text.replace(marker, injection + marker, 1), encoding="utf-8")
 
 
-
 def break_environment_validation_node_command(worktree: Path) -> None:
     fake_bin = worktree / ".tmp-negative-node-bin"
     fake_bin.mkdir(parents=True, exist_ok=True)
 
     node_path = fake_bin / "node"
     node_path.write_text(
-        "#!/usr/bin/env bash\n"
-        "echo 'negative gate broken node' >&2\n"
-        "exit 42\n",
+        "#!/usr/bin/env bash\necho 'negative gate broken node' >&2\nexit 42\n",
         encoding="utf-8",
     )
     node_path.chmod(0o755)
 
     npx_path = fake_bin / "npx"
     npx_path.write_text(
-        "#!/usr/bin/env bash\n"
-        "echo 'negative gate fake npx'\n",
+        "#!/usr/bin/env bash\necho 'negative gate fake npx'\n",
         encoding="utf-8",
     )
     npx_path.chmod(0o755)
@@ -1031,7 +1043,9 @@ def break_generation_idempotency_by_changing_generator(worktree: Path) -> None:
 
     generator_path = worktree / "scripts" / "agentic" / "generate-vscode-copilot.py"
     if not generator_path.is_file():
-        raise RuntimeError(f"Expected generator file not found before mutation: {generator_path}")
+        raise RuntimeError(
+            f"Expected generator file not found before mutation: {generator_path}"
+        )
 
     text = generator_path.read_text(encoding="utf-8")
 
@@ -1044,21 +1058,25 @@ def break_generation_idempotency_by_changing_generator(worktree: Path) -> None:
     text = text.replace(marker, marker + "\\n    " + injection, 1)
     generator_path.write_text(text, encoding="utf-8")
 
+
 def break_output_manifest_missing_generated_files(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target.pop("generatedFiles", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_owned_paths_absolute_path(worktree: Path) -> None:
@@ -1067,15 +1085,18 @@ def break_output_manifest_owned_paths_absolute_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["ownedPaths"] = ["/tmp/agentic-owned-path-test"]
     write_json(path, data)
-
 
 
 def break_output_manifest_owned_paths_parent_reference(worktree: Path) -> None:
@@ -1084,15 +1105,18 @@ def break_output_manifest_owned_paths_parent_reference(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["ownedPaths"] = ["../outside"]
     write_json(path, data)
-
 
 
 def break_output_manifest_invalid_owned_paths_type(worktree: Path) -> None:
@@ -1101,15 +1125,18 @@ def break_output_manifest_invalid_owned_paths_type(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["ownedPaths"] = [123]
     write_json(path, data)
-
 
 
 def break_output_manifest_empty_owned_paths(worktree: Path) -> None:
@@ -1118,15 +1145,18 @@ def break_output_manifest_empty_owned_paths(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["ownedPaths"] = []
     write_json(path, data)
-
 
 
 def break_output_manifest_empty_targets(worktree: Path) -> None:
@@ -1137,14 +1167,12 @@ def break_output_manifest_empty_targets(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_invalid_targets_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
 
     data["targets"] = {"not": "a-list"}
     write_json(path, data)
-
 
 
 def break_output_manifest_missing_targets(worktree: Path) -> None:
@@ -1155,18 +1183,18 @@ def break_output_manifest_missing_targets(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_invalid_target_entry_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     targets[0] = "not-an-object"
     write_json(path, data)
-
 
 
 def break_output_manifest_missing_owned_paths(worktree: Path) -> None:
@@ -1175,15 +1203,18 @@ def break_output_manifest_missing_owned_paths(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target.pop("ownedPaths", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_missing_target_name(worktree: Path) -> None:
@@ -1192,15 +1223,18 @@ def break_output_manifest_missing_target_name(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     first_target["name"] = ""
     write_json(path, data)
-
 
 
 def break_output_manifest_invalid_summary_type(worktree: Path) -> None:
@@ -1211,7 +1245,6 @@ def break_output_manifest_invalid_summary_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_missing_summary(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1220,14 +1253,15 @@ def break_output_manifest_missing_summary(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_duplicate_target_name(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or len(targets) < 2:
-        raise RuntimeError("output manifest targets must contain at least two targets before mutation")
+        raise RuntimeError(
+            "output manifest targets must contain at least two targets before mutation"
+        )
 
     first_target = targets[0]
     second_target = targets[1]
@@ -1236,11 +1270,12 @@ def break_output_manifest_duplicate_target_name(worktree: Path) -> None:
 
     first_name = first_target.get("name")
     if not isinstance(first_name, str) or not first_name.strip():
-        raise RuntimeError("first output manifest target name must be a non-empty string before mutation")
+        raise RuntimeError(
+            "first output manifest target name must be a non-empty string before mutation"
+        )
 
     second_target["name"] = first_name
     write_json(path, data)
-
 
 
 def break_output_manifest_summary_missing_error_count(worktree: Path) -> None:
@@ -1253,7 +1288,6 @@ def break_output_manifest_summary_missing_error_count(worktree: Path) -> None:
 
     summary.pop("errorCount", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_summary_error_count(worktree: Path) -> None:
@@ -1280,7 +1314,6 @@ def break_output_manifest_summary_missing_errors(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_summary_errors(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1293,7 +1326,6 @@ def break_output_manifest_summary_errors(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_summary_missing_target_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1304,7 +1336,6 @@ def break_output_manifest_summary_missing_target_count(worktree: Path) -> None:
 
     summary.pop("targetCount", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_summary_target_count(worktree: Path) -> None:
@@ -1323,7 +1354,6 @@ def break_output_manifest_summary_target_count(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_output_manifest_summary_missing_generated_file_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1336,7 +1366,6 @@ def break_output_manifest_summary_missing_generated_file_count(worktree: Path) -
     write_json(path, data)
 
 
-
 def break_output_manifest_summary_generated_file_count(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "output-manifest.json"
     data = load_json(path)
@@ -1347,11 +1376,12 @@ def break_output_manifest_summary_generated_file_count(worktree: Path) -> None:
 
     current_total = summary.get("generatedFileCount")
     if not isinstance(current_total, int):
-        raise RuntimeError("summary.generatedFileCount must be an integer before mutation")
+        raise RuntimeError(
+            "summary.generatedFileCount must be an integer before mutation"
+        )
 
     summary["generatedFileCount"] = current_total + 1
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_count(worktree: Path) -> None:
@@ -1360,19 +1390,24 @@ def break_output_manifest_generated_file_count(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list):
-        raise RuntimeError("output manifest generatedFiles must be a list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a list before mutation"
+        )
 
     first_target["generatedFileCount"] = len(generated_files) + 1
     write_json(path, data)
-
 
 
 def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
@@ -1381,19 +1416,27 @@ def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     generated_files.append(dict(first_entry))
     first_target["generatedFileCount"] = len(generated_files)
@@ -1402,12 +1445,13 @@ def break_output_manifest_duplicate_generated_file_path(worktree: Path) -> None:
     if isinstance(summary, dict):
         total_files = 0
         for target in targets:
-            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+            if isinstance(target, dict) and isinstance(
+                target.get("generatedFiles"), list
+            ):
                 total_files += len(target["generatedFiles"])
         summary["generatedFileCount"] = total_files
 
     write_json(path, data)
-
 
 
 def break_output_manifest_declared_file_missing(worktree: Path) -> None:
@@ -1416,30 +1460,41 @@ def break_output_manifest_declared_file_missing(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     generated_path = first_entry.get("path")
     if not isinstance(generated_path, str) or not generated_path.strip():
-        raise RuntimeError("output manifest generatedFiles[0].path must be a non-empty string before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0].path must be a non-empty string before mutation"
+        )
 
     file_path = worktree / generated_path
     if not file_path.is_file():
-        raise RuntimeError(f"Expected generated file to exist before mutation: {generated_path}")
+        raise RuntimeError(
+            f"Expected generated file to exist before mutation: {generated_path}"
+        )
 
     file_path.unlink()
-
 
 
 def break_output_manifest_generated_file_absolute_path(worktree: Path) -> None:
@@ -1448,23 +1503,30 @@ def break_output_manifest_generated_file_absolute_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["path"] = "/tmp/agentic-generated-file-test.md"
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_parent_path(worktree: Path) -> None:
@@ -1473,23 +1535,30 @@ def break_output_manifest_generated_file_parent_path(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["path"] = "../README.md"
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_missing_bytes(worktree: Path) -> None:
@@ -1498,23 +1567,30 @@ def break_output_manifest_generated_file_missing_bytes(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry.pop("bytes", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_invalid_bytes(worktree: Path) -> None:
@@ -1523,23 +1599,30 @@ def break_output_manifest_invalid_bytes(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["bytes"] = "not-an-integer"
     write_json(path, data)
-
 
 
 def break_output_manifest_byte_size(worktree: Path) -> None:
@@ -1548,27 +1631,36 @@ def break_output_manifest_byte_size(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     current_bytes = first_entry.get("bytes")
     if not isinstance(current_bytes, int):
-        raise RuntimeError("output manifest generatedFiles[0].bytes must be an integer before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0].bytes must be an integer before mutation"
+        )
 
     first_entry["bytes"] = current_bytes + 1
     write_json(path, data)
-
 
 
 def break_output_manifest_generated_file_missing_sha256(worktree: Path) -> None:
@@ -1577,23 +1669,30 @@ def break_output_manifest_generated_file_missing_sha256(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry.pop("sha256", None)
     write_json(path, data)
-
 
 
 def break_output_manifest_invalid_sha256(worktree: Path) -> None:
@@ -1602,23 +1701,30 @@ def break_output_manifest_invalid_sha256(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     first_entry["sha256"] = "not-a-valid-sha256"
     write_json(path, data)
-
 
 
 def break_output_manifest_hash(worktree: Path) -> None:
@@ -1638,28 +1744,40 @@ def break_output_manifest_declared_file_outside_owned_paths(worktree: Path) -> N
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("output manifest targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
-        raise RuntimeError("output manifest first target must be an object before mutation")
+        raise RuntimeError(
+            "output manifest first target must be an object before mutation"
+        )
 
     generated_files = first_target.get("generatedFiles")
     if not isinstance(generated_files, list) or not generated_files:
-        raise RuntimeError("output manifest generatedFiles must be a non-empty list before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles must be a non-empty list before mutation"
+        )
 
     first_entry = generated_files[0]
     if not isinstance(first_entry, dict):
-        raise RuntimeError("output manifest generatedFiles[0] must be an object before mutation")
+        raise RuntimeError(
+            "output manifest generatedFiles[0] must be an object before mutation"
+        )
 
     outside_path = "README.md"
     absolute_outside_path = worktree / outside_path
     if not absolute_outside_path.is_file():
-        raise RuntimeError(f"Expected outside file to exist before mutation: {outside_path}")
+        raise RuntimeError(
+            f"Expected outside file to exist before mutation: {outside_path}"
+        )
 
     mutated_entry = dict(first_entry)
     mutated_entry["path"] = outside_path
-    mutated_entry["sha256"] = hashlib.sha256(absolute_outside_path.read_bytes()).hexdigest()
+    mutated_entry["sha256"] = hashlib.sha256(
+        absolute_outside_path.read_bytes()
+    ).hexdigest()
     mutated_entry["bytes"] = absolute_outside_path.stat().st_size
 
     generated_files.append(mutated_entry)
@@ -1669,18 +1787,75 @@ def break_output_manifest_declared_file_outside_owned_paths(worktree: Path) -> N
     if isinstance(summary, dict):
         total_files = 0
         for target in targets:
-            if isinstance(target, dict) and isinstance(target.get("generatedFiles"), list):
+            if isinstance(target, dict) and isinstance(
+                target.get("generatedFiles"), list
+            ):
                 total_files += len(target["generatedFiles"])
         summary["generatedFileCount"] = total_files
 
     write_json(path, data)
 
 
-
 def break_output_manifest_ownership(worktree: Path) -> None:
     path = worktree / ".github" / "agents" / "extra.agent.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("# Extra generated file drift test\n", encoding="utf-8")
+
+
+def break_registry_schema_agent_version_pattern(
+    worktree: Path,
+) -> None:
+    path = first_agent_registry_file(worktree)
+    data = load_json(path)
+    data["version"] = "0.2"
+    write_json(path, data)
+
+
+def break_registry_schema_workflow_states_min_items(
+    worktree: Path,
+) -> None:
+    path = awg_default_workflow_registry_file(worktree)
+    data = load_json(path)
+    data["states"] = []
+    write_json(path, data)
+
+
+def break_registry_schema_workflow_terminal_const(
+    worktree: Path,
+) -> None:
+    path = awg_default_workflow_registry_file(worktree)
+    data = load_json(path)
+
+    states = data.get("states")
+    if not isinstance(states, list):
+        raise RuntimeError("workflow states must be a list before mutation")
+
+    for state in states:
+        if isinstance(state, dict) and state.get("terminal") is True:
+            state["terminal"] = False
+            write_json(path, data)
+            return
+
+    raise RuntimeError("expected a terminal workflow state before mutation")
+
+
+def break_registry_schema_permission_bash_enum(
+    worktree: Path,
+) -> None:
+    path = (
+        worktree
+        / "registry"
+        / "permission-profiles"
+        / "read-only"
+        / "permission-profile.json"
+    )
+
+    if not path.is_file():
+        raise RuntimeError(f"expected permission profile before mutation: {path}")
+
+    data = load_json(path)
+    data["bash"] = "root"
+    write_json(path, data)
 
 
 def break_target_adapter_owned_paths(worktree: Path) -> None:
@@ -1692,7 +1867,6 @@ def break_target_adapter_owned_paths(worktree: Path) -> None:
 
     del data["ownedPaths"]
     write_json(path, data)
-
 
 
 def break_target_adapter_owned_path_parent_reference(worktree: Path) -> None:
@@ -1719,27 +1893,12 @@ def break_target_adapter_owned_path_absolute(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_target_adapter_duplicate_name(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "vscode-copilot" / "adapter.json"
     data = load_json(path)
 
     data["name"] = "opencode"
     write_json(path, data)
-
-
-
-def break_target_adapter_duplicate_owned_path(worktree: Path) -> None:
-    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
-    data = load_json(path)
-
-    owned_paths = data.get("ownedPaths")
-    if not isinstance(owned_paths, list) or not owned_paths:
-        raise RuntimeError("ownedPaths must be a non-empty list before mutation")
-
-    owned_paths.append(owned_paths[0])
-    write_json(path, data)
-
 
 
 def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
@@ -1756,14 +1915,15 @@ def break_target_adapter_owned_path_overlap(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_empty_adapter_path(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1776,14 +1936,15 @@ def break_resolution_target_empty_adapter_path(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_invalid_adapter_path_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1796,14 +1957,15 @@ def break_resolution_target_invalid_adapter_path_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_missing_adapter_path(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1813,14 +1975,15 @@ def break_resolution_target_missing_adapter_path(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_invalid_enabled_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1830,14 +1993,15 @@ def break_resolution_target_invalid_enabled_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_missing_enabled(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1847,14 +2011,15 @@ def break_resolution_target_missing_enabled(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_missing_missing_flag(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1864,14 +2029,15 @@ def break_resolution_target_missing_missing_flag(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_invalid_missing_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1881,14 +2047,15 @@ def break_resolution_target_invalid_missing_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_invalid_name_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1898,14 +2065,15 @@ def break_resolution_target_invalid_name_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_empty_name(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1915,14 +2083,15 @@ def break_resolution_target_empty_name(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_missing_name(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     first_target = targets[0]
     if not isinstance(first_target, dict):
@@ -1932,18 +2101,18 @@ def break_resolution_target_missing_name(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_target_entry_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     targets[0] = "not-an-object"
     write_json(path, data)
-
 
 
 def break_resolution_invalid_targets_type(worktree: Path) -> None:
@@ -1954,14 +2123,12 @@ def break_resolution_invalid_targets_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_empty_targets(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     data["targets"] = []
     write_json(path, data)
-
 
 
 def break_resolution_missing_targets(worktree: Path) -> None:
@@ -1972,8 +2139,9 @@ def break_resolution_missing_targets(worktree: Path) -> None:
     write_json(path, data)
 
 
-
-def break_resolution_resolved_capability_invalid_skill_path_type(worktree: Path) -> None:
+def break_resolution_resolved_capability_invalid_skill_path_type(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -1987,7 +2155,9 @@ def break_resolution_resolved_capability_invalid_skill_path_type(worktree: Path)
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -1995,7 +2165,6 @@ def break_resolution_resolved_capability_invalid_skill_path_type(worktree: Path)
 
     first_resolved["skillPath"] = {"not": "a-string"}
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_empty_skill_path(worktree: Path) -> None:
@@ -2012,7 +2181,9 @@ def break_resolution_resolved_capability_empty_skill_path(worktree: Path) -> Non
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2020,7 +2191,6 @@ def break_resolution_resolved_capability_empty_skill_path(worktree: Path) -> Non
 
     first_resolved["skillPath"] = ""
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_missing_skill_path(worktree: Path) -> None:
@@ -2037,7 +2207,9 @@ def break_resolution_resolved_capability_missing_skill_path(worktree: Path) -> N
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2045,7 +2217,6 @@ def break_resolution_resolved_capability_missing_skill_path(worktree: Path) -> N
 
     first_resolved.pop("skillPath", None)
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_invalid_skill_type(worktree: Path) -> None:
@@ -2062,7 +2233,9 @@ def break_resolution_resolved_capability_invalid_skill_type(worktree: Path) -> N
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2070,7 +2243,6 @@ def break_resolution_resolved_capability_invalid_skill_type(worktree: Path) -> N
 
     first_resolved["skill"] = {"not": "a-string"}
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_empty_skill(worktree: Path) -> None:
@@ -2087,7 +2259,9 @@ def break_resolution_resolved_capability_empty_skill(worktree: Path) -> None:
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2095,7 +2269,6 @@ def break_resolution_resolved_capability_empty_skill(worktree: Path) -> None:
 
     first_resolved["skill"] = ""
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_missing_skill(worktree: Path) -> None:
@@ -2112,7 +2285,9 @@ def break_resolution_resolved_capability_missing_skill(worktree: Path) -> None:
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2122,8 +2297,9 @@ def break_resolution_resolved_capability_missing_skill(worktree: Path) -> None:
     write_json(path, data)
 
 
-
-def break_resolution_resolved_capability_invalid_capability_type(worktree: Path) -> None:
+def break_resolution_resolved_capability_invalid_capability_type(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -2137,7 +2313,9 @@ def break_resolution_resolved_capability_invalid_capability_type(worktree: Path)
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2145,7 +2323,6 @@ def break_resolution_resolved_capability_invalid_capability_type(worktree: Path)
 
     first_resolved["capability"] = {"not": "a-string"}
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_empty_capability(worktree: Path) -> None:
@@ -2162,7 +2339,9 @@ def break_resolution_resolved_capability_empty_capability(worktree: Path) -> Non
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2170,7 +2349,6 @@ def break_resolution_resolved_capability_empty_capability(worktree: Path) -> Non
 
     first_resolved["capability"] = ""
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_missing_capability(worktree: Path) -> None:
@@ -2187,7 +2365,9 @@ def break_resolution_resolved_capability_missing_capability(worktree: Path) -> N
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     first_resolved = resolved[0]
     if not isinstance(first_resolved, dict):
@@ -2195,7 +2375,6 @@ def break_resolution_resolved_capability_missing_capability(worktree: Path) -> N
 
     first_resolved.pop("capability", None)
     write_json(path, data)
-
 
 
 def break_resolution_resolved_capability_entry_type(worktree: Path) -> None:
@@ -2212,11 +2391,12 @@ def break_resolution_resolved_capability_entry_type(worktree: Path) -> None:
 
     resolved = first_agent.get("resolvedCapabilities")
     if not isinstance(resolved, list) or not resolved:
-        raise RuntimeError("resolvedCapabilities must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolvedCapabilities must be a non-empty list before mutation"
+        )
 
     resolved[0] = "not-an-object"
     write_json(path, data)
-
 
 
 def break_resolution_agent_invalid_resolved_capabilities_type(worktree: Path) -> None:
@@ -2235,7 +2415,6 @@ def break_resolution_agent_invalid_resolved_capabilities_type(worktree: Path) ->
     write_json(path, data)
 
 
-
 def break_resolution_agent_missing_resolved_capabilities(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2250,7 +2429,6 @@ def break_resolution_agent_missing_resolved_capabilities(worktree: Path) -> None
 
     first_agent.pop("resolvedCapabilities", None)
     write_json(path, data)
-
 
 
 def break_resolution_agent_invalid_missing_capabilities_type(worktree: Path) -> None:
@@ -2269,7 +2447,6 @@ def break_resolution_agent_invalid_missing_capabilities_type(worktree: Path) -> 
     write_json(path, data)
 
 
-
 def break_resolution_agent_invalid_capabilities_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2284,7 +2461,6 @@ def break_resolution_agent_invalid_capabilities_type(worktree: Path) -> None:
 
     first_agent["capabilities"] = {"not": "a-list"}
     write_json(path, data)
-
 
 
 def break_resolution_agent_missing_capabilities(worktree: Path) -> None:
@@ -2303,7 +2479,6 @@ def break_resolution_agent_missing_capabilities(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_invalid_agent_entry_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2316,14 +2491,12 @@ def break_resolution_invalid_agent_entry_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_invalid_agents_type(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     data["agents"] = {"not": "a-list"}
     write_json(path, data)
-
 
 
 def break_resolution_empty_agents(worktree: Path) -> None:
@@ -2334,14 +2507,12 @@ def break_resolution_empty_agents(worktree: Path) -> None:
     write_json(path, data)
 
 
-
 def break_resolution_missing_agents(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     data.pop("agents", None)
     write_json(path, data)
-
 
 
 def break_resolution_output(worktree: Path) -> None:
@@ -2364,11 +2535,9 @@ def break_resolution_output(worktree: Path) -> None:
     write_json(path, data)
 
 
-
-
-
-
-def first_resolution_agent_with_produces(data: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+def first_resolution_agent_with_produces(
+    data: dict[str, Any],
+) -> tuple[int, dict[str, Any]]:
     agents = data.get("agents")
     if not isinstance(agents, list):
         raise RuntimeError("resolution agents must be a list before mutation")
@@ -2384,7 +2553,9 @@ def first_resolution_agent_with_produces(data: dict[str, Any]) -> tuple[int, dic
     raise RuntimeError("expected at least one agent with produces before mutation")
 
 
-def first_resolution_produce(data: dict[str, Any]) -> tuple[int, dict[str, Any], int, dict[str, Any]]:
+def first_resolution_produce(
+    data: dict[str, Any],
+) -> tuple[int, dict[str, Any], int, dict[str, Any]]:
     agent_index, agent = first_resolution_agent_with_produces(data)
 
     produces = agent.get("produces")
@@ -2396,7 +2567,6 @@ def first_resolution_produce(data: dict[str, Any]) -> tuple[int, dict[str, Any],
         raise RuntimeError("first produce entry must be an object before mutation")
 
     return agent_index, agent, 0, produce
-
 
 
 def mutate_resolution_agent_string_field(
@@ -2423,13 +2593,12 @@ def mutate_resolution_agent_string_field(
     write_json(path, data)
 
 
-
-
-
 def semantic_resolution_targets(data: dict[str, Any]) -> list[Any]:
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
     return targets
 
 
@@ -2460,7 +2629,6 @@ def semantic_first_missing_resolution_target(data: dict[str, Any]) -> dict[str, 
         summary["targetCount"] = len(targets)
 
     return target
-
 
 
 def break_resolution_agent_registry_path_missing_file(worktree: Path) -> None:
@@ -2494,6 +2662,7 @@ def break_resolution_target_adapter_path_missing_file(worktree: Path) -> None:
 
     write_json(path, data)
 
+
 def break_resolution_semantic_missing_target_enabled_true(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -2504,7 +2673,9 @@ def break_resolution_semantic_missing_target_enabled_true(worktree: Path) -> Non
     write_json(path, data)
 
 
-def break_resolution_semantic_missing_target_adapter_path_non_null(worktree: Path) -> None:
+def break_resolution_semantic_missing_target_adapter_path_non_null(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -2540,19 +2711,26 @@ def break_resolution_semantic_duplicate_target_name(worktree: Path) -> None:
 
     targets = semantic_resolution_targets(data)
     if len(targets) < 2:
-        raise RuntimeError("resolution targets must contain at least two targets before mutation")
+        raise RuntimeError(
+            "resolution targets must contain at least two targets before mutation"
+        )
 
     first = targets[0]
     second = targets[1]
     if not isinstance(first, dict) or not isinstance(second, dict):
-        raise RuntimeError("resolution targets[0] and targets[1] must be objects before mutation")
+        raise RuntimeError(
+            "resolution targets[0] and targets[1] must be objects before mutation"
+        )
 
     name = first.get("name")
     if not isinstance(name, str) or not name.strip():
-        raise RuntimeError("resolution targets[0].name must be a non-empty string before mutation")
+        raise RuntimeError(
+            "resolution targets[0].name must be a non-empty string before mutation"
+        )
 
     second["name"] = name
     write_json(path, data)
+
 
 def break_resolution_target_adapter_path_parent_reference(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
@@ -2560,7 +2738,9 @@ def break_resolution_target_adapter_path_parent_reference(worktree: Path) -> Non
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     target = targets[0]
     if not isinstance(target, dict):
@@ -2579,7 +2759,9 @@ def break_resolution_target_adapter_path_absolute(worktree: Path) -> None:
 
     targets = data.get("targets")
     if not isinstance(targets, list) or not targets:
-        raise RuntimeError("resolution targets must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution targets must be a non-empty list before mutation"
+        )
 
     target = targets[0]
     if not isinstance(target, dict):
@@ -2590,6 +2772,7 @@ def break_resolution_target_adapter_path_absolute(worktree: Path) -> None:
 
     target["adapterPath"] = "/tmp/unsafe/adapter.json"
     write_json(path, data)
+
 
 def break_resolution_agent_registry_path_parent_reference(worktree: Path) -> None:
     mutate_resolution_agent_string_field(worktree, "registryPath", "empty")
@@ -2654,6 +2837,7 @@ def break_resolution_produce_path_pattern_absolute(worktree: Path) -> None:
     produce["pathPattern"] = "/tmp/agent-output/unsafe/*.md"
     write_json(path, data)
 
+
 def break_resolution_agent_missing_role(worktree: Path) -> None:
     mutate_resolution_agent_string_field(worktree, "role", "missing")
 
@@ -2684,19 +2868,26 @@ def break_resolution_duplicate_agent_name(worktree: Path) -> None:
 
     agents = data.get("agents")
     if not isinstance(agents, list) or len(agents) < 2:
-        raise RuntimeError("resolution agents must contain at least two agents before mutation")
+        raise RuntimeError(
+            "resolution agents must contain at least two agents before mutation"
+        )
 
     first_agent = agents[0]
     second_agent = agents[1]
     if not isinstance(first_agent, dict) or not isinstance(second_agent, dict):
-        raise RuntimeError("resolution agents[0] and agents[1] must be objects before mutation")
+        raise RuntimeError(
+            "resolution agents[0] and agents[1] must be objects before mutation"
+        )
 
     first_name = first_agent.get("name")
     if not isinstance(first_name, str) or not first_name.strip():
-        raise RuntimeError("resolution agents[0].name must be a non-empty string before mutation")
+        raise RuntimeError(
+            "resolution agents[0].name must be a non-empty string before mutation"
+        )
 
     second_agent["name"] = first_name
     write_json(path, data)
+
 
 def break_resolution_agent_missing_produces(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
@@ -2776,17 +2967,23 @@ def mutate_resolution_produce_string_list_field(
     elif action == "invalid-entry-type":
         values = produce.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"produce.{field} must be a non-empty list before mutation"
+            )
         values[0] = {"not": "a-string"}
     elif action == "empty-entry":
         values = produce.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"produce.{field} must be a non-empty list before mutation"
+            )
         values[0] = ""
     elif action == "duplicate-entry":
         values = produce.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"produce.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"produce.{field} must be a non-empty list before mutation"
+            )
         values.append(values[0])
     else:
         raise RuntimeError(f"Unknown produce string-list mutation action: {action}")
@@ -2835,23 +3032,33 @@ def break_resolution_produce_missing_allowed_statuses(worktree: Path) -> None:
 
 
 def break_resolution_produce_invalid_allowed_statuses_type(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "invalid-type")
+    mutate_resolution_produce_string_list_field(
+        worktree, "allowedStatuses", "invalid-type"
+    )
 
 
 def break_resolution_produce_empty_allowed_statuses(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "empty-list")
+    mutate_resolution_produce_string_list_field(
+        worktree, "allowedStatuses", "empty-list"
+    )
 
 
 def break_resolution_produce_invalid_allowed_status_entry_type(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "invalid-entry-type")
+    mutate_resolution_produce_string_list_field(
+        worktree, "allowedStatuses", "invalid-entry-type"
+    )
 
 
 def break_resolution_produce_empty_allowed_status_entry(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "empty-entry")
+    mutate_resolution_produce_string_list_field(
+        worktree, "allowedStatuses", "empty-entry"
+    )
 
 
 def break_resolution_produce_duplicate_allowed_status(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "allowedStatuses", "duplicate-entry")
+    mutate_resolution_produce_string_list_field(
+        worktree, "allowedStatuses", "duplicate-entry"
+    )
 
 
 def break_resolution_produce_missing_required_headings(worktree: Path) -> None:
@@ -2859,26 +3066,40 @@ def break_resolution_produce_missing_required_headings(worktree: Path) -> None:
 
 
 def break_resolution_produce_invalid_required_headings_type(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "invalid-type")
+    mutate_resolution_produce_string_list_field(
+        worktree, "requiredHeadings", "invalid-type"
+    )
 
 
 def break_resolution_produce_empty_required_headings(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "empty-list")
+    mutate_resolution_produce_string_list_field(
+        worktree, "requiredHeadings", "empty-list"
+    )
 
 
-def break_resolution_produce_invalid_required_heading_entry_type(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "invalid-entry-type")
+def break_resolution_produce_invalid_required_heading_entry_type(
+    worktree: Path,
+) -> None:
+    mutate_resolution_produce_string_list_field(
+        worktree, "requiredHeadings", "invalid-entry-type"
+    )
 
 
 def break_resolution_produce_empty_required_heading_entry(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "empty-entry")
+    mutate_resolution_produce_string_list_field(
+        worktree, "requiredHeadings", "empty-entry"
+    )
 
 
 def break_resolution_produce_duplicate_required_heading(worktree: Path) -> None:
-    mutate_resolution_produce_string_list_field(worktree, "requiredHeadings", "duplicate-entry")
+    mutate_resolution_produce_string_list_field(
+        worktree, "requiredHeadings", "duplicate-entry"
+    )
 
 
-def break_resolution_summary_wrong_produced_artifact_binding_count(worktree: Path) -> None:
+def break_resolution_summary_wrong_produced_artifact_binding_count(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -2888,10 +3109,13 @@ def break_resolution_summary_wrong_produced_artifact_binding_count(worktree: Pat
 
     produced_count = summary.get("producedArtifactBindingCount")
     if not isinstance(produced_count, int) or isinstance(produced_count, bool):
-        raise RuntimeError("summary.producedArtifactBindingCount must be an integer before mutation")
+        raise RuntimeError(
+            "summary.producedArtifactBindingCount must be an integer before mutation"
+        )
 
     summary["producedArtifactBindingCount"] = produced_count + 1
     write_json(path, data)
+
 
 def break_resolution_missing_project(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
@@ -2954,17 +3178,23 @@ def mutate_project_list_field(
     elif action == "invalid-entry-type":
         values = project.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"project.{field} must be a non-empty list before mutation"
+            )
         values[0] = {"not": "a-string"}
     elif action == "empty-entry":
         values = project.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"project.{field} must be a non-empty list before mutation"
+            )
         values[0] = ""
     elif action == "duplicate-entry":
         values = project.get(field)
         if not isinstance(values, list) or not values:
-            raise RuntimeError(f"project.{field} must be a non-empty list before mutation")
+            raise RuntimeError(
+                f"project.{field} must be a non-empty list before mutation"
+            )
         values.append(values[0])
     else:
         raise RuntimeError(f"Unknown project list mutation action: {action}")
@@ -3032,7 +3262,9 @@ def break_resolution_project_empty_language_profiles(worktree: Path) -> None:
     mutate_project_list_field(worktree, "languageProfiles", "empty-list")
 
 
-def break_resolution_project_invalid_language_profile_entry_type(worktree: Path) -> None:
+def break_resolution_project_invalid_language_profile_entry_type(
+    worktree: Path,
+) -> None:
     mutate_project_list_field(worktree, "languageProfiles", "invalid-entry-type")
 
 
@@ -3073,7 +3305,6 @@ def resolution_workflow(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(workflow, dict):
         raise RuntimeError("resolution workflow must be an object before mutation")
     return workflow
-
 
 
 def break_resolution_project_config_mismatch(worktree: Path) -> None:
@@ -3123,6 +3354,7 @@ def break_resolution_target_config_enabled_mismatch(worktree: Path) -> None:
     targets[0]["enabled"] = False
     write_json(path, data)
 
+
 def break_resolution_workflow_profile_missing_registry_file(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
@@ -3143,7 +3375,9 @@ def break_resolution_workflow_profile_unsafe_registry_name(worktree: Path) -> No
     write_json(path, data)
 
 
-def break_resolution_workflow_start_state_unknown_registry_state(worktree: Path) -> None:
+def break_resolution_workflow_start_state_unknown_registry_state(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -3153,7 +3387,9 @@ def break_resolution_workflow_start_state_unknown_registry_state(worktree: Path)
     write_json(path, data)
 
 
-def break_resolution_workflow_start_state_terminal_registry_state(worktree: Path) -> None:
+def break_resolution_workflow_start_state_terminal_registry_state(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -3163,28 +3399,36 @@ def break_resolution_workflow_start_state_terminal_registry_state(worktree: Path
     write_json(path, data)
 
 
-def break_resolution_workflow_terminal_state_unknown_registry_state(worktree: Path) -> None:
+def break_resolution_workflow_terminal_state_unknown_registry_state(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     workflow = resolution_workflow(data)
     terminal_states = workflow.get("terminalStates")
     if not isinstance(terminal_states, list) or not terminal_states:
-        raise RuntimeError("workflow.terminalStates must be a non-empty list before mutation")
+        raise RuntimeError(
+            "workflow.terminalStates must be a non-empty list before mutation"
+        )
 
     terminal_states[0] = "UnknownTerminalState"
 
     write_json(path, data)
 
 
-def break_resolution_workflow_terminal_state_non_terminal_registry_state(worktree: Path) -> None:
+def break_resolution_workflow_terminal_state_non_terminal_registry_state(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
     workflow = resolution_workflow(data)
     terminal_states = workflow.get("terminalStates")
     if not isinstance(terminal_states, list) or not terminal_states:
-        raise RuntimeError("workflow.terminalStates must be a non-empty list before mutation")
+        raise RuntimeError(
+            "workflow.terminalStates must be a non-empty list before mutation"
+        )
 
     terminal_states[0] = "Requirements"
 
@@ -3199,6 +3443,7 @@ def break_resolution_workflow_fail_closed_registry_mismatch(worktree: Path) -> N
     workflow["failClosed"] = False
 
     write_json(path, data)
+
 
 def break_resolution_workflow_missing_transitions(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
@@ -3222,11 +3467,15 @@ def break_resolution_workflow_transition_target_mismatch(worktree: Path) -> None
 
     transitions = workflow.get("transitions")
     if not isinstance(transitions, list) or not transitions:
-        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution workflow transitions must be a non-empty list before mutation"
+        )
 
     first = transitions[0]
     if not isinstance(first, dict):
-        raise RuntimeError("resolution workflow transition must be an object before mutation")
+        raise RuntimeError(
+            "resolution workflow transition must be an object before mutation"
+        )
 
     first["to"] = "Blocked"
     write_json(path, data)
@@ -3242,11 +3491,15 @@ def break_resolution_workflow_transition_event_mismatch(worktree: Path) -> None:
 
     transitions = workflow.get("transitions")
     if not isinstance(transitions, list) or not transitions:
-        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution workflow transitions must be a non-empty list before mutation"
+        )
 
     first = transitions[0]
     if not isinstance(first, dict):
-        raise RuntimeError("resolution workflow transition must be an object before mutation")
+        raise RuntimeError(
+            "resolution workflow transition must be an object before mutation"
+        )
 
     first["on"] = "changed"
     write_json(path, data)
@@ -3262,7 +3515,9 @@ def break_resolution_workflow_transition_count_mismatch(worktree: Path) -> None:
 
     transitions = workflow.get("transitions")
     if not isinstance(transitions, list) or not transitions:
-        raise RuntimeError("resolution workflow transitions must be a non-empty list before mutation")
+        raise RuntimeError(
+            "resolution workflow transitions must be a non-empty list before mutation"
+        )
 
     transitions.pop()
     write_json(path, data)
@@ -3426,7 +3681,9 @@ def break_resolution_workflow_invalid_terminal_state_entry_type(worktree: Path) 
 
     terminal_states = workflow.get("terminalStates")
     if not isinstance(terminal_states, list) or not terminal_states:
-        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+        raise RuntimeError(
+            "workflow terminalStates must be a non-empty list before mutation"
+        )
 
     terminal_states[0] = {"not": "a-string"}
     write_json(path, data)
@@ -3442,7 +3699,9 @@ def break_resolution_workflow_empty_terminal_state_entry(worktree: Path) -> None
 
     terminal_states = workflow.get("terminalStates")
     if not isinstance(terminal_states, list) or not terminal_states:
-        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+        raise RuntimeError(
+            "workflow terminalStates must be a non-empty list before mutation"
+        )
 
     terminal_states[0] = ""
     write_json(path, data)
@@ -3458,10 +3717,13 @@ def break_resolution_workflow_duplicate_terminal_state(worktree: Path) -> None:
 
     terminal_states = workflow.get("terminalStates")
     if not isinstance(terminal_states, list) or not terminal_states:
-        raise RuntimeError("workflow terminalStates must be a non-empty list before mutation")
+        raise RuntimeError(
+            "workflow terminalStates must be a non-empty list before mutation"
+        )
 
     terminal_states.append(terminal_states[0])
     write_json(path, data)
+
 
 def break_resolution_missing_summary(worktree: Path) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
@@ -3583,7 +3845,9 @@ def break_resolution_summary_invalid_available_skill_count_type(worktree: Path) 
     write_json(path, data)
 
 
-def break_resolution_summary_missing_produced_artifact_binding_count(worktree: Path) -> None:
+def break_resolution_summary_missing_produced_artifact_binding_count(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -3595,7 +3859,9 @@ def break_resolution_summary_missing_produced_artifact_binding_count(worktree: P
     write_json(path, data)
 
 
-def break_resolution_summary_invalid_produced_artifact_binding_count_type(worktree: Path) -> None:
+def break_resolution_summary_invalid_produced_artifact_binding_count_type(
+    worktree: Path,
+) -> None:
     path = worktree / ".agentic" / "generated" / "resolution.json"
     data = load_json(path)
 
@@ -3679,14 +3945,6 @@ def break_resolution_summary_nonempty_errors(worktree: Path) -> None:
     write_json(path, data)
 
 
-def first_profile_file(worktree: Path) -> Path:
-    profiles = sorted((worktree / "registry" / "profiles").glob("*.profile.json"))
-    if not profiles:
-        raise RuntimeError("expected at least one profile registry file")
-    return profiles[0]
-
-
-
 def first_agent_registry_file(worktree: Path) -> Path:
     agent_files = sorted((worktree / "registry" / "agents").glob("*/agent.json"))
     if not agent_files:
@@ -3711,22 +3969,6 @@ def first_producing_agent_registry_file(worktree: Path) -> Path:
     raise RuntimeError("expected at least one agent with artifact references")
 
 
-
-def first_artifact_contract_file(worktree: Path) -> Path:
-    contracts = sorted((worktree / "registry" / "artifacts").glob("*/artifact.json"))
-    if not contracts:
-        raise RuntimeError("expected at least one artifact contract")
-    return contracts[0]
-
-
-def mutate_first_artifact_contract(worktree: Path, mutator: Callable[[dict[str, Any]], None]) -> None:
-    path = first_artifact_contract_file(worktree)
-    data = load_json(path)
-    mutator(data)
-    write_json(path, data)
-
-
-
 def first_skill_json_file(worktree: Path) -> Path:
     skill_files = sorted((worktree / "registry" / "skills").glob("*/skill.json"))
     if not skill_files:
@@ -3741,14 +3983,8 @@ def first_two_skill_json_files(worktree: Path) -> tuple[Path, Path]:
     return skill_files[0], skill_files[1]
 
 
-
 def awg_default_workflow_registry_file(worktree: Path) -> Path:
-    path = (
-        worktree
-        / "registry"
-        / "workflows"
-        / "orchestrated-delivery.workflow.json"
-    )
+    path = worktree / "registry" / "workflows" / "orchestrated-delivery.workflow.json"
 
     if not path.is_file():
         raise RuntimeError(
@@ -3766,7 +4002,6 @@ def awg_mutate_default_workflow(worktree: Path, mutator) -> None:
     write_json(path, data)
 
 
-
 def awg_first_target_adapter_file(worktree: Path) -> Path:
     adapter_files = sorted((worktree / "registry" / "targets").glob("*/adapter.json"))
     if not adapter_files:
@@ -3781,186 +4016,6 @@ def awg_mutate_first_target_adapter(worktree: Path, mutator) -> None:
     write_json(path, data)
 
 
-
-def awg_first_artifact_schema_file(worktree: Path) -> Path:
-    schema_files = sorted((worktree / "registry" / "artifacts").glob("*/artifact.schema.json"))
-    if not schema_files:
-        raise RuntimeError("expected at least one artifact schema file")
-    return schema_files[0]
-
-
-def awg_first_artifact_contract_file(worktree: Path) -> Path:
-    artifact_files = sorted((worktree / "registry" / "artifacts").glob("*/artifact.json"))
-    if not artifact_files:
-        raise RuntimeError("expected at least one artifact contract file")
-    return artifact_files[0]
-
-
-
-def awg_first_produced_agent_file(worktree: Path) -> Path:
-    for agent_path in sorted((worktree / "registry" / "agents").glob("*/agent.json")):
-        agent = load_json(agent_path)
-        produces = agent.get("produces")
-        if isinstance(produces, list) and produces:
-            return agent_path
-    raise RuntimeError("expected at least one agent with produced artifacts")
-
-
-def awg_first_future_artifact_file(worktree: Path) -> Path:
-    for artifact_path in sorted((worktree / "registry" / "artifacts").glob("*/artifact.json")):
-        artifact = load_json(artifact_path)
-        binding = artifact.get("binding")
-
-        if isinstance(binding, dict) and binding.get("producerRequired") is False:
-            return artifact_path
-
-    artifact_dir = worktree / "registry" / "artifacts" / "FutureArtifact"
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-
-    artifact_path = artifact_dir / "artifact.json"
-    write_json(
-        artifact_path,
-        {
-            "type": "FutureArtifact",
-            "pathPattern": "agent-output/future-artifact/*.md",
-            "allowedStatuses": ["PASS", "FAIL", "BLOCKED"],
-            "requiredHeadings": [
-                "# Future Artifact",
-                "## Status",
-                "## Summary",
-                "## Handoff Target",
-            ],
-            "binding": {
-                "producerRequired": False,
-                "reason": "Synthetic future artifact used by negative gate tests.",
-            },
-        },
-    )
-
-    return artifact_path
-
-
-def break_agent_artifact_binding_unknown_required_artifact(worktree: Path) -> None:
-    agent_path = awg_first_produced_agent_file(worktree)
-    agent = load_json(agent_path)
-    agent["requiredArtifacts"] = ["MissingRequiredArtifact"]
-    write_json(agent_path, agent)
-
-
-def break_agent_artifact_binding_unproduced_required_artifact(worktree: Path) -> None:
-    artifact_path = awg_first_future_artifact_file(worktree)
-    artifact = load_json(artifact_path)
-    artifact.pop("binding", None)
-    write_json(artifact_path, artifact)
-
-
-def break_agent_artifact_binding_policy_invalid_type(worktree: Path) -> None:
-    artifact_path = awg_first_future_artifact_file(worktree)
-    artifact = load_json(artifact_path)
-    artifact["binding"] = "future"
-    write_json(artifact_path, artifact)
-
-
-def break_agent_artifact_binding_policy_missing_reason(worktree: Path) -> None:
-    artifact_path = awg_first_future_artifact_file(worktree)
-    artifact = load_json(artifact_path)
-    artifact["binding"] = {
-        "producerRequired": False,
-    }
-    write_json(artifact_path, artifact)
-
-
-def break_agent_artifact_binding_policy_false_for_produced(worktree: Path) -> None:
-    agent_path = awg_first_produced_agent_file(worktree)
-    agent = load_json(agent_path)
-
-    artifact_type = agent["produces"][0]
-    artifact_path = worktree / "registry" / "artifacts" / artifact_type / "artifact.json"
-
-    artifact = load_json(artifact_path)
-    artifact["binding"] = {
-        "producerRequired": False,
-        "reason": "Invalid because this artifact is produced.",
-    }
-    write_json(artifact_path, artifact)
-
-def break_artifact_missing_schema(worktree: Path) -> None:
-    schema_path = awg_first_artifact_schema_file(worktree)
-    schema_path.unlink()
-
-
-def break_artifact_orphan_schema(worktree: Path) -> None:
-    orphan_dir = worktree / "registry" / "artifacts" / "OrphanArtifact"
-    orphan_dir.mkdir(parents=True, exist_ok=True)
-    write_json(
-        orphan_dir / "artifact.schema.json",
-        {
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "$id": "https://example.local/agentic/artifacts/orphan.schema.json",
-            "type": "object",
-        },
-    )
-
-
-def break_artifact_schema_type_const_drift(worktree: Path) -> None:
-    schema_path = awg_first_artifact_schema_file(worktree)
-    schema = load_json(schema_path)
-
-    properties = schema.get("properties")
-    if not isinstance(properties, dict):
-        raise RuntimeError("artifact schema properties must be an object before mutation")
-
-    type_property = properties.get("type")
-    if not isinstance(type_property, dict):
-        raise RuntimeError("artifact schema type property must be an object before mutation")
-
-    type_property["const"] = "WrongArtifactType"
-    write_json(schema_path, schema)
-
-
-def break_artifact_schema_status_pattern_drift(worktree: Path) -> None:
-    schema_path = awg_first_artifact_schema_file(worktree)
-    schema = load_json(schema_path)
-
-    properties = schema.get("properties")
-    if not isinstance(properties, dict):
-        raise RuntimeError("artifact schema properties must be an object before mutation")
-
-    status = properties.get("status")
-    if not isinstance(status, dict):
-        raise RuntimeError("artifact schema status property must be an object before mutation")
-
-    status_properties = status.get("properties")
-    if not isinstance(status_properties, dict):
-        raise RuntimeError("artifact schema status properties must be an object before mutation")
-
-    pattern = status_properties.get("pattern")
-    if not isinstance(pattern, dict):
-        raise RuntimeError("artifact schema status.pattern property must be an object before mutation")
-
-    pattern["const"] = "PASS"
-    write_json(schema_path, schema)
-
-
-def break_artifact_schema_required_headings_drift(worktree: Path) -> None:
-    schema_path = awg_first_artifact_schema_file(worktree)
-    schema = load_json(schema_path)
-
-    properties = schema.get("properties")
-    if not isinstance(properties, dict):
-        raise RuntimeError("artifact schema properties must be an object before mutation")
-
-    required_headings = properties.get("requiredHeadings")
-    if not isinstance(required_headings, dict):
-        raise RuntimeError("artifact schema requiredHeadings property must be an object before mutation")
-
-    prefix_items = required_headings.get("prefixItems")
-    if not isinstance(prefix_items, list) or not prefix_items:
-        raise RuntimeError("artifact schema requiredHeadings.prefixItems must be non-empty before mutation")
-
-    prefix_items.pop()
-    write_json(schema_path, schema)
-
 def break_target_adapter_missing_name(worktree: Path) -> None:
     awg_mutate_first_target_adapter(worktree, lambda data: data.pop("name", None))
 
@@ -3970,7 +4025,9 @@ def break_target_adapter_empty_name(worktree: Path) -> None:
 
 
 def break_target_adapter_name_folder_mismatch(worktree: Path) -> None:
-    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("name", "different-target"))
+    awg_mutate_first_target_adapter(
+        worktree, lambda data: data.__setitem__("name", "different-target")
+    )
 
 
 def break_target_adapter_missing_owned_paths(worktree: Path) -> None:
@@ -3978,11 +4035,15 @@ def break_target_adapter_missing_owned_paths(worktree: Path) -> None:
 
 
 def break_target_adapter_invalid_owned_paths_type(worktree: Path) -> None:
-    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("ownedPaths", "not-a-list"))
+    awg_mutate_first_target_adapter(
+        worktree, lambda data: data.__setitem__("ownedPaths", "not-a-list")
+    )
 
 
 def break_target_adapter_empty_owned_paths(worktree: Path) -> None:
-    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("ownedPaths", []))
+    awg_mutate_first_target_adapter(
+        worktree, lambda data: data.__setitem__("ownedPaths", [])
+    )
 
 
 def break_target_adapter_empty_owned_path_entry(worktree: Path) -> None:
@@ -4038,11 +4099,15 @@ def break_target_adapter_overlapping_owned_path(worktree: Path) -> None:
 
 
 def break_target_adapter_invalid_description_type(worktree: Path) -> None:
-    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("description", {"not": "a-string"}))
+    awg_mutate_first_target_adapter(
+        worktree, lambda data: data.__setitem__("description", {"not": "a-string"})
+    )
 
 
 def break_target_adapter_empty_version(worktree: Path) -> None:
-    awg_mutate_first_target_adapter(worktree, lambda data: data.__setitem__("version", ""))
+    awg_mutate_first_target_adapter(
+        worktree, lambda data: data.__setitem__("version", "")
+    )
 
 
 def break_agentic_config_duplicate_target_name(worktree: Path) -> None:
@@ -4083,9 +4148,7 @@ def break_agentic_config_runtime_context_enabled(worktree: Path) -> None:
 
     runtime_context = data.get("runtimeContext")
     if not isinstance(runtime_context, dict):
-        raise RuntimeError(
-            "config runtimeContext must be an object before mutation"
-        )
+        raise RuntimeError("config runtimeContext must be an object before mutation")
 
     runtime_context["enabled"] = True
     write_json(path, data)
@@ -4099,576 +4162,60 @@ def break_agentic_config_runtime_context_fail_if_missing(
 
     runtime_context = data.get("runtimeContext")
     if not isinstance(runtime_context, dict):
-        raise RuntimeError(
-            "config runtimeContext must be an object before mutation"
-        )
+        raise RuntimeError("config runtimeContext must be an object before mutation")
 
     runtime_context["failIfMissing"] = True
     write_json(path, data)
-
-def break_workflow_registry_name_file_mismatch(worktree: Path) -> None:
-    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("name", "different-workflow"))
-
-
-def break_workflow_registry_fail_closed_invalid_type(worktree: Path) -> None:
-    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("failClosed", "true"))
-
-
-def break_workflow_registry_states_invalid_type(worktree: Path) -> None:
-    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("states", "not-a-list"))
-
-
-def break_workflow_registry_duplicate_state_name(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        if not isinstance(states, list) or len(states) < 2:
-            raise RuntimeError("workflow states must contain at least two entries before mutation")
-        if not isinstance(states[0], dict) or not isinstance(states[1], dict):
-            raise RuntimeError("workflow states must be objects before mutation")
-        states[1]["name"] = states[0]["name"]
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_start_state_missing(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        data.pop("startState", None)
-        data.pop("initialState", None)
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_start_state_terminal(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        terminal_states = data.get("terminalStates")
-        if not isinstance(terminal_states, list) or not terminal_states:
-            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
-        data["startState"] = terminal_states[0]
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_terminal_states_empty(worktree: Path) -> None:
-    awg_mutate_default_workflow(worktree, lambda data: data.__setitem__("terminalStates", []))
-
-
-def break_workflow_registry_duplicate_terminal_state(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        terminal_states = data.get("terminalStates")
-        if not isinstance(terminal_states, list) or not terminal_states:
-            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
-        terminal_states.append(terminal_states[0])
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_terminal_state_not_marked_terminal(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        terminal_states = data.get("terminalStates")
-        states = data.get("states")
-        if not isinstance(terminal_states, list) or not terminal_states:
-            raise RuntimeError("workflow terminalStates must be non-empty before mutation")
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        target_name = terminal_states[0]
-        for state in states:
-            if isinstance(state, dict) and state.get("name") == target_name:
-                state.pop("terminal", None)
-                return
-
-        raise RuntimeError("could not find terminal state before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_non_terminal_missing_agent(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        for state in states:
-            if isinstance(state, dict) and state.get("terminal") is not True:
-                state.pop("agent", None)
-                return
-
-        raise RuntimeError("could not find non-terminal state before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_non_terminal_unknown_agent(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        for state in states:
-            if isinstance(state, dict) and state.get("terminal") is not True:
-                state["agent"] = "MissingAgent"
-                return
-
-        raise RuntimeError("could not find non-terminal state before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_non_terminal_missing_gate(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        for state in states:
-            if isinstance(state, dict) and state.get("terminal") is not True:
-                state.pop("gate", None)
-                return
-
-        raise RuntimeError("could not find non-terminal state before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_terminal_state_declares_agent(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        for state in states:
-            if isinstance(state, dict) and state.get("terminal") is True:
-                state["agent"] = "QA"
-                return
-
-        raise RuntimeError("could not find terminal state before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-def break_workflow_registry_missing_transitions(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        data.pop("transitions", None)
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_transition_unknown_source(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list) or not transitions:
-            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
-
-        first = transitions[0]
-        if not isinstance(first, dict):
-            raise RuntimeError("workflow transition must be an object before mutation")
-
-        first["from"] = "UnknownState"
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_transition_unknown_target(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list) or not transitions:
-            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
-
-        first = transitions[0]
-        if not isinstance(first, dict):
-            raise RuntimeError("workflow transition must be an object before mutation")
-
-        first["to"] = "UnknownState"
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_terminal_outgoing_transition(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        transitions.append({"from": "Done", "to": "Blocked", "on": "fail"})
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_transition_duplicate_event(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list) or not transitions:
-            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
-
-        first = transitions[0]
-        if not isinstance(first, dict):
-            raise RuntimeError("workflow transition must be an object before mutation")
-
-        transitions.append(dict(first))
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_transition_missing_event(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list) or not transitions:
-            raise RuntimeError("workflow transitions must be a non-empty list before mutation")
-
-        first = transitions[0]
-        if not isinstance(first, dict):
-            raise RuntimeError("workflow transition must be an object before mutation")
-
-        first.pop("on", None)
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_non_terminal_without_outgoing_transition(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        data["transitions"] = [
-            transition
-            for transition in transitions
-            if not (
-                isinstance(transition, dict)
-                and transition.get("from") == "QA"
-            )
-        ]
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-def break_workflow_registry_existing_route_unreachable(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        for transition in transitions:
-            if (
-                isinstance(transition, dict)
-                and transition.get("from") == "Requirements"
-                and transition.get("to") == "Architect"
-                and transition.get("on") == "pass"
-            ):
-                transition["to"] = "Blocked"
-                return
-
-        raise RuntimeError("expected Requirements pass transition before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_unreachable_non_terminal_with_outgoing(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        states = data.get("states")
-        transitions = data.get("transitions")
-
-        if not isinstance(states, list):
-            raise RuntimeError("workflow states must be a list before mutation")
-
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        template = next(
-            (
-                state
-                for state in states
-                if isinstance(state, dict)
-                and state.get("terminal") is not True
-                and isinstance(state.get("agent"), str)
-                and isinstance(state.get("gate"), str)
-            ),
-            None,
-        )
-
-        if template is None:
-            raise RuntimeError("expected a non-terminal state template before mutation")
-
-        new_state = dict(template)
-        new_state["name"] = "SecurityReview"
-        states.append(new_state)
-        transitions.append({"from": "SecurityReview", "to": "Blocked", "on": "fail"})
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_registry_unreachable_terminal_state(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        for transition in transitions:
-            if (
-                isinstance(transition, dict)
-                and transition.get("to") == "Done"
-            ):
-                transition["to"] = "Blocked"
-                return
-
-        raise RuntimeError("expected transition to Done before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-def break_workflow_gate_agent_without_produced_artifact(worktree: Path) -> None:
-    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
-    data = load_json(path)
-    data["produces"] = []
-    write_json(path, data)
-
-
-def break_workflow_gate_agent_with_multiple_produced_artifacts(worktree: Path) -> None:
-    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
-    data = load_json(path)
-    data["produces"] = ["Requirements", "CodeReview"]
-    write_json(path, data)
-
-
-def break_workflow_gate_agent_references_missing_artifact_contract(worktree: Path) -> None:
-    path = worktree / "registry" / "agents" / "Requirements" / "agent.json"
-    data = load_json(path)
-    data["produces"] = ["MissingArtifact"]
-    write_json(path, data)
-
-
-def break_workflow_gate_transition_event_not_allowed_by_artifact(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        transitions = data.get("transitions")
-        if not isinstance(transitions, list):
-            raise RuntimeError("workflow transitions must be a list before mutation")
-
-        for transition in transitions:
-            if (
-                isinstance(transition, dict)
-                and transition.get("from") == "Requirements"
-                and transition.get("on") == "pass"
-            ):
-                transition["on"] = "approve"
-                return
-
-        raise RuntimeError("expected Requirements pass transition before mutation")
-
-    awg_mutate_default_workflow(worktree, mutate)
-
-
-def break_workflow_gate_artifact_missing_transition_status(worktree: Path) -> None:
-    path = worktree / "registry" / "artifacts" / "Requirements" / "artifact.json"
-    data = load_json(path)
-    statuses = data.get("allowedStatuses")
-
-    if not isinstance(statuses, list):
-        raise RuntimeError("artifact allowedStatuses must be a list before mutation")
-
-    data["allowedStatuses"] = [
-        status
-        for status in statuses
-        if not (isinstance(status, str) and status.upper() == "PASS")
-    ]
-    write_json(path, data)
-
-def awg_default_bundle_file(worktree: Path) -> Path:
-    path = (
-        worktree
-        / "registry"
-        / "bundles"
-        / "orchestrated-delivery.bundle.json"
-    )
-
-    if not path.is_file():
-        raise RuntimeError(
-            "expected default bundle registry file: "
-            "registry/bundles/orchestrated-delivery.bundle.json"
-        )
-
-    return path
-
-
-def awg_mutate_default_bundle(
-    worktree: Path,
-    mutate: Callable[[dict[str, Any]], None],
-) -> None:
-    path = awg_default_bundle_file(worktree)
-    data = load_json(path)
-    mutate(data)
-    write_json(path, data)
-
 
 
 def break_init_from_bundle_unknown_bundle(worktree: Path) -> None:
     return
 
 
-def break_bundle_registry_name_mismatch(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        data["name"] = "wrong-name"
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_workflow(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        data["workflow"] = "missing-workflow"
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_profile(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        data["profile"] = "missing-profile"
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_agent(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        agents = data.get("agents")
-        if not isinstance(agents, list):
-            raise RuntimeError("bundle agents must be a list before mutation")
-        agents.append("MissingAgent")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_skill(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        skills = data.get("skills")
-        if not isinstance(skills, list):
-            raise RuntimeError("bundle skills must be a list before mutation")
-        skills.append("missing-skill")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_artifact(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        artifacts = data.get("artifacts")
-        if not isinstance(artifacts, list):
-            raise RuntimeError("bundle artifacts must be a list before mutation")
-        artifacts.append("MissingArtifact")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_missing_target(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        targets = data.get("targets")
-        if not isinstance(targets, list):
-            raise RuntimeError("bundle targets must be a list before mutation")
-        targets.append("missing-target")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-
-
-
-
-def awg_bundle_workflow_file(worktree: Path) -> Path:
-    path = (
-        worktree
-        / "registry"
-        / "workflows"
-        / "orchestrated-delivery.workflow.json"
-    )
-
-    if not path.is_file():
-        raise RuntimeError(
-            "expected bundle workflow registry file: "
-            "registry/workflows/orchestrated-delivery.workflow.json"
-        )
-
-    return path
-
-
-def awg_bundle_target_adapter_file(worktree: Path, target: str) -> Path:
+def awg_bundle_target_adapter_file(
+    worktree: Path,
+    target: str,
+) -> Path:
     path = worktree / "registry" / "targets" / target / "adapter.json"
+
     if not path.is_file():
         raise RuntimeError(f"Expected target adapter file not found: {path}")
+
     return path
 
 
-def awg_bundle_profile_file(worktree: Path, profile: str) -> Path:
-    path = worktree / "registry" / "profiles" / f"{profile}.profile.json"
-    if not path.is_file():
-        raise RuntimeError(f"Expected profile file not found: {path}")
-    return path
-
-
-def break_bundle_registry_workflow_state_agent_not_in_bundle(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        agents = data.get("agents")
-        if not isinstance(agents, list):
-            raise RuntimeError("bundle agents must be a list before mutation")
-        if "Requirements" not in agents:
-            raise RuntimeError("bundle agents must contain Requirements before mutation")
-        agents.remove("Requirements")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_workflow_transition_outside_bundle_workflow(worktree: Path) -> None:
-    path = awg_bundle_workflow_file(worktree)
-    data = load_json(path)
-
-    transitions = data.get("transitions")
-    if not isinstance(transitions, list) or not transitions:
-        raise RuntimeError("workflow transitions must be a non-empty list before mutation")
-
-    first_transition = transitions[0]
-    if not isinstance(first_transition, dict):
-        raise RuntimeError("workflow transition must be an object before mutation")
-
-    first_transition["to"] = "ExternalState"
-    write_json(path, data)
-
-
-def break_bundle_registry_agent_capability_missing_bundle_skill(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        skills = data.get("skills")
-        if not isinstance(skills, list):
-            raise RuntimeError("bundle skills must be a list before mutation")
-        if "requirements-analysis" not in skills:
-            raise RuntimeError("bundle skills must contain requirements-analysis before mutation")
-        skills.remove("requirements-analysis")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_agent_produced_artifact_missing_from_bundle(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        artifacts = data.get("artifacts")
-        if not isinstance(artifacts, list):
-            raise RuntimeError("bundle artifacts must be a list before mutation")
-        if "Requirements" not in artifacts:
-            raise RuntimeError("bundle artifacts must contain Requirements before mutation")
-        artifacts.remove("Requirements")
-
-    awg_mutate_default_bundle(worktree, mutate)
-
-
-def break_bundle_registry_target_adapter_name_mismatch(worktree: Path) -> None:
-    path = awg_bundle_target_adapter_file(worktree, "opencode")
+def break_bundle_registry_target_adapter_name_mismatch(
+    worktree: Path,
+) -> None:
+    path = awg_bundle_target_adapter_file(
+        worktree,
+        "opencode",
+    )
     data = load_json(path)
     data["name"] = "wrong-opencode"
     write_json(path, data)
 
 
-def break_bundle_registry_profile_workflow_mismatch(worktree: Path) -> None:
-    path = awg_bundle_profile_file(worktree, "microservice-platform")
+def break_bundle_registry_target_permission_mapping_missing(
+    worktree: Path,
+) -> None:
+    path = awg_bundle_target_adapter_file(
+        worktree,
+        "opencode",
+    )
     data = load_json(path)
-    data["workflow"] = "wrong-workflow"
+    mapping = data.get("permissionMapping")
+
+    if not isinstance(mapping, dict):
+        raise RuntimeError("target permissionMapping must be an object before mutation")
+
+    mapping.pop("read-only", None)
     write_json(path, data)
 
 
 def awg_default_setup_file(worktree: Path) -> Path:
     path = (
-        worktree
-        / "registry"
-        / "setups"
-        / "orchestrated-delivery-greenfield.setup.json"
+        worktree / "registry" / "setups" / "orchestrated-delivery-greenfield.setup.json"
     )
 
     if not path.is_file():
@@ -4680,7 +4227,9 @@ def awg_default_setup_file(worktree: Path) -> Path:
     return path
 
 
-def awg_mutate_first_setup(worktree: Path, mutate: Callable[[dict[str, Any]], None]) -> None:
+def awg_mutate_first_setup(
+    worktree: Path, mutate: Callable[[dict[str, Any]], None]
+) -> None:
     path = awg_default_setup_file(worktree)
     data = load_json(path)
 
@@ -4703,7 +4252,9 @@ def break_setup_registry_missing_default_bundle(worktree: Path) -> None:
         data["defaultBundle"] = "missing-bundle"
         final_recommendation = data.get("finalRecommendation")
         if not isinstance(final_recommendation, dict):
-            raise RuntimeError("setup finalRecommendation must be an object before mutation")
+            raise RuntimeError(
+                "setup finalRecommendation must be an object before mutation"
+            )
         final_recommendation["bundle"] = "missing-bundle"
 
     awg_mutate_first_setup(worktree, mutate)
@@ -4713,7 +4264,9 @@ def break_setup_registry_recommended_missing_option(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         questions = data.get("questions")
         if not isinstance(questions, list) or not questions:
-            raise RuntimeError("setup questions must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup questions must be a non-empty list before mutation"
+            )
         first_question = questions[0]
         if not isinstance(first_question, dict):
             raise RuntimeError("setup questions[0] must be an object before mutation")
@@ -4726,7 +4279,9 @@ def break_setup_registry_recommended_overlaps_blocked(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         questions = data.get("questions")
         if not isinstance(questions, list) or not questions:
-            raise RuntimeError("setup questions must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup questions must be a non-empty list before mutation"
+            )
         first_question = questions[0]
         if not isinstance(first_question, dict):
             raise RuntimeError("setup questions[0] must be an object before mutation")
@@ -4735,24 +4290,44 @@ def break_setup_registry_recommended_overlaps_blocked(worktree: Path) -> None:
     awg_mutate_first_setup(worktree, mutate)
 
 
-def break_setup_registry_option_recommends_missing_agent(worktree: Path) -> None:
+def break_setup_registry_option_recommends_legacy_agents(
+    worktree: Path,
+) -> None:
     def mutate(data: dict[str, Any]) -> None:
         questions = data.get("questions")
+
         if not isinstance(questions, list) or not questions:
-            raise RuntimeError("setup questions must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup questions must be a non-empty list before mutation"
+            )
+
         first_question = questions[0]
+
         if not isinstance(first_question, dict):
             raise RuntimeError("setup questions[0] must be an object before mutation")
+
         options = first_question.get("options")
+
         if not isinstance(options, list) or not options:
-            raise RuntimeError("setup question options must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup question options must be a non-empty list before mutation"
+            )
+
         first_option = options[0]
+
         if not isinstance(first_option, dict):
-            raise RuntimeError("setup question options[0] must be an object before mutation")
+            raise RuntimeError(
+                "setup question options[0] must be an object before mutation"
+            )
+
         recommends = first_option.get("recommends")
+
         if not isinstance(recommends, dict):
-            raise RuntimeError("setup option recommends must be an object before mutation")
-        recommends["agents"] = ["MissingAgent"]
+            raise RuntimeError(
+                "setup option recommends must be an object before mutation"
+            )
+
+        recommends["agents"] = ["Requirements"]
 
     awg_mutate_first_setup(worktree, mutate)
 
@@ -4814,10 +4389,14 @@ def break_setup_profile_answer_missing_option(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         answers = data.get("answers")
         if not isinstance(answers, list) or not answers:
-            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup profile answers must be a non-empty list before mutation"
+            )
         first_answer = answers[0]
         if not isinstance(first_answer, dict):
-            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+            raise RuntimeError(
+                "setup profile answers[0] must be an object before mutation"
+            )
         first_answer["selected"] = "missing-option"
 
     awg_mutate_setup_profile(worktree, mutate)
@@ -4827,26 +4406,38 @@ def break_setup_profile_answer_blocked_option(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         answers = data.get("answers")
         if not isinstance(answers, list) or not answers:
-            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup profile answers must be a non-empty list before mutation"
+            )
         first_answer = answers[0]
         if not isinstance(first_answer, dict):
-            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+            raise RuntimeError(
+                "setup profile answers[0] must be an object before mutation"
+            )
         first_answer["selected"] = "documentation-only"
 
     awg_mutate_setup_profile(worktree, mutate)
 
 
-def break_setup_profile_selected_missing_skill(worktree: Path) -> None:
+def break_setup_profile_selected_legacy_skill(
+    worktree: Path,
+) -> None:
     def mutate(data: dict[str, Any]) -> None:
         selected = data.get("selected")
+
         if not isinstance(selected, dict):
-            raise RuntimeError("setup profile selected must be an object before mutation")
-        selected["skills"] = ["missing-skill"]
+            raise RuntimeError(
+                "setup profile selected must be an object before mutation"
+            )
+
+        selected["skills"] = ["workflow-routing"]
 
     awg_mutate_setup_profile(worktree, mutate)
 
 
-def break_setup_profile_selected_targets_drift_from_answer_recommends(worktree: Path) -> None:
+def break_setup_profile_selected_targets_drift_from_answer_recommends(
+    worktree: Path,
+) -> None:
     def mutate(data: dict[str, Any]) -> None:
         answers = data.get("answers")
         if not isinstance(answers, list):
@@ -4854,7 +4445,10 @@ def break_setup_profile_selected_targets_drift_from_answer_recommends(worktree: 
 
         found = False
         for answer in answers:
-            if isinstance(answer, dict) and answer.get("question") == "target-platforms":
+            if (
+                isinstance(answer, dict)
+                and answer.get("question") == "target-platforms"
+            ):
                 answer["selected"] = "opencode-only"
                 answer["classification"] = "compatible"
                 answer["reason"] = (
@@ -4864,11 +4458,15 @@ def break_setup_profile_selected_targets_drift_from_answer_recommends(worktree: 
                 found = True
 
         if not found:
-            raise RuntimeError("setup profile target-platforms answer must exist before mutation")
+            raise RuntimeError(
+                "setup profile target-platforms answer must exist before mutation"
+            )
 
         selected = data.get("selected")
         if not isinstance(selected, dict):
-            raise RuntimeError("setup profile selected must be an object before mutation")
+            raise RuntimeError(
+                "setup profile selected must be an object before mutation"
+            )
 
         selected["targets"] = ["opencode", "vscode-copilot"]
 
@@ -4879,12 +4477,16 @@ def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         setup_name = data.get("setup")
         if not isinstance(setup_name, str) or not setup_name.strip():
-            raise RuntimeError("setup profile setup must be a non-empty string before mutation")
+            raise RuntimeError(
+                "setup profile setup must be a non-empty string before mutation"
+            )
 
         setup = load_json(worktree / "registry" / "setups" / f"{setup_name}.setup.json")
         questions = setup.get("questions")
         if not isinstance(questions, list) or not questions:
-            raise RuntimeError("setup questions must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup questions must be a non-empty list before mutation"
+            )
 
         first_question = questions[0]
         if not isinstance(first_question, dict):
@@ -4894,11 +4496,21 @@ def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
         recommended = first_question.get("recommended")
         options = first_question.get("options")
         if not isinstance(question_id, str) or not question_id.strip():
-            raise RuntimeError("setup questions[0].id must be a non-empty string before mutation")
-        if not isinstance(recommended, list) or not recommended or not isinstance(recommended[0], str):
-            raise RuntimeError("setup questions[0].recommended must contain a string before mutation")
+            raise RuntimeError(
+                "setup questions[0].id must be a non-empty string before mutation"
+            )
+        if (
+            not isinstance(recommended, list)
+            or not recommended
+            or not isinstance(recommended[0], str)
+        ):
+            raise RuntimeError(
+                "setup questions[0].recommended must contain a string before mutation"
+            )
         if not isinstance(options, list) or not options:
-            raise RuntimeError("setup questions[0].options must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup questions[0].options must be a non-empty list before mutation"
+            )
 
         selected = recommended[0]
         selected_option = next(
@@ -4914,14 +4526,20 @@ def break_setup_profile_answer_classification_drift(worktree: Path) -> None:
 
         reason = selected_option.get("reason")
         if not isinstance(reason, str) or not reason.strip():
-            raise RuntimeError("setup recommended option reason must be a non-empty string before mutation")
+            raise RuntimeError(
+                "setup recommended option reason must be a non-empty string before mutation"
+            )
 
         answers = data.get("answers")
         if not isinstance(answers, list) or not answers:
-            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup profile answers must be a non-empty list before mutation"
+            )
         first_answer = answers[0]
         if not isinstance(first_answer, dict):
-            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+            raise RuntimeError(
+                "setup profile answers[0] must be an object before mutation"
+            )
 
         first_answer["question"] = question_id
         first_answer["selected"] = selected
@@ -4935,10 +4553,14 @@ def break_setup_profile_answer_reason_drift(worktree: Path) -> None:
     def mutate(data: dict[str, Any]) -> None:
         answers = data.get("answers")
         if not isinstance(answers, list) or not answers:
-            raise RuntimeError("setup profile answers must be a non-empty list before mutation")
+            raise RuntimeError(
+                "setup profile answers must be a non-empty list before mutation"
+            )
         first_answer = answers[0]
         if not isinstance(first_answer, dict):
-            raise RuntimeError("setup profile answers[0] must be an object before mutation")
+            raise RuntimeError(
+                "setup profile answers[0] must be an object before mutation"
+            )
         first_answer["reason"] = "Wrong reason."
 
     awg_mutate_setup_profile(worktree, mutate)
@@ -5014,7 +4636,9 @@ def break_skill_registry_duplicate_global_capability(worktree: Path) -> None:
 
     first_provides = first.get("provides")
     if not isinstance(first_provides, list) or not first_provides:
-        raise RuntimeError("first skill provides must be a non-empty list before mutation")
+        raise RuntimeError(
+            "first skill provides must be a non-empty list before mutation"
+        )
 
     second_provides = second.get("provides")
     if not isinstance(second_provides, list):
@@ -5065,9 +4689,7 @@ def break_skill_registry_duplicate_recommended_agent(
     agents = data.get("recommendedAgents")
 
     if not isinstance(agents, list) or not agents:
-        raise RuntimeError(
-            "recommendedAgents must be a non-empty list before mutation"
-        )
+        raise RuntimeError("recommendedAgents must be a non-empty list before mutation")
 
     agents.append(agents[0])
     write_json(path, data)
@@ -5117,217 +4739,141 @@ def break_skill_registry_requires_own_capability(
     provides = data.get("provides")
 
     if not isinstance(provides, list) or not provides:
-        raise RuntimeError(
-            "skill provides must be a non-empty list before mutation"
-        )
+        raise RuntimeError("skill provides must be a non-empty list before mutation")
 
     data["requiresCapabilities"] = [provides[0]]
     write_json(path, data)
 
-def break_artifact_type_folder_mismatch(worktree: Path) -> None:
-    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("type", "DifferentType"))
 
-
-def break_artifact_path_pattern_parent_reference(worktree: Path) -> None:
-    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("pathPattern", "../agent-output/unsafe/*.md"))
-
-
-def break_artifact_path_pattern_absolute(worktree: Path) -> None:
-    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("pathPattern", "/tmp/agent-output/*.md"))
-
-
-def break_artifact_required_heading_empty_entry(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        headings = data.get("requiredHeadings")
-        if not isinstance(headings, list) or not headings:
-            raise RuntimeError("requiredHeadings must be a non-empty list before mutation")
-        headings[0] = ""
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_required_heading_duplicate(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        headings = data.get("requiredHeadings")
-        if not isinstance(headings, list) or not headings:
-            raise RuntimeError("requiredHeadings must be a non-empty list before mutation")
-        headings.append(headings[0])
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_allowed_status_empty_entry(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        statuses = data.get("allowedStatuses")
-        if not isinstance(statuses, list) or not statuses:
-            raise RuntimeError("allowedStatuses must be a non-empty list before mutation")
-        statuses[0] = ""
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_allowed_status_duplicate(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        statuses = data.get("allowedStatuses")
-        if not isinstance(statuses, list) or not statuses:
-            raise RuntimeError("allowedStatuses must be a non-empty list before mutation")
-        statuses.append(statuses[0])
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_status_not_object(worktree: Path) -> None:
-    mutate_first_artifact_contract(worktree, lambda data: data.__setitem__("status", "not-an-object"))
-
-
-def break_artifact_status_pattern_missing(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        status = data.get("status")
-        if not isinstance(status, dict):
-            raise RuntimeError("status must be an object before mutation")
-        status.pop("pattern", None)
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_status_pattern_empty(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        status = data.get("status")
-        if not isinstance(status, dict):
-            raise RuntimeError("status must be an object before mutation")
-        status["pattern"] = ""
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_status_pattern_mismatch(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        status = data.get("status")
-        if not isinstance(status, dict):
-            raise RuntimeError("status must be an object before mutation")
-        status["pattern"] = "PASS|FAIL"
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-
-def break_artifact_status_heading_not_required(worktree: Path) -> None:
-    def mutate(data: dict[str, Any]) -> None:
-        headings = data.get("requiredHeadings")
-        if not isinstance(headings, list):
-            raise RuntimeError("requiredHeadings must be a list before mutation")
-        data["requiredHeadings"] = [heading for heading in headings if heading != "## Status"]
-
-    mutate_first_artifact_contract(worktree, mutate)
-
-def break_agent_registry_unknown_capability_reference(worktree: Path) -> None:
+def break_agent_registry_unknown_recommended_capability(
+    worktree: Path,
+) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
 
-    capabilities = data.get("capabilities")
+    capabilities = data.get("recommendedCapabilities")
     if not isinstance(capabilities, list):
-        capabilities = []
-        data["capabilities"] = capabilities
+        raise RuntimeError("recommendedCapabilities must be a list before mutation")
 
     capabilities.append("does.not.exist")
     write_json(path, data)
 
 
-def break_agent_registry_duplicate_capability(worktree: Path) -> None:
+def break_agent_registry_duplicate_recommended_capability(
+    worktree: Path,
+) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
 
-    capabilities = data.get("capabilities")
+    capabilities = data.get("recommendedCapabilities")
     if not isinstance(capabilities, list) or not capabilities:
-        raise RuntimeError("agent capabilities must be a non-empty list before mutation")
+        raise RuntimeError("recommendedCapabilities must be non-empty before mutation")
 
     capabilities.append(capabilities[0])
     write_json(path, data)
 
 
-def break_agent_registry_missing_required_artifact_reference(worktree: Path) -> None:
-    path = first_producing_agent_registry_file(worktree)
+def break_agent_registry_empty_recommended_responsibilities(
+    worktree: Path,
+) -> None:
+    path = first_agent_registry_file(worktree)
     data = load_json(path)
-
-    required_artifacts = data.get("requiredArtifacts")
-    if not isinstance(required_artifacts, list):
-        required_artifacts = []
-        data["requiredArtifacts"] = required_artifacts
-
-    required_artifacts.append("DoesNotExist")
+    data["recommendedResponsibilities"] = []
     write_json(path, data)
 
 
-def break_agent_registry_required_artifacts_invalid_type(worktree: Path) -> None:
+def break_agent_registry_empty_default_guardrails(
+    worktree: Path,
+) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
-
-    data["requiredArtifacts"] = "not-a-list"
+    data["defaultGuardrails"] = []
     write_json(path, data)
 
 
 def break_agent_registry_empty_version(worktree: Path) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
-
     data["version"] = ""
     write_json(path, data)
 
 
-def break_agent_registry_missing_default_permission_profile(worktree: Path) -> None:
+def permission_profile_path(
+    worktree: Path,
+    name: str = "read-only",
+) -> Path:
+    path = (
+        worktree / "registry" / "permission-profiles" / name / "permission-profile.json"
+    )
+
+    if not path.is_file():
+        raise RuntimeError(f"expected permission profile before mutation: {path}")
+
+    return path
+
+
+def break_permission_profile_name_folder_mismatch(
+    worktree: Path,
+) -> None:
+    path = permission_profile_path(worktree)
+    data = load_json(path)
+    data["name"] = "wrong-name"
+    write_json(path, data)
+
+
+def break_permission_profile_write_without_read(
+    worktree: Path,
+) -> None:
+    path = permission_profile_path(worktree)
+    data = load_json(path)
+    data["read"] = False
+    data["write"] = True
+    write_json(path, data)
+
+
+def break_permission_profile_edit_without_write(
+    worktree: Path,
+) -> None:
+    path = permission_profile_path(worktree)
+    data = load_json(path)
+    data["edit"] = True
+    write_json(path, data)
+
+
+def break_permission_profile_bash_without_read(
+    worktree: Path,
+) -> None:
+    path = permission_profile_path(worktree)
+    data = load_json(path)
+    data["read"] = False
+    data["bash"] = "limited"
+    write_json(path, data)
+
+
+def break_agent_registry_missing_default_permission_profile(
+    worktree: Path,
+) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
-
     data.pop("defaultPermissionProfile", None)
     write_json(path, data)
 
 
-def break_agent_registry_empty_default_permission_profile(worktree: Path) -> None:
+def break_agent_registry_unknown_default_permission_profile(
+    worktree: Path,
+) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
-
-    data["defaultPermissionProfile"] = ""
-    write_json(path, data)
-
-def break_profile_workflow_reference(worktree: Path) -> None:
-    path = first_profile_file(worktree)
-    data = load_json(path)
-    data["workflow"] = "does-not-exist"
+    data["defaultPermissionProfile"] = "does-not-exist"
     write_json(path, data)
 
 
-def break_profile_recommended_agent_reference(worktree: Path) -> None:
-    path = first_profile_file(worktree)
+def break_agent_registry_legacy_field(
+    worktree: Path,
+) -> None:
+    path = first_agent_registry_file(worktree)
     data = load_json(path)
-    agents = data.get("recommendedAgents")
-    if not isinstance(agents, list):
-        agents = []
-        data["recommendedAgents"] = agents
-    agents.append("DoesNotExist")
-    write_json(path, data)
-
-
-def break_profile_recommended_capability_reference(worktree: Path) -> None:
-    path = first_profile_file(worktree)
-    data = load_json(path)
-    capabilities = data.get("recommendedCapabilities")
-    if not isinstance(capabilities, list):
-        capabilities = []
-        data["recommendedCapabilities"] = capabilities
-    capabilities.append("does.not.exist")
-    write_json(path, data)
-
-
-def break_profile_recommended_runtime_profiles_type(worktree: Path) -> None:
-    path = first_profile_file(worktree)
-    data = load_json(path)
-    data["recommendedRuntimeProfiles"] = "not-a-list"
-    write_json(path, data)
-
-
-def break_profile_version_empty(worktree: Path) -> None:
-    path = first_profile_file(worktree)
-    data = load_json(path)
-    data["version"] = ""
+    data["produces"] = ["LegacyArtifact"]
     write_json(path, data)
 
 
@@ -5341,7 +4887,9 @@ def break_lockfile_missing_input_file_entry(worktree: Path) -> None:
 
     files = inputs.get("files")
     if not isinstance(files, list) or not files:
-        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+        raise RuntimeError(
+            "lockfile inputs.files must be a non-empty list for this test"
+        )
 
     files.pop()
     inputs["fileCount"] = len(files)
@@ -5358,7 +4906,9 @@ def break_lockfile_input_hash_drift(worktree: Path) -> None:
 
     files = inputs.get("files")
     if not isinstance(files, list) or not files:
-        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+        raise RuntimeError(
+            "lockfile inputs.files must be a non-empty list for this test"
+        )
 
     first = files[0]
     if not isinstance(first, dict):
@@ -5378,7 +4928,9 @@ def break_lockfile_input_size_drift(worktree: Path) -> None:
 
     files = inputs.get("files")
     if not isinstance(files, list) or not files:
-        raise RuntimeError("lockfile inputs.files must be a non-empty list for this test")
+        raise RuntimeError(
+            "lockfile inputs.files must be a non-empty list for this test"
+        )
 
     first = files[0]
     if not isinstance(first, dict):
@@ -5386,7 +4938,9 @@ def break_lockfile_input_size_drift(worktree: Path) -> None:
 
     size_bytes = first.get("sizeBytes")
     if not isinstance(size_bytes, int):
-        raise RuntimeError("lockfile inputs.files[0].sizeBytes must be an integer for this test")
+        raise RuntimeError(
+            "lockfile inputs.files[0].sizeBytes must be an integer for this test"
+        )
 
     first["sizeBytes"] = size_bytes + 1
     write_json(path, data)
@@ -5438,6 +4992,7 @@ def break_lockfile_untracked_registry_input(worktree: Path) -> None:
         encoding="utf-8",
     )
 
+
 def break_lockfile(worktree: Path) -> None:
     path = worktree / ".agentic" / "agentic-lock.json"
     data = load_json(path)
@@ -5450,7 +5005,18 @@ def break_lockfile(worktree: Path) -> None:
     write_json(path, data)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run isolated negative gate tests.")
+    parser.add_argument(
+        "--name-contains",
+        help=("Run only tests whose names contain this case-insensitive text."),
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
+    args = parse_args()
+
     tests = [
         (
             "failure",
@@ -5461,15 +5027,13 @@ def main() -> int:
         ),
         (
             "failure",
-            "workflow validation fails for unknown terminal state",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_terminal_state,
-            "terminalState",
-        ),
-        (
-            "failure",
             "environment validation fails when node cannot run",
-            ["env", "PATH=.tmp-negative-node-bin:/usr/bin:/bin", "scripts/agentic/agentic-gen.sh", "validate-environment"],
+            [
+                "env",
+                "PATH=.tmp-negative-node-bin:/usr/bin:/bin",
+                "scripts/agentic/agentic-gen.sh",
+                "validate-environment",
+            ],
             break_environment_validation_node_command,
             "node is required but failed to run",
         ),
@@ -5483,7 +5047,12 @@ def main() -> int:
         (
             "failure",
             "init idempotency validation fails when second init changes config",
-            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--bundle", "orchestrated-delivery"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--bundle",
+                "orchestrated-delivery",
+            ],
             break_init_idempotency_by_changing_init_script,
             "Init from bundle is not idempotent",
         ),
@@ -5497,14 +5066,27 @@ def main() -> int:
         (
             "failure",
             "init idempotency validation fails when setup is used without guided",
-            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--setup", "orchestrated-delivery-greenfield"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+            ],
             no_mutation,
             "error: --setup requires --guided",
         ),
         (
             "failure",
             "init idempotency validation fails when guided and bundle are combined",
-            ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--guided", "--setup", "orchestrated-delivery-greenfield", "--bundle", "orchestrated-delivery"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "validate-init-idempotency",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--bundle",
+                "orchestrated-delivery",
+            ],
             no_mutation,
             "error: --guided cannot be combined with --bundle",
         ),
@@ -5576,7 +5158,13 @@ def main() -> int:
         (
             "success",
             "guided init selects default target recommendations",
-            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+            ],
             no_mutation,
             "PASS: Initialized .agentic/setup-profile.json from guided setup 'orchestrated-delivery-greenfield'.",
             assert_guided_default_targets,
@@ -5625,8 +5213,7 @@ def main() -> int:
             "generated output validation fails when selected skill file is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_generated_selected_skill_output,
-            "missing generated file: "
-            ".github/skills/code-review-clean-code/SKILL.md",
+            "missing generated file: .github/skills/code-review-clean-code/SKILL.md",
         ),
         (
             "success",
@@ -5957,6 +5544,34 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-manifest"],
             break_output_manifest_ownership,
             "unmanaged generated file under owned path",
+        ),
+        (
+            "failure",
+            "registry schema validation enforces semantic version pattern",
+            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
+            break_registry_schema_agent_version_pattern,
+            "does not match",
+        ),
+        (
+            "failure",
+            "registry schema validation enforces workflow states minItems",
+            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
+            break_registry_schema_workflow_states_min_items,
+            "should be non-empty",
+        ),
+        (
+            "failure",
+            "registry schema validation enforces workflow state oneOf and const",
+            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
+            break_registry_schema_workflow_terminal_const,
+            "is not valid under any of the given schemas",
+        ),
+        (
+            "failure",
+            "registry schema validation enforces permission bash enum",
+            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
+            break_registry_schema_permission_bash_enum,
+            "is not one of",
         ),
         (
             "failure",
@@ -7101,66 +6716,59 @@ def main() -> int:
         ),
         (
             "failure",
-            "profile registry validation fails when workflow reference is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
-            break_profile_workflow_reference,
-            "workflow must reference an existing workflow registry file",
+            "permission profile registry validation fails when name differs from folder",
+            ["scripts/agentic/agentic-gen.sh", "validate-permission-profiles"],
+            break_permission_profile_name_folder_mismatch,
+            "name 'wrong-name' does not match folder 'read-only'",
         ),
         (
             "failure",
-            "profile registry validation fails when recommended agent is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
-            break_profile_recommended_agent_reference,
-            "recommendedAgents entry 'DoesNotExist' must reference an existing agent",
+            "permission profile registry validation fails when write lacks read",
+            ["scripts/agentic/agentic-gen.sh", "validate-permission-profiles"],
+            break_permission_profile_write_without_read,
+            "write=true requires read=true",
         ),
         (
             "failure",
-            "profile registry validation fails when recommended capability is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
-            break_profile_recommended_capability_reference,
+            "permission profile registry validation fails when edit lacks write",
+            ["scripts/agentic/agentic-gen.sh", "validate-permission-profiles"],
+            break_permission_profile_edit_without_write,
+            "edit=true requires write=true",
+        ),
+        (
+            "failure",
+            "permission profile registry validation fails when bash lacks read",
+            ["scripts/agentic/agentic-gen.sh", "validate-permission-profiles"],
+            break_permission_profile_bash_without_read,
+            "bash=limited requires read=true",
+        ),
+        (
+            "failure",
+            "agent registry validation fails when recommended capability is unavailable",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_unknown_recommended_capability,
             "recommendedCapabilities entry 'does.not.exist' must be provided by a registered skill",
         ),
         (
             "failure",
-            "profile registry validation fails when recommended runtime profiles has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
-            break_profile_recommended_runtime_profiles_type,
-            "recommendedRuntimeProfiles must be a list when present",
-        ),
-        (
-            "failure",
-            "profile registry validation fails when version is empty",
-            ["scripts/agentic/agentic-gen.sh", "validate-profiles"],
-            break_profile_version_empty,
-            "version must be a non-empty string when present",
-        ),
-        (
-            "failure",
-            "agent registry validation fails when capability is not provided by skill",
+            "agent registry validation fails when recommended capability is duplicated",
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_unknown_capability_reference,
-            "capabilities entry 'does.not.exist' must be provided by a registered skill",
+            break_agent_registry_duplicate_recommended_capability,
+            "recommendedCapabilities entry",
         ),
         (
             "failure",
-            "agent registry validation fails when capability is duplicated",
+            "agent registry validation fails when recommended responsibilities are empty",
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_duplicate_capability,
-            "capabilities entry",
+            break_agent_registry_empty_recommended_responsibilities,
+            "recommendedResponsibilities must be a non-empty list",
         ),
         (
             "failure",
-            "agent registry validation fails when required artifact is missing",
+            "agent registry validation fails when default guardrails are empty",
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_missing_required_artifact_reference,
-            "requiredArtifacts missing artifact contract",
-        ),
-        (
-            "failure",
-            "agent registry validation fails when requiredArtifacts has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_required_artifacts_invalid_type,
-            "requiredArtifacts must be a list when present",
+            break_agent_registry_empty_default_guardrails,
+            "defaultGuardrails must be a non-empty list",
         ),
         (
             "failure",
@@ -7178,94 +6786,17 @@ def main() -> int:
         ),
         (
             "failure",
-            "agent registry validation fails when defaultPermissionProfile is empty",
+            "agent registry validation fails when defaultPermissionProfile is unknown",
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_empty_default_permission_profile,
-            "defaultPermissionProfile must be a non-empty string",
+            break_agent_registry_unknown_default_permission_profile,
+            "must reference an existing permission profile",
         ),
         (
             "failure",
-            "artifact validation fails when type does not match folder",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_type_folder_mismatch,
-            "type must match containing directory",
-        ),
-        (
-            "failure",
-            "artifact validation fails when pathPattern contains parent reference",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_path_pattern_parent_reference,
-            "pathPattern must be a safe relative path",
-        ),
-        (
-            "failure",
-            "artifact validation fails when pathPattern is absolute",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_path_pattern_absolute,
-            "pathPattern must be a safe relative path",
-        ),
-        (
-            "failure",
-            "artifact validation fails when required heading entry is empty",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_required_heading_empty_entry,
-            "requiredHeadings entries must be non-empty strings",
-        ),
-        (
-            "failure",
-            "artifact validation fails when required heading is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_required_heading_duplicate,
-            "requiredHeadings",
-        ),
-        (
-            "failure",
-            "artifact validation fails when allowed status entry is empty",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_allowed_status_empty_entry,
-            "allowedStatuses entries must be non-empty strings",
-        ),
-        (
-            "failure",
-            "artifact validation fails when allowed status is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_allowed_status_duplicate,
-            "allowedStatuses",
-        ),
-        (
-            "failure",
-            "artifact validation fails when status is not object",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_status_not_object,
-            "status must be an object",
-        ),
-        (
-            "failure",
-            "artifact validation fails when status pattern is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_status_pattern_missing,
-            "status.pattern must be a non-empty string",
-        ),
-        (
-            "failure",
-            "artifact validation fails when status pattern is empty",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_status_pattern_empty,
-            "status.pattern must be a non-empty string",
-        ),
-        (
-            "failure",
-            "artifact validation fails when status pattern differs from allowedStatuses",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_status_pattern_mismatch,
-            "status.pattern must match every allowed status",
-        ),
-        (
-            "failure",
-            "artifact validation fails when status heading is not required",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_status_heading_not_required,
-            "status.heading must be present in requiredHeadings",
+            "agent registry validation rejects legacy agent fields",
+            ["scripts/agentic/agentic-gen.sh", "validate-agents"],
+            break_agent_registry_legacy_field,
+            "legacy agent field 'produces' is not allowed",
         ),
         (
             "failure",
@@ -7381,202 +6912,6 @@ def main() -> int:
         ),
         (
             "failure",
-            "workflow registry validation fails when name does not match file",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_name_file_mismatch,
-            "does not match file name",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when failClosed has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_fail_closed_invalid_type,
-            "failClosed must be a boolean",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when states has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_states_invalid_type,
-            "states must be a non-empty list",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when state name is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_duplicate_state_name,
-            "is duplicated",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when startState is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_start_state_missing,
-            "startState must be declared",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when startState is terminal",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_start_state_terminal,
-            "must not be terminal",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminalStates is empty",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_terminal_states_empty,
-            "terminalStates must be a non-empty list",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminalState is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_duplicate_terminal_state,
-            "terminalStates",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminalState is not marked terminal",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_terminal_state_not_marked_terminal,
-            "must reference a terminal state",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when non-terminal state has no agent",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_non_terminal_missing_agent,
-            "must declare agent",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when non-terminal state references unknown agent",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_non_terminal_unknown_agent,
-            "references unknown agent",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when non-terminal state has no gate",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_non_terminal_missing_gate,
-            "must declare gate",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminal state declares agent",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_terminal_state_declares_agent,
-            "must not declare agent",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transitions are missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_missing_transitions,
-            "transitions must be a non-empty list",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transition source is unknown",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_transition_unknown_source,
-            "transition source 'UnknownState' is not declared in states",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transition target is unknown",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_transition_unknown_target,
-            "transition target 'UnknownState' is not declared in states",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminal state has outgoing transition",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_terminal_outgoing_transition,
-            "terminal state 'Done' must not have outgoing transition",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transition event is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_transition_duplicate_event,
-            "transition event 'pass' from state 'Requirements' is duplicated",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transition event is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_transition_missing_event,
-            "transitions[0].on must be a non-empty string",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when non-terminal state has no outgoing transition",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_non_terminal_without_outgoing_transition,
-            "non-terminal state 'QA' has no outgoing transition",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when existing route makes state unreachable",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_existing_route_unreachable,
-            "state 'Architect' is unreachable from startState",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when added non-terminal state is unreachable",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_unreachable_non_terminal_with_outgoing,
-            "state 'SecurityReview' is unreachable from startState",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when terminalState is unreachable from startState",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_registry_unreachable_terminal_state,
-            "terminalState 'Done' is unreachable from startState",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when gated agent produces no artifact",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_gate_agent_without_produced_artifact,
-            "workflow state 'Requirements' gate 'requirements-review' requires agent 'Requirements' to produce exactly one artifact",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when gated agent produces multiple artifacts",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_gate_agent_with_multiple_produced_artifacts,
-            "workflow state 'Requirements' gate 'requirements-review' requires agent 'Requirements' to produce exactly one artifact",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when gated agent produced artifact contract is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_gate_agent_references_missing_artifact_contract,
-            "workflow state 'Requirements' gate 'requirements-review' references missing produced artifact contract 'MissingArtifact'",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when transition event is not allowed by produced artifact",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_gate_transition_event_not_allowed_by_artifact,
-            "workflow state 'Requirements' transition event 'approve' is not allowed by produced artifact 'Requirements' statuses",
-        ),
-        (
-            "failure",
-            "workflow registry validation fails when produced artifact is missing transition status",
-            ["scripts/agentic/agentic-gen.sh", "validate-workflows"],
-            break_workflow_gate_artifact_missing_transition_status,
-            "workflow state 'Requirements' transition event 'pass' is not allowed by produced artifact 'Requirements' statuses",
-        ),
-        (
-            "failure",
             "init from bundle fails when bundle is unknown",
             ["scripts/agentic/agentic-gen.sh", "init", "--bundle", "missing-bundle"],
             break_init_from_bundle_unknown_bundle,
@@ -7585,7 +6920,13 @@ def main() -> int:
         (
             "failure",
             "guided init fails when setup is unknown",
-            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "missing-setup"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "missing-setup",
+            ],
             break_init_from_bundle_unknown_bundle,
             "Unknown setup 'missing-setup'",
         ),
@@ -7637,114 +6978,73 @@ def main() -> int:
         (
             "failure",
             "guided init fails when setup is used without guided mode",
-            ["scripts/agentic/agentic-gen.sh", "init", "--setup", "orchestrated-delivery-greenfield"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+            ],
             break_init_from_bundle_unknown_bundle,
             "--setup requires --guided",
         ),
         (
             "failure",
             "guided init fails when answer is used without guided mode",
-            ["scripts/agentic/agentic-gen.sh", "init", "--bundle", "orchestrated-delivery", "--answer", "project-type=ai-application"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--bundle",
+                "orchestrated-delivery",
+                "--answer",
+                "project-type=ai-application",
+            ],
             break_init_from_bundle_unknown_bundle,
             "--answer requires --guided",
         ),
         (
             "failure",
             "guided init fails when answer format is invalid",
-            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "project-type"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "project-type",
+            ],
             break_init_from_bundle_unknown_bundle,
             "Invalid --answer 'project-type'. Expected format: question=value",
         ),
         (
             "failure",
             "guided init fails when answer question is unknown",
-            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "missing-question=value"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "missing-question=value",
+            ],
             break_init_from_bundle_unknown_bundle,
             "--answer references unknown setup question(s): ['missing-question']",
         ),
         (
             "failure",
             "guided init fails when answer selects blocked option",
-            ["scripts/agentic/agentic-gen.sh", "init", "--guided", "--setup", "orchestrated-delivery-greenfield", "--answer", "project-type=documentation-only"],
+            [
+                "scripts/agentic/agentic-gen.sh",
+                "init",
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "project-type=documentation-only",
+            ],
             break_init_from_bundle_unknown_bundle,
             "question 'project-type' selected option 'documentation-only' is blocked",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when name does not match file",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_name_mismatch,
-            "bundle name 'wrong-name' does not match file name 'orchestrated-delivery'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when workflow is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_workflow,
-            "bundle workflow references missing workflow 'missing-workflow'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when profile is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_profile,
-            "bundle profile references missing profile 'missing-profile'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when agent is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_agent,
-            "bundle agents references missing agent 'MissingAgent'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when skill is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_skill,
-            "bundle skills references missing skill 'missing-skill'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when artifact is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_artifact,
-            "bundle artifacts references missing artifact 'MissingArtifact'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when target is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_missing_target,
-            "bundle targets references missing target 'missing-target'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when workflow state agent is not included in bundle",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_workflow_state_agent_not_in_bundle,
-            "workflow 'orchestrated-delivery' state 'Requirements' uses agent 'Requirements' not included in bundle agents",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when workflow transition points outside bundle workflow",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_workflow_transition_outside_bundle_workflow,
-            "workflow transition[0] to state 'ExternalState' is not defined in bundle workflow 'orchestrated-delivery'",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when agent capability is not covered by bundle skills",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_agent_capability_missing_bundle_skill,
-            "bundle agent 'Requirements' capability 'requirements.elicit' is not provided by bundle skills",
-        ),
-        (
-            "failure",
-            "bundle registry validation fails when agent produced artifact is not included in bundle artifacts",
-            ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_agent_produced_artifact_missing_from_bundle,
-            "bundle agent 'Requirements' produces artifact 'Requirements' not included in bundle artifacts",
         ),
         (
             "failure",
@@ -7755,10 +7055,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "bundle registry validation fails when profile workflow does not match bundle workflow",
+            "bundle registry validation fails when target permission mapping is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-bundles"],
-            break_bundle_registry_profile_workflow_mismatch,
-            "bundle profile 'microservice-platform' workflow 'wrong-workflow' does not match bundle workflow 'orchestrated-delivery'",
+            break_bundle_registry_target_permission_mapping_missing,
+            "target 'opencode' has no permission mapping for 'read-only'",
         ),
         (
             "failure",
@@ -7790,10 +7090,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "setup registry validation fails when option recommends missing agent",
+            "setup registry validation rejects legacy agent recommendations",
             ["scripts/agentic/agentic-gen.sh", "validate-setups"],
-            break_setup_registry_option_recommends_missing_agent,
-            "question 'project-type' option 'microservice-platform'.recommends agents references missing agent 'MissingAgent'",
+            break_setup_registry_option_recommends_legacy_agents,
+            "legacy recommendation field 'agents' is not allowed",
         ),
         (
             "failure",
@@ -7825,10 +7125,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "setup profile validation fails when selected skill is missing",
+            "setup profile validation rejects legacy selected skills",
             ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
-            break_setup_profile_selected_missing_skill,
-            "selected skills references missing skill 'missing-skill'",
+            break_setup_profile_selected_legacy_skill,
+            "legacy selected field 'skills' is not allowed",
         ),
         (
             "failure",
@@ -7979,76 +7279,6 @@ def main() -> int:
         ),
         (
             "failure",
-            "artifact validation fails when artifact schema is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_missing_schema,
-            "missing artifact.schema.json",
-        ),
-        (
-            "failure",
-            "artifact validation fails when artifact schema is orphaned",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_orphan_schema,
-            "orphan artifact.schema.json without artifact.json",
-        ),
-        (
-            "failure",
-            "artifact validation fails when schema type const drifts",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_schema_type_const_drift,
-            "artifact.schema.json does not match expected schema",
-        ),
-        (
-            "failure",
-            "artifact validation fails when schema status pattern drifts",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_schema_status_pattern_drift,
-            "artifact.schema.json does not match expected schema",
-        ),
-        (
-            "failure",
-            "artifact validation fails when schema required headings drift",
-            ["scripts/agentic/agentic-gen.sh", "validate-artifacts"],
-            break_artifact_schema_required_headings_drift,
-            "artifact.schema.json does not match expected schema",
-        ),
-        (
-            "failure",
-            "agent artifact binding validation fails when required artifact contract is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
-            break_agent_artifact_binding_unknown_required_artifact,
-            "requiredArtifacts missing artifact contract",
-        ),
-        (
-            "failure",
-            "agent artifact binding validation fails when artifact is unproduced without policy",
-            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
-            break_agent_artifact_binding_unproduced_required_artifact,
-            "artifact contract is not produced by any agent",
-        ),
-        (
-            "failure",
-            "agent artifact binding validation fails when binding policy has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
-            break_agent_artifact_binding_policy_invalid_type,
-            "binding must be an object when present",
-        ),
-        (
-            "failure",
-            "agent artifact binding validation fails when future artifact binding reason is missing",
-            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
-            break_agent_artifact_binding_policy_missing_reason,
-            "binding.reason must be a non-empty string",
-        ),
-        (
-            "failure",
-            "agent artifact binding validation fails when produced artifact opts out",
-            ["scripts/agentic/agentic-gen.sh", "validate-agent-artifacts"],
-            break_agent_artifact_binding_policy_false_for_produced,
-            "binding.producerRequired is false but artifact is produced",
-        ),
-        (
-            "failure",
             "lockfile validation fails when input file entry is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
             break_lockfile_missing_input_file_entry,
@@ -8106,6 +7336,20 @@ def main() -> int:
         expect_guided_dry_run_opencode_override,
     ]
 
+    if args.name_contains:
+        needle = args.name_contains.casefold()
+        tests = [test for test in tests if needle in test[1].casefold()]
+        custom_tests = [
+            test for test in custom_tests if needle in test.__name__.casefold()
+        ]
+
+        if not tests and not custom_tests:
+            print(
+                "FAIL: No negative gate tests matched "
+                f"--name-contains {args.name_contains!r}."
+            )
+            return 1
+
     failures: list[str] = []
 
     for test in tests:
@@ -8113,7 +7357,9 @@ def main() -> int:
         post_check = rest[0] if rest else None
 
         if expectation == "success":
-            passed, message = expect_success(name, command, mutate, expected_text, post_check)
+            passed, message = expect_success(
+                name, command, mutate, expected_text, post_check
+            )
         elif expectation == "failure":
             passed, message = expect_failure(name, command, mutate, expected_text)
         else:

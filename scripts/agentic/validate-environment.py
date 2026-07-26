@@ -12,7 +12,8 @@ ROOT = Path.cwd()
 REQUIRED_COMMANDS = [
     ("bash", ["bash", "--version"]),
     ("git", ["git", "--version"]),
-    ("python", ["python", "--version"]),
+    ("uv", ["uv", "--version"]),
+    ("project Python", ["uv", "run", "python", "--version"]),
     ("node", ["node", "--version"]),
     ("npx", ["npx", "--version"]),
 ]

@@ -7,7 +7,8 @@ description: "Use when eliciting requirements, resolving scope and constraints, 
 
 ## Purpose
 
-Convert a problem statement into an explicit, bounded, testable requirements contract without designing the implementation.
+Convert a problem statement into an explicit, bounded, testable requirements contract without designing the
+implementation.
 
 ## Required Inputs
 
@@ -65,9 +66,11 @@ Return `PASS` only when:
 - material assumptions and constraints are recorded
 - no unresolved issue prevents downstream design
 
-Return `FAIL` when supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.
+Return `FAIL` when supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as
+stated.
 
-Return `BLOCKED` when necessary stakeholder decisions, source information, scope boundaries, or acceptance thresholds are missing.
+Return `BLOCKED` when necessary stakeholder decisions, source information, scope boundaries, or acceptance thresholds
+are missing.
 
 Do not convert missing information into assumptions merely to produce `PASS`.
 

@@ -1,143 +1,97 @@
 {
   "name": "ai-application-greenfield",
   "description": "Guided greenfield setup for AI applications with explicit AI quality, safety, failure-mode, and operational evaluation.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "mode": "greenfield",
-  "defaultBundle": "ai-application",
+  "defaultSelection": {
+    "bundle": "ai-application",
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  },
   "questions": [
     {
       "id": "project-domain",
       "prompt": "What kind of project are you starting?",
-      "recommended": [
-        "ai-application"
-      ],
-      "compatible": [],
-      "blocked": [
-        "data-pipeline",
-        "web-api",
-        "library-package",
-        "documentation-only"
-      ],
       "options": [
         {
           "value": "ai-application",
           "label": "AI or LLM application",
           "reason": "Recommended because this setup materializes an AI-specific evaluation agent, skill, artifact contract, and workflow gate.",
-          "recommends": {
-            "bundle": "ai-application",
-            "profile": "ai-application",
-            "workflow": "ai-application-delivery",
-            "agents": [
-              "AIEvaluator",
-              "Architect",
-              "CodeReviewer",
-              "Implementer",
-              "Orchestrator",
-              "QA",
-              "Requirements",
-              "TestRunner"
-            ],
-            "skills": [
-              "ai-evaluation",
-              "architecture-design",
-              "code-review-clean-code",
-              "code-review-tests",
-              "implementation-engineering",
-              "qa-acceptance-validation",
-              "requirements-analysis",
-              "security-review",
-              "test-execution",
-              "workflow-routing"
-            ],
-            "artifacts": [
-              "AIEvaluationReport",
-              "ArchitectureDecision",
-              "CodeReview",
-              "ImplementationReport",
-              "QAReport",
-              "Requirements",
-              "TestReport"
-            ],
-            "targets": [
-              "opencode",
-              "vscode-copilot"
-            ]
+          "classification": "recommended",
+          "selection": {
+            "bundle": "ai-application"
           }
         },
         {
           "value": "data-pipeline",
           "label": "Data pipeline",
-          "reason": "Blocked because this setup requires AI application evaluation rather than data ingestion, transformation, and data-quality gates. Use a dedicated data-pipeline setup when registered."
+          "reason": "Blocked because this setup requires AI application evaluation rather than data ingestion, transformation, and data-quality gates. Use a dedicated data-pipeline setup when registered.",
+          "classification": "blocked"
         },
         {
           "value": "web-api",
           "label": "Web API",
-          "reason": "Blocked because this setup includes an AI evaluation gate that a general web API does not require. Use a dedicated web-api setup when registered."
+          "reason": "Blocked because this setup includes an AI evaluation gate that a general web API does not require. Use a dedicated web-api setup when registered.",
+          "classification": "blocked"
         },
         {
           "value": "library-package",
           "label": "Library or package",
-          "reason": "Blocked because this setup includes AI application evaluation and final QA responsibilities beyond a focused library delivery flow. Use a dedicated library setup when registered."
+          "reason": "Blocked because this setup includes AI application evaluation and final QA responsibilities beyond a focused library delivery flow. Use a dedicated library setup when registered.",
+          "classification": "blocked"
         },
         {
           "value": "documentation-only",
           "label": "Documentation-only project",
-          "reason": "Blocked because this setup requires implementation, AI evaluation, testing, code review, and QA artifacts."
+          "reason": "Blocked because this setup requires implementation, AI evaluation, testing, code review, and QA artifacts.",
+          "classification": "blocked"
         }
-      ]
+      ],
+      "defaultOption": "ai-application"
     },
     {
       "id": "ai-assurance",
       "prompt": "How should AI behavior be evaluated?",
-      "recommended": [
-        "evidence-based-evaluation"
-      ],
-      "compatible": [],
-      "blocked": [
-        "demo-only",
-        "ad-hoc-review",
-        "no-ai-evaluation"
-      ],
       "options": [
         {
           "value": "evidence-based-evaluation",
           "label": "Evidence-based AI evaluation",
-          "reason": "Recommended because the workflow requires measurable criteria, evaluation scenarios, failure analysis, limitations, and reproducible evidence before ordinary software validation."
+          "reason": "Recommended because the workflow requires measurable criteria, evaluation scenarios, failure analysis, limitations, and reproducible evidence before ordinary software validation.",
+          "classification": "recommended"
         },
         {
           "value": "demo-only",
           "label": "Demo-based approval",
-          "reason": "Blocked because a demonstration does not provide reproducible evidence for quality, safety, failure behavior, or operating limits."
+          "reason": "Blocked because a demonstration does not provide reproducible evidence for quality, safety, failure behavior, or operating limits.",
+          "classification": "blocked"
         },
         {
           "value": "ad-hoc-review",
           "label": "Ad-hoc AI review",
-          "reason": "Blocked because this setup uses a deterministic AI evaluation gate with a required artifact contract."
+          "reason": "Blocked because this setup uses a deterministic AI evaluation gate with a required artifact contract.",
+          "classification": "blocked"
         },
         {
           "value": "no-ai-evaluation",
           "label": "No separate AI evaluation",
-          "reason": "Blocked because omitting the AI evaluation gate would require a different workflow and bundle."
+          "reason": "Blocked because omitting the AI evaluation gate would require a different workflow and bundle.",
+          "classification": "blocked"
         }
-      ]
+      ],
+      "defaultOption": "evidence-based-evaluation"
     },
     {
       "id": "target-platforms",
       "prompt": "Which target agent platforms should be generated?",
-      "recommended": [
-        "opencode-and-vscode-copilot"
-      ],
-      "compatible": [
-        "opencode-only",
-        "vscode-copilot-only"
-      ],
-      "blocked": [],
       "options": [
         {
           "value": "opencode-and-vscode-copilot",
           "label": "OpenCode and VS Code Copilot",
           "reason": "Recommended because both registered target adapters support the complete AI application composition.",
-          "recommends": {
+          "classification": "recommended",
+          "selection": {
             "targets": [
               "opencode",
               "vscode-copilot"
@@ -148,7 +102,8 @@
           "value": "opencode-only",
           "label": "OpenCode only",
           "reason": "Compatible because the OpenCode target adapter is registered.",
-          "recommends": {
+          "classification": "compatible",
+          "selection": {
             "targets": [
               "opencode"
             ]
@@ -158,53 +113,15 @@
           "value": "vscode-copilot-only",
           "label": "VS Code Copilot only",
           "reason": "Compatible because the VS Code Copilot target adapter is registered.",
-          "recommends": {
+          "classification": "compatible",
+          "selection": {
             "targets": [
               "vscode-copilot"
             ]
           }
         }
-      ]
+      ],
+      "defaultOption": "opencode-and-vscode-copilot"
     }
-  ],
-  "finalRecommendation": {
-    "bundle": "ai-application",
-    "profile": "ai-application",
-    "workflow": "ai-application-delivery",
-    "agents": [
-      "AIEvaluator",
-      "Architect",
-      "CodeReviewer",
-      "Implementer",
-      "Orchestrator",
-      "QA",
-      "Requirements",
-      "TestRunner"
-    ],
-    "skills": [
-      "ai-evaluation",
-      "architecture-design",
-      "code-review-clean-code",
-      "code-review-tests",
-      "implementation-engineering",
-      "qa-acceptance-validation",
-      "requirements-analysis",
-      "security-review",
-      "test-execution",
-      "workflow-routing"
-    ],
-    "artifacts": [
-      "AIEvaluationReport",
-      "ArchitectureDecision",
-      "CodeReview",
-      "ImplementationReport",
-      "QAReport",
-      "Requirements",
-      "TestReport"
-    ],
-    "targets": [
-      "opencode",
-      "vscode-copilot"
-    ]
-  }
+  ]
 }

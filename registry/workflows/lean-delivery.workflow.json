@@ -1,32 +1,73 @@
 {
   "name": "lean-delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A compact fail-closed delivery workflow for focused changes that require explicit requirements, implementation, testing, and code review without a separate architecture or QA phase.",
   "startState": "Requirements",
   "terminalStates": [
     "Done",
     "Blocked"
   ],
+  "defaultFailureState": "Blocked",
+  "failClosed": true,
   "states": [
     {
       "name": "Requirements",
-      "agent": "Requirements",
-      "gate": "requirements-review"
+      "gate": {
+        "name": "requirements-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "requirements.elicit",
+          "requirements.define-acceptance-criteria"
+        ],
+        "requiredArtifacts": [
+          "Requirements"
+        ]
+      }
     },
     {
       "name": "Implementer",
-      "agent": "Implementer",
-      "gate": "implementation-complete"
+      "gate": {
+        "name": "implementation-complete",
+        "blocking": true,
+        "requiredCapabilities": [
+          "implementation.code",
+          "implementation.refactor",
+          "implementation.update-tests"
+        ],
+        "requiredArtifacts": [
+          "ImplementationReport"
+        ]
+      }
     },
     {
       "name": "TestRunner",
-      "agent": "TestRunner",
-      "gate": "test-review"
+      "gate": {
+        "name": "test-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "test.run",
+          "test.report",
+          "test.diagnose-failure"
+        ],
+        "requiredArtifacts": [
+          "TestReport"
+        ]
+      }
     },
     {
       "name": "CodeReviewer",
-      "agent": "CodeReviewer",
-      "gate": "code-review"
+      "gate": {
+        "name": "code-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "review.clean-code",
+          "review.tests",
+          "review.security"
+        ],
+        "requiredArtifacts": [
+          "CodeReview"
+        ]
+      }
     },
     {
       "name": "Done",
@@ -37,8 +78,6 @@
       "terminal": true
     }
   ],
-  "defaultFailureRoute": "Orchestrator",
-  "failClosed": true,
   "transitions": [
     {
       "from": "Requirements",

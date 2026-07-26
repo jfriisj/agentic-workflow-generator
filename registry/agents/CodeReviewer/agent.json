@@ -1,31 +1,25 @@
 {
   "name": "CodeReviewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "role": "code-quality-gate",
   "description": "Reviews implementation for maintainability, correctness, tests, and safety.",
-  "responsibilities": [
+  "recommendedResponsibilities": [
     "Review changed code",
     "Check maintainability and readability",
     "Check test coverage evidence",
     "Create code review artifact",
     "Record failed review disposition and recommend the configured remediation target"
   ],
-  "mustNot": [
+  "defaultGuardrails": [
     "Implement feature behavior",
     "Approve release",
     "Change workflow routing",
     "Perform workflow transitions"
   ],
-  "defaultPermissionProfile": "read-only",
-  "capabilities": [
+  "recommendedCapabilities": [
     "review.clean-code",
     "review.tests",
     "review.security"
   ],
-  "requiredArtifacts": [
-    "CodeReview"
-  ],
-  "produces": [
-    "CodeReview"
-  ]
+  "defaultPermissionProfile": "read-only"
 }

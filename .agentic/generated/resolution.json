@@ -22,33 +22,90 @@
     "states": [
       {
         "name": "Requirements",
-        "agent": "Requirements",
-        "gate": "requirements-review"
+        "gate": {
+          "name": "requirements-review",
+          "blocking": true,
+          "requiredCapabilities": [
+            "requirements.elicit",
+            "requirements.define-acceptance-criteria"
+          ],
+          "requiredArtifacts": [
+            "Requirements"
+          ]
+        }
       },
       {
         "name": "Architect",
-        "agent": "Architect",
-        "gate": "architecture-review"
+        "gate": {
+          "name": "architecture-review",
+          "blocking": true,
+          "requiredCapabilities": [
+            "architecture.design",
+            "architecture.evaluate-tradeoffs"
+          ],
+          "requiredArtifacts": [
+            "ArchitectureDecision"
+          ]
+        }
       },
       {
         "name": "Implementer",
-        "agent": "Implementer",
-        "gate": "implementation-complete"
+        "gate": {
+          "name": "implementation-complete",
+          "blocking": true,
+          "requiredCapabilities": [
+            "implementation.code",
+            "implementation.refactor",
+            "implementation.update-tests"
+          ],
+          "requiredArtifacts": [
+            "ImplementationReport"
+          ]
+        }
       },
       {
         "name": "TestRunner",
-        "agent": "TestRunner",
-        "gate": "test-review"
+        "gate": {
+          "name": "test-review",
+          "blocking": true,
+          "requiredCapabilities": [
+            "test.run",
+            "test.report",
+            "test.diagnose-failure"
+          ],
+          "requiredArtifacts": [
+            "TestReport"
+          ]
+        }
       },
       {
         "name": "CodeReviewer",
-        "agent": "CodeReviewer",
-        "gate": "code-review"
+        "gate": {
+          "name": "code-review",
+          "blocking": true,
+          "requiredCapabilities": [
+            "review.clean-code",
+            "review.tests",
+            "review.security"
+          ],
+          "requiredArtifacts": [
+            "CodeReview"
+          ]
+        }
       },
       {
         "name": "QA",
-        "agent": "QA",
-        "gate": "qa-review"
+        "gate": {
+          "name": "qa-review",
+          "blocking": true,
+          "requiredCapabilities": [
+            "qa.verify-acceptance-criteria",
+            "qa.validate-evidence"
+          ],
+          "requiredArtifacts": [
+            "QAReport"
+          ]
+        }
       },
       {
         "name": "Done",
@@ -59,7 +116,6 @@
         "terminal": true
       }
     ],
-    "defaultFailureRoute": "Orchestrator",
     "transitions": [
       {
         "from": "Requirements",
@@ -145,28 +201,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "ArchitectureDecision",
-          "contractPath": "registry/artifacts/ArchitectureDecision/artifact.json",
-          "pathPattern": "agent-output/architecture-decision/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Architecture Decision",
-            "## Status",
-            "## Summary",
-            "## Context",
-            "## Decision",
-            "## Alternatives Considered",
-            "## Consequences",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     },
     {
       "name": "CodeReviewer",
@@ -195,27 +230,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "CodeReview",
-          "contractPath": "registry/artifacts/CodeReview/artifact.json",
-          "pathPattern": "agent-output/code-review/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Code Review",
-            "## Status",
-            "## Summary",
-            "## Evidence Reviewed",
-            "## Findings",
-            "## Required Fixes",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     },
     {
       "name": "Implementer",
@@ -244,28 +259,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "ImplementationReport",
-          "contractPath": "registry/artifacts/ImplementationReport/artifact.json",
-          "pathPattern": "agent-output/implementation/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Implementation Report",
-            "## Status",
-            "## Summary",
-            "## Files Changed",
-            "## Implementation Notes",
-            "## Validation Performed",
-            "## Known Risks",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     },
     {
       "name": "Orchestrator",
@@ -317,28 +311,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "QAReport",
-          "contractPath": "registry/artifacts/QAReport/artifact.json",
-          "pathPattern": "agent-output/qa-report/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# QA Report",
-            "## Status",
-            "## Summary",
-            "## Evidence Reviewed",
-            "## Gate Results",
-            "## Release Risks",
-            "## Required Follow-up",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     },
     {
       "name": "Requirements",
@@ -361,29 +334,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "Requirements",
-          "contractPath": "registry/artifacts/Requirements/artifact.json",
-          "pathPattern": "agent-output/requirements/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Requirements",
-            "## Status",
-            "## Summary",
-            "## Scope",
-            "## Requirements",
-            "## Acceptance Criteria",
-            "## Assumptions",
-            "## Constraints",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     },
     {
       "name": "TestRunner",
@@ -412,28 +363,7 @@
         }
       ],
       "missingCapabilities": [],
-      "produces": [
-        {
-          "type": "TestReport",
-          "contractPath": "registry/artifacts/TestReport/artifact.json",
-          "pathPattern": "agent-output/test-report/*.md",
-          "allowedStatuses": [
-            "PASS",
-            "FAIL",
-            "BLOCKED"
-          ],
-          "requiredHeadings": [
-            "# Test Report",
-            "## Status",
-            "## Summary",
-            "## Test Commands",
-            "## Test Results",
-            "## Failures",
-            "## Coverage Notes",
-            "## Handoff Target"
-          ]
-        }
-      ]
+      "produces": []
     }
   ],
   "targets": [
@@ -454,7 +384,7 @@
     "agentCount": 7,
     "targetCount": 2,
     "availableSkillCount": 10,
-    "producedArtifactBindingCount": 6,
+    "producedArtifactBindingCount": 0,
     "errorCount": 0,
     "errors": []
   }

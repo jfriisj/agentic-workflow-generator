@@ -1,157 +1,94 @@
 {
   "name": "lean-delivery-greenfield",
   "description": "Guided greenfield setup for focused software changes using a compact fail-closed workflow with requirements, implementation, testing, and code review.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "mode": "greenfield",
-  "defaultBundle": "lean-delivery",
+  "defaultSelection": {
+    "bundle": "lean-delivery",
+    "targets": [
+      "opencode",
+      "vscode-copilot"
+    ]
+  },
   "questions": [
     {
       "id": "change-scope",
       "prompt": "What kind of change are you planning?",
-      "recommended": [
-        "focused-feature"
-      ],
-      "compatible": [
-        "small-bugfix"
-      ],
-      "blocked": [
-        "architecture-heavy",
-        "high-risk-release"
-      ],
       "options": [
         {
           "value": "focused-feature",
           "label": "Focused feature or improvement",
           "reason": "Recommended because the change can be delivered through explicit requirements, implementation, testing, and review without a separate architecture or QA phase.",
-          "recommends": {
-            "bundle": "lean-delivery",
-            "profile": "lean-delivery",
-            "workflow": "lean-delivery",
-            "agents": [
-              "CodeReviewer",
-              "Implementer",
-              "Orchestrator",
-              "Requirements",
-              "TestRunner"
-            ],
-            "skills": [
-              "code-review-clean-code",
-              "code-review-tests",
-              "implementation-engineering",
-              "requirements-analysis",
-              "security-review",
-              "test-execution",
-              "workflow-routing"
-            ],
-            "artifacts": [
-              "CodeReview",
-              "ImplementationReport",
-              "Requirements",
-              "TestReport"
-            ]
+          "classification": "recommended",
+          "selection": {
+            "bundle": "lean-delivery"
           }
         },
         {
           "value": "small-bugfix",
           "label": "Small but validated bug fix",
           "reason": "Compatible when the fix still requires documented scope, test evidence, and independent code review.",
-          "recommends": {
-            "bundle": "lean-delivery",
-            "profile": "lean-delivery",
-            "workflow": "lean-delivery",
-            "agents": [
-              "CodeReviewer",
-              "Implementer",
-              "Orchestrator",
-              "Requirements",
-              "TestRunner"
-            ],
-            "skills": [
-              "code-review-clean-code",
-              "code-review-tests",
-              "implementation-engineering",
-              "requirements-analysis",
-              "security-review",
-              "test-execution",
-              "workflow-routing"
-            ],
-            "artifacts": [
-              "CodeReview",
-              "ImplementationReport",
-              "Requirements",
-              "TestReport"
-            ]
+          "classification": "compatible",
+          "selection": {
+            "bundle": "lean-delivery"
           }
         },
         {
           "value": "architecture-heavy",
           "label": "Architecture-heavy change",
-          "reason": "Blocked because this setup has no separate Architect state. Use the orchestrated-delivery setup instead."
+          "reason": "Blocked because this setup has no separate Architect state. Use the orchestrated-delivery setup instead.",
+          "classification": "blocked"
         },
         {
           "value": "high-risk-release",
           "label": "High-risk or release-critical change",
-          "reason": "Blocked because this setup omits the separate QA acceptance phase required for higher-assurance delivery."
+          "reason": "Blocked because this setup omits the separate QA acceptance phase required for higher-assurance delivery.",
+          "classification": "blocked"
         }
-      ]
+      ],
+      "defaultOption": "focused-feature"
     },
     {
       "id": "delivery-control",
       "prompt": "How should failed validation be handled?",
-      "recommended": [
-        "implementation-retry"
-      ],
-      "compatible": [
-        "block-on-failure"
-      ],
-      "blocked": [
-        "continue-with-warnings"
-      ],
       "options": [
         {
           "value": "implementation-retry",
           "label": "Return failures to implementation",
           "reason": "Recommended because failed tests and code review findings route back to the Implementer for correction.",
-          "recommends": {
-            "bundle": "lean-delivery",
-            "profile": "lean-delivery",
-            "workflow": "lean-delivery"
+          "classification": "recommended",
+          "selection": {
+            "bundle": "lean-delivery"
           }
         },
         {
           "value": "block-on-failure",
           "label": "Block unresolved failures",
           "reason": "Compatible because requirements and implementation failures stop the workflow rather than allowing incomplete work to pass.",
-          "recommends": {
-            "bundle": "lean-delivery",
-            "profile": "lean-delivery",
-            "workflow": "lean-delivery"
+          "classification": "compatible",
+          "selection": {
+            "bundle": "lean-delivery"
           }
         },
         {
           "value": "continue-with-warnings",
           "label": "Continue with warnings",
-          "reason": "Blocked because generated workflows are fail-closed and do not permit unresolved validation failures to be ignored."
+          "reason": "Blocked because generated workflows are fail-closed and do not permit unresolved validation failures to be ignored.",
+          "classification": "blocked"
         }
-      ]
+      ],
+      "defaultOption": "implementation-retry"
     },
     {
       "id": "target-platforms",
       "prompt": "Which target agent platforms should be generated?",
-      "recommended": [
-        "opencode-and-vscode-copilot"
-      ],
-      "compatible": [
-        "opencode-only",
-        "vscode-copilot-only"
-      ],
-      "blocked": [],
       "options": [
         {
           "value": "opencode-and-vscode-copilot",
           "label": "OpenCode and VS Code Copilot",
           "reason": "Recommended because both registered target adapters are generated from the same validated composition.",
-          "recommends": {
+          "classification": "recommended",
+          "selection": {
             "targets": [
               "opencode",
               "vscode-copilot"
@@ -162,7 +99,8 @@
           "value": "opencode-only",
           "label": "OpenCode only",
           "reason": "Compatible because the OpenCode adapter is registered.",
-          "recommends": {
+          "classification": "compatible",
+          "selection": {
             "targets": [
               "opencode"
             ]
@@ -172,44 +110,15 @@
           "value": "vscode-copilot-only",
           "label": "VS Code Copilot only",
           "reason": "Compatible because the VS Code Copilot adapter is registered.",
-          "recommends": {
+          "classification": "compatible",
+          "selection": {
             "targets": [
               "vscode-copilot"
             ]
           }
         }
-      ]
+      ],
+      "defaultOption": "opencode-and-vscode-copilot"
     }
-  ],
-  "finalRecommendation": {
-    "bundle": "lean-delivery",
-    "profile": "lean-delivery",
-    "workflow": "lean-delivery",
-    "agents": [
-      "CodeReviewer",
-      "Implementer",
-      "Orchestrator",
-      "Requirements",
-      "TestRunner"
-    ],
-    "skills": [
-      "code-review-clean-code",
-      "code-review-tests",
-      "implementation-engineering",
-      "requirements-analysis",
-      "security-review",
-      "test-execution",
-      "workflow-routing"
-    ],
-    "artifacts": [
-      "CodeReview",
-      "ImplementationReport",
-      "Requirements",
-      "TestReport"
-    ],
-    "targets": [
-      "opencode",
-      "vscode-copilot"
-    ]
-  }
+  ]
 }

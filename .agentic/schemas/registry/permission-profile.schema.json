@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "permission-profile.schema.json",
+  "title": "Permission Profile Registry Entry",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "read",
+    "write",
+    "edit",
+    "bash"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "read": {
+      "type": "boolean"
+    },
+    "write": {
+      "type": "boolean"
+    },
+    "edit": {
+      "type": "boolean"
+    },
+    "bash": {
+      "enum": [
+        "deny",
+        "limited",
+        "allow"
+      ]
+    }
+  }
+}

@@ -35,30 +35,46 @@ Agent profiles and skill recommendations are reusable defaults. The active bundl
 
 ## High-level flow
 
-```text
+~~~text
 registry/
   agents/
-  skills/
-  workflows/
-  bundles/
   artifacts/
+  bundles/
+  permission-profiles/
   profiles/
+  setups/
+  skills/
   targets/
+  workflows/
         ↓
-bundle selection
+schema validation
         ↓
-scripts/agentic/agentic-gen.sh init --bundle <bundle>
+registry loading and typed indexing
         ↓
-.agentic/agentic.json
+setup or bundle selection
         ↓
-resolution + lockfile
+compiled composition
+  agent instances
+  role bindings
+  workflow gates
+  selected skills
+  effective permissions
+  artifact production
+        ↓
+active config and resolution
+        ↓
+lockfile
         ↓
 target-specific generation
         ↓
 output manifest
         ↓
-validation gates + negative gates
-```
+contract, integration and end-to-end validation
+~~~
+
+The registry is external compiler input. Raw registry JSON must be validated and converted into typed internal models before compiler or target logic consumes it.
+
+The compiled composition is the canonical internal authority. Target generators must not independently reinterpret raw registry files.
 
 ## Design principle
 
@@ -81,66 +97,104 @@ gate-based workflow routing
 
 ## Registry source of truth
 
-The registry contains reusable definitions.
+The registry contains reusable declarative definitions.
 
-```text
+~~~text
 registry/
   agents/
   artifacts/
   bundles/
+  permission-profiles/
   profiles/
+  setups/
   skills/
   targets/
   workflows/
-```
+~~~
 
-Each registry area has a specific responsibility.
+Each registry area has one responsibility.
 
 | Registry area | Responsibility |
 |---|---|
-| `agents/` | Reusable agent profiles with recommended responsibilities, capabilities, permission defaults, and boundaries |
-| `skills/` | Composable capability providers available to validated workflow-role bindings |
-| `workflows/` | State machine, transitions, gates, start state, terminal states, and fail-closed routing |
-| `bundles/` | Complete deployable composition of workflow, agents, skills, artifacts, profile, and targets |
-| `artifacts/` | Output contracts required by gates and produced by agents |
-| `profiles/` | Higher-level workflow profile metadata |
-| `targets/` | Target adapter ownership rules for generated output |
+| `agents/` | Reusable advisory agent profiles with recommended responsibilities, guardrails, capabilities and default permission |
+| `artifacts/` | Artifact contracts referenced by workflow gates and produced by role bindings |
+| `bundles/` | Concrete deployable composition of instances, bindings, workflow, skills, artifacts, permissions, targets and separation policies |
+| `permission-profiles/` | Reusable effective permission definitions selected by concrete agent instances |
+| `profiles/` | Higher-level advisory workflow and project metadata |
+| `setups/` | Guided selection of bundle, profile, workflow and enabled targets |
+| `skills/` | Composable capability providers selected by role bindings |
+| `targets/` | Target adapter ownership and permission-mapping contracts |
+| `workflows/` | State machine, transitions, gates, start state, terminal states and fail-closed routing |
 
-The registry is validated before generation.
+The registry is data, not application code.
+
+Python implementation must not be placed under `registry/`. Shared compiler code belongs in the Python package under `src/`.
+
+Schema validation checks the external representation. Semantic validation checks cross-registry invariants and composition safety.
 
 ## Bundle composition
 
-A bundle selects a complete configuration.
+A bundle owns the complete concrete runtime composition.
 
 Example:
 
-```text
+~~~text
 registry/bundles/orchestrated-delivery.bundle.json
-```
+~~~
 
-A bundle defines:
+A bundle selects:
 
-```text
+~~~text
 workflow
 profile
-agents
+agent instances
+role bindings
+separation policies
 skills
 artifacts
 targets
-```
+~~~
 
-Bundle validation checks that the selected composition is internally complete:
+An agent instance selects:
 
-```text
-workflow states are covered by bundle agents
-workflow transitions stay inside the selected workflow
-agent capabilities are provided by bundle skills
-agent produced artifacts are included in bundle artifacts
-bundle targets resolve to matching target adapters
-profile workflow matches bundle workflow
-```
+~~~text
+agent profile
+display name
+effective permission profile
+shared-context policy
+~~~
 
-This makes a bundle more than a list of references. It becomes a deployable composition.
+A role binding selects:
+
+~~~text
+binding type
+assigned agent instance
+workflow state and gate when state-owned
+required capabilities
+selected skills
+produced artifacts
+responsibilities
+guardrails
+~~~
+
+Bundle validation must enforce:
+
+~~~text
+every referenced registry entry exists
+every non-terminal workflow state has exactly one state owner
+every workflow has exactly one controller
+the controller owns no workflow state or gate
+selected skills belong to the bundle
+selected skills cover binding-required capabilities
+produced artifacts belong to the bundle
+gate-required artifacts are produced by the state owner
+agent instances have one effective permission profile
+target adapters map every effective permission
+separation policies reference valid bindings
+required distinct instances are actually distinct
+~~~
+
+Agent profiles and profiles remain advisory. They must not become implicit fallback sources for concrete runtime values.
 
 ## Composition binding direction
 
@@ -202,53 +256,73 @@ This ensures that running init repeatedly does not create drift.
 
 The active generated configuration is:
 
-```text
+~~~text
 .agentic/agentic.json
-```
+~~~
 
-It contains the project-specific compiled view used by the rest of the pipeline:
+It is a compiled project-specific representation, not a second registry.
 
-```text
+The active config must preserve:
+
+~~~text
 project metadata
-generator settings
+selected bundle identity
 enabled targets
-workflow settings
-permission profiles
-agents
-gates
-runtime context
+workflow identity and fail-closed policy
+concrete agent instances
+concrete role bindings
+effective permissions
+materialized workflow gates
+runtime-context policy
 validation policy
-```
+~~~
 
-This file is validated against:
+It must not recreate legacy authority from agent-profile recommendations.
 
-```text
+The active config is validated against:
+
+~~~text
 .agentic/schemas/agentic.schema.json
-```
+~~~
 
-Schema validation is fail-fast. `node` and `npx` must work. The validator does not fall back to weaker syntax-only validation.
+Schema and semantic validation are fail-fast. Missing tools, files, references or unsupported runtime state must produce explicit errors without fallback.
 
 ## Resolution
 
-Resolution turns the active config and registry into a generated resolution file:
+Resolution converts the active compiled composition into a deterministic, target-independent compiler result:
 
-```text
+~~~text
 .agentic/generated/resolution.json
-```
+~~~
 
-Resolution verifies that agents, targets, capabilities, skills, and produced artifacts can be resolved correctly.
+Resolution must contain enough information for target generators without requiring them to reload or reinterpret registry composition.
 
-It is generated by:
+It resolves:
 
-```bash
+~~~text
+agent instances and their profiles
+role bindings and assigned instances
+binding-selected skills
+required and provided capabilities
+effective permission profiles
+workflow states and gates
+artifact contracts and production ownership
+enabled target adapters
+~~~
+
+Resolution validation must compare the generated result with the canonical compiled composition and reject missing, duplicated or inconsistent values.
+
+Resolution is generated by:
+
+~~~bash
 scripts/agentic/agentic-gen.sh resolve
-```
+~~~
 
 and validated by:
 
-```bash
+~~~bash
 scripts/agentic/agentic-gen.sh validate-resolution
-```
+~~~
 
 ## Lockfile
 
@@ -363,23 +437,31 @@ scripts/agentic/agentic-gen.sh validate-manifest
 
 ## Capability coverage
 
-Agents declare capabilities.
-
 Skills provide capabilities.
 
-Global capability coverage verifies that every declared capability has exactly one registered skill provider.
+Role bindings declare the capabilities required by the concrete runtime composition.
 
-Composition validation must separately verify that each workflow-role binding selects the capabilities and skills required by that role. It must not require every setup containing an agent profile to install all capabilities recommended by that profile.
+Global coverage verifies:
+
+~~~text
+every runtime-required capability has a registered skill provider
+no registered capability provider is unused by all supported compositions
+no capability has multiple providers unless the model explicitly permits it
+~~~
+
+Profile and agent-profile recommendations are not runtime requirements and must not be used as fallback authority.
+
+Composition validation separately verifies that each role binding selects skills that provide all capabilities required by that binding and by its workflow gate.
 
 Run:
 
-```bash
+~~~bash
 scripts/agentic/agentic-gen.sh coverage
-```
+~~~
 
-Healthy output should show:
+Healthy output shows:
 
-```text
+~~~text
 Missing skill coverage:
   none
 
@@ -388,56 +470,76 @@ Unused skill capabilities:
 
 Duplicate skill capabilities:
   none
-```
+~~~
 
 ## Gates and artifacts
 
-Workflow states can have gates.
+Every non-terminal workflow state owns an explicit blocking gate.
 
-A gate requires:
+A workflow gate declares:
 
-```text
-owner
+~~~text
+name
+blocking behavior
 required capabilities
 required artifacts
-pass route
-fail route
-blocked route
-blocking behavior
-```
+~~~
 
-Agents produce artifacts. Artifact contracts define required output structure and accepted statuses.
+The state-owner role binding must:
 
-This makes workflow progress evidence-based instead of implicit.
+~~~text
+reference the same workflow state
+reference the same workflow gate
+require every gate capability
+produce every gate artifact
+~~~
 
-A gated state must have exactly one produced artifact, and transitions must match allowed artifact statuses.
+Artifact contracts define:
+
+~~~text
+artifact type
+path pattern
+allowed statuses
+required headings
+producer policy
+~~~
+
+Artifact production belongs to `roleBindings[].produces`, not agent profiles.
+
+The workflow controller owns routing authority but does not own a state, gate or produced artifact.
+
+Workflow transitions and artifact status semantics must remain consistent. Invalid or missing evidence routes the workflow fail-closed to the configured failure state.
 
 ## Negative gates
 
-The negative gate suite intentionally breaks contracts to verify that validators fail closed.
+Negative tests intentionally violate one contract at a time and verify that the owning component fails closed.
 
-Run:
+Negative tests are grouped by domain:
 
-```bash
-scripts/agentic/agentic-gen.sh test-negative
-```
-
-The suite covers failures in areas such as:
-
-```text
-agent registry
-skill registry
-workflow registry
-bundle registry
-target adapters
-artifact contracts
-agent artifact bindings
-output manifest
+~~~text
+agents
+artifacts
+bundles
+permissions
+profiles
+setups
+skills
+targets
+workflows
+compiled composition
+resolution
 lockfile
-idempotency
-```
+manifest
+target generation
+~~~
 
-Negative gates are important because they prove that invalid configurations are rejected.
+A component-level negative test must invoke the relevant Python validator or service directly. It must not run the complete compiler pipeline as fixture setup.
+
+Assertions use stable diagnostic codes. Human-readable messages may also be checked when their wording is itself part of the public contract.
+
+Only integration and end-to-end tests may invoke the complete command pipeline.
+
+The current monolithic `test-negative-gates.py` is transitional and must be removed as the domain-specific test suites are activated.
 
 ## Idempotency
 
@@ -479,23 +581,625 @@ This keeps the generator trustworthy.
 
 ## Main verification flow
 
-The full local verification flow is:
+The final verification hierarchy is:
 
-```bash
-scripts/agentic/agentic-gen.sh all
-scripts/agentic/agentic-gen.sh test-negative
-scripts/agentic/agentic-gen.sh doctor-strict
-```
+~~~text
+format and lint
+type checking
+unit tests
+schema contract tests
+semantic validator tests
+negative tests
+integration tests
+generation idempotency
+isolated consumer end-to-end tests
+target runtime tests
+working-tree drift check
+~~~
 
-For noisy runs, redirect output to a log:
+The stable public launcher remains:
 
-```bash
-LOG="/tmp/agentic-doctor.log"
-scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
-tail -80 "$LOG"
-```
+~~~bash
+scripts/agentic/agentic-gen.sh
+~~~
 
-`doctor-strict` must pass before a change is considered done.
+The launcher delegates to the Python CLI and must not contain domain, registry, validation or compiler logic.
+
+A change is complete only when all relevant component tests and the complete fail-fast pipeline pass with a clean working tree.
+
+During the breaking migration, isolated green validators do not imply that the full pipeline is green.
+
+## Compiler code architecture
+
+The implementation is organized as an installable Python package.
+
+~~~text
+src/
+  agentic_workflow_generator/
+    cli/
+      main.py
+      commands.py
+
+    application/
+      pipeline.py
+      services.py
+
+    domain/
+      models.py
+      diagnostics.py
+      errors.py
+
+    registry/
+      loader.py
+      index.py
+      paths.py
+
+    validation/
+      common.py
+      agents.py
+      artifacts.py
+      bundles.py
+      permissions.py
+      profiles.py
+      setups.py
+      skills.py
+      targets.py
+      workflows.py
+
+    compiler/
+      composition.py
+      resolver.py
+      resolution.py
+      lockfile.py
+      manifest.py
+
+    targets/
+      base.py
+      opencode.py
+      vscode_copilot.py
+
+    infrastructure/
+      json_io.py
+      filesystem.py
+      hashing.py
+      processes.py
+
+tests/
+  unit/
+  contract/
+  integration/
+  negative/
+  e2e/
+
+scripts/
+  agentic/
+    agentic-gen.sh
+~~~
+
+This is a responsibility map, not permission to create empty placeholder modules.
+
+A package or module is created only when an implementation is migrated into it or when it is required by the first active vertical slice.
+
+## Dependency direction
+
+Dependencies point inward toward stable domain concepts.
+
+~~~text
+cli
+  ↓
+application
+  ↓
+validation and compiler
+  ↓
+domain
+~~~
+
+The supporting boundaries are:
+
+~~~text
+registry
+  loads and indexes external compiler input
+
+infrastructure
+  provides filesystem, JSON, hashing and process adapters
+
+targets
+  consume compiled composition or resolution
+~~~
+
+The following dependencies are forbidden:
+
+~~~text
+domain importing CLI, registry IO, targets or infrastructure
+validation importing CLI or concrete target generators
+targets loading raw registry files
+targets implementing semantic composition rules
+registry loaders invoking target generation
+infrastructure containing domain decisions
+tests importing implementation from scripts/agentic
+~~~
+
+Application services orchestrate operations but must not duplicate domain rules.
+
+The CLI parses input, invokes an application service, renders diagnostics and returns an exit code. It contains no registry or compiler semantics.
+
+## External registry boundary
+
+Registry JSON is untrusted external compiler input.
+
+The boundary follows this sequence:
+
+~~~text
+filesystem
+→ JSON parsing
+→ schema validation
+→ typed model construction
+→ registry index construction
+→ semantic validation
+→ compiled composition
+~~~
+
+Raw dictionaries are permitted only during parsing, schema validation and typed model construction.
+
+After model construction, application, validation, compiler and target code use typed domain objects.
+
+A malformed value must fail at the earliest responsible boundary. Later layers must not contain defensive fallback for values that an earlier boundary guarantees.
+
+## Project paths
+
+Repository paths are represented by one injected `ProjectPaths` object.
+
+It owns canonical locations such as:
+
+~~~text
+repository root
+registry root
+schema root
+active config
+generated directory
+lockfile
+manifest
+target output roots
+~~~
+
+Modules must not independently infer the project root through repeated `Path.cwd()` calls.
+
+All paths derived from registry or generated data must be validated as safe repository-relative paths before filesystem access.
+
+Absolute paths, parent traversal and paths outside owned roots are rejected.
+
+## Registry loader and index
+
+`RegistryLoader` owns:
+
+~~~text
+registry file discovery
+deterministic ordering
+JSON loading
+schema selection
+typed model construction
+duplicate identity detection
+source-path association
+~~~
+
+`RegistryIndex` owns indexed lookup by stable identity.
+
+It provides typed access to:
+
+~~~text
+agent profiles
+artifact contracts
+bundles
+permission profiles
+profiles
+setups
+skills
+target adapters
+workflows
+~~~
+
+Validators and compiler services receive a `RegistryIndex`. They must not rediscover or reload registry files independently.
+
+Missing references are reported explicitly. Lookup must not return implicit defaults or silently ignore unknown values.
+
+## Domain models
+
+Domain models describe concepts and invariants without filesystem, CLI or target behavior.
+
+The central types include:
+
+~~~text
+AgentProfile
+AgentInstance
+RoleBinding
+SeparationPolicy
+PermissionProfile
+Skill
+ArtifactContract
+Workflow
+WorkflowState
+WorkflowGate
+Bundle
+Profile
+Setup
+TargetAdapter
+CompiledComposition
+Diagnostic
+~~~
+
+Models use immutable value semantics where practical.
+
+Identity-bearing collections preserve deterministic ordering but enforce uniqueness through explicit validation.
+
+Recommended or default metadata remains distinguishable from effective runtime values.
+
+## Validation architecture
+
+Each validator owns one bounded set of semantic rules.
+
+Validators receive typed models or a `RegistryIndex` and return diagnostics.
+
+A validator must not:
+
+~~~text
+print directly
+terminate the process
+reload registry files
+generate output
+repair invalid data
+derive fallback values
+invoke unrelated validators through shell commands
+~~~
+
+Cross-domain rules belong in an explicitly named composition validator rather than being duplicated in several registry validators.
+
+Common primitives may validate generic value properties, but domain-specific policy remains in its owning validator.
+
+## Canonical compiled composition
+
+`CompiledComposition` is the canonical internal compiler representation for one selected setup or bundle.
+
+It contains resolved, validated runtime authority:
+
+~~~text
+selected bundle, profile and workflow
+enabled targets
+agent instances
+role bindings
+state ownership
+controller binding
+selected skills
+required and provided capabilities
+effective permission profiles
+workflow gates
+artifact production ownership
+separation constraints
+runtime-context policy
+~~~
+
+It must not contain unresolved registry references.
+
+It must not infer runtime values from advisory agent-profile or profile metadata.
+
+The same compiled composition is used to materialize:
+
+~~~text
+.agentic/agentic.json
+resolution.json
+lockfile inputs
+target-specific output
+output manifest metadata
+~~~
+
+No downstream generator may create a competing composition model.
+
+## Resolution model
+
+Resolution is the serializable target-independent form derived from `CompiledComposition`.
+
+It preserves the semantics required by every enabled target while excluding raw registry-only metadata that has no runtime meaning.
+
+Resolution generation and resolution validation use the same typed model and serialization contract.
+
+Target generators consume validated resolution or the compiled composition through an explicit interface. They do not read agent profiles, bundles or workflows directly.
+
+## Target adapters
+
+Every target implementation conforms to one target-generator interface.
+
+The interface receives:
+
+~~~text
+compiled composition or validated resolution
+target adapter contract
+owned output root
+project paths
+~~~
+
+It returns a deterministic set of generated files.
+
+Shared target rendering belongs in target support modules. Target-specific syntax and permission mapping remain in the concrete target adapter.
+
+A target generator must fail when required semantics cannot be represented. It must not omit unsupported responsibilities, routing, gates, artifacts or permissions silently.
+
+## Diagnostics
+
+Every validation or compiler failure is represented by a structured diagnostic.
+
+A diagnostic contains at least:
+
+~~~text
+stable code
+severity
+human-readable message
+source path when available
+logical location when available
+related identities when available
+~~~
+
+Example:
+
+~~~text
+AWG-BUNDLE-014
+registry/bundles/example.bundle.json
+roleBindings[2].produces
+Artifact contract does not exist
+~~~
+
+Diagnostic codes are stable public test contracts.
+
+Messages should remain clear, but tests must not depend exclusively on complete message text unless exact wording is deliberately part of the interface.
+
+The CLI is responsible for deterministic diagnostic ordering and rendering.
+
+Unexpected internal exceptions are not converted into successful or partial output.
+
+## Error handling
+
+Expected invalid input produces diagnostics and a non-zero exit status.
+
+Unexpected programming errors fail visibly with their original cause preserved.
+
+The compiler must not:
+
+~~~text
+catch broad exceptions and continue
+replace missing values with empty collections
+skip broken registry entries
+continue after partial generation
+retain stale target files after a failed transaction
+downgrade a required validation
+~~~
+
+Operations that modify several files use transactional materialization where failure could otherwise leave inconsistent output.
+
+## Test architecture
+
+Tests are grouped by responsibility.
+
+### Unit tests
+
+Unit tests cover:
+
+~~~text
+domain invariants
+value validation
+diagnostic construction
+path safety
+registry indexing
+composition rules
+serialization
+target rendering helpers
+~~~
+
+They use in-memory typed objects or minimal temporary files.
+
+### Contract tests
+
+Contract tests cover:
+
+~~~text
+JSON schemas
+serialized active config
+serialized resolution
+lockfile format
+manifest format
+target adapter contracts
+diagnostic code uniqueness
+~~~
+
+### Integration tests
+
+Integration tests cover bounded multi-component flows such as:
+
+~~~text
+registry loading and semantic validation
+bundle to compiled composition
+compiled composition to resolution
+resolution to one target output
+manifest generation and validation
+~~~
+
+### Negative tests
+
+Each negative test:
+
+~~~text
+starts from a minimal valid fixture
+introduces one invalid mutation
+invokes the owning component directly
+asserts the expected diagnostic code
+asserts that no invalid output was committed
+~~~
+
+Negative tests must not depend on alphabetical selection of an arbitrary registry file.
+
+Fixtures that require a specific composition identify it by stable name.
+
+### End-to-end tests
+
+End-to-end tests cover only complete user-visible compiler workflows:
+
+~~~text
+guided setup
+direct bundle init
+isolated consumer generation
+target runtime parsing
+idempotent regeneration
+fail-fast transactional rollback
+~~~
+
+The number of E2E scenarios remains intentionally small because lower layers already prove individual invariants.
+
+## Test fixtures
+
+Reusable fixtures are builders of valid typed objects or minimal registry trees.
+
+Fixture builders must:
+
+~~~text
+make defaults explicit
+allow focused field overrides
+produce deterministic identities
+avoid loading repository working-tree output
+avoid hidden dependency on file ordering
+avoid global mutable state
+~~~
+
+A test may copy a complete repository only when repository-level behavior is itself the subject of the test.
+
+## Vertical migration strategy
+
+Architecture hardening is performed through vertical slices.
+
+Each slice contains:
+
+~~~text
+typed model support
+registry loading support
+semantic validator
+diagnostic codes
+unit tests
+negative tests
+CLI integration
+removal of the replaced script implementation
+~~~
+
+The migration order is:
+
+~~~text
+permissions
+agents
+skills
+artifacts
+workflows
+bundles
+profiles
+setups
+targets
+compiled composition
+active config
+resolution
+lockfile
+target generation
+manifest
+end-to-end flows
+~~~
+
+A slice is not complete while both old and new implementations remain authoritative.
+
+Temporary import wrappers may exist only as mechanical launchers to the new implementation. They must contain no compatibility projection or independent logic.
+
+## Code size and responsibility guidelines
+
+Code size is a review signal rather than an automatic correctness metric.
+
+Normal expectations are:
+
+~~~text
+one clear responsibility per module
+functions normally below 40 to 60 lines
+modules normally below 300 to 400 lines
+small explicit public interfaces
+no generic utility dumping ground
+no duplicated registry interpretation
+~~~
+
+A larger function or module requires a cohesive reason and focused tests.
+
+When a module grows because it contains unrelated rules, it must be split by domain responsibility rather than by arbitrary line count.
+
+## Quality tooling
+
+The initial enforced Python quality baseline is:
+
+~~~text
+ruff format
+ruff check
+mypy
+pytest
+pytest with coverage reporting
+~~~
+
+`ruff` owns formatting and linting.
+
+`mypy` checks the package and tests at a configured strictness that can be raised intentionally, but errors must not be globally ignored to obtain a green baseline.
+
+`pytest` is the test runner for all new suites.
+
+Coverage is used to locate untested branches. A numerical threshold must not encourage superficial tests or replace mutation and negative testing.
+
+The stable shell launcher may have separate shell syntax validation.
+
+## Review requirements
+
+Every refactor slice is reviewed for:
+
+~~~text
+single authority
+dependency direction
+removed duplication
+typed boundaries
+deterministic behavior
+fail-fast behavior
+diagnostic quality
+focused tests
+deleted legacy implementation
+documentation consistency
+~~~
+
+A large mechanical move and a semantic behavior change should be separate commits when possible.
+
+Generated output changes are reviewed independently from source-code refactors.
+
+## Definition of done for architecture hardening
+
+Architecture hardening is complete when:
+
+~~~text
+the active implementation lives under src/agentic_workflow_generator
+scripts/agentic contains only thin launchers or explicitly temporary wrappers
+registry loading and indexing have one implementation
+JSON IO, path safety and hashing have one implementation each
+all compiler layers use typed internal models
+one canonical compiled composition feeds all downstream stages
+targets do not load raw registry data
+validators return structured diagnostics
+diagnostic codes are unique and tested
+test-negative-gates.py has been removed
+tests are divided by responsibility
+component tests do not invoke the full pipeline
+pytest, ruff and mypy are enforced
+all legacy runtime structures are removed
+all generated output is regenerated deterministically
+all supported setups pass isolated consumer E2E
+all target runtime tests pass
+doctor-strict passes
+the working tree is clean
+project-status.md and architecture documentation match the code
+~~~
+
+New product features remain paused until this definition is satisfied.
 
 ## Architectural summary
 

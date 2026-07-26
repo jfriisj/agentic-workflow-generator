@@ -1,0 +1,9 @@
+{
+  "name": "implementation",
+  "version": "0.1.0",
+  "description": "Full repository modification access for approved implementation work.",
+  "read": true,
+  "write": true,
+  "edit": true,
+  "bash": "allow"
+}

@@ -1,8 +1,8 @@
 {
   "name": "lean-delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Workflow profile for focused software changes that need deterministic implementation, test, and review gates without a separate architecture or QA phase.",
-  "workflow": "lean-delivery",
+  "recommendedWorkflow": "lean-delivery",
   "recommendedAgents": [
     "Orchestrator",
     "Requirements",

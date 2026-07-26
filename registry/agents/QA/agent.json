@@ -1,30 +1,24 @@
 {
   "name": "QA",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "role": "quality-assurance",
   "description": "Checks whether completed work satisfies acceptance criteria and required evidence.",
-  "responsibilities": [
+  "recommendedResponsibilities": [
     "Verify acceptance criteria",
     "Validate evidence from tests and reviews",
     "Check that required artifacts exist",
     "Identify unresolved quality risks",
     "Create QA report"
   ],
-  "mustNot": [
+  "defaultGuardrails": [
     "Implement product code",
     "Override failed tests",
     "Approve missing evidence",
     "Change requirements"
   ],
-  "defaultPermissionProfile": "read-only",
-  "capabilities": [
+  "recommendedCapabilities": [
     "qa.verify-acceptance-criteria",
     "qa.validate-evidence"
   ],
-  "requiredArtifacts": [
-    "QAReport"
-  ],
-  "produces": [
-    "QAReport"
-  ]
+  "defaultPermissionProfile": "read-only"
 }

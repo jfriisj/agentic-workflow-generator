@@ -1,5 +1,6 @@
 {
   "type": "AIEvaluationReport",
+  "version": "0.2.0",
   "description": "Artifact contract for evidence-based AI application quality, safety, and operational evaluation.",
   "pathPattern": "agent-output/ai-evaluation-report/*.md",
   "status": {

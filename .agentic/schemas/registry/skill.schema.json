@@ -5,30 +5,36 @@
   "type": "object",
   "required": [
     "name",
+    "version",
     "description",
-    "provides"
+    "provides",
+    "contentPath",
+    "contextBudget",
+    "requiresCapabilities",
+    "recommendedAgents"
   ],
+  "additionalProperties": false,
   "properties": {
     "name": {
       "type": "string",
       "minLength": 1
     },
-    "description": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
       "type": "string",
       "minLength": 1
     },
     "provides": {
       "type": "array",
       "minItems": 1,
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "minLength": 1
-      },
-      "uniqueItems": true
+      }
     },
     "contentPath": {
       "type": "string",
@@ -36,46 +42,33 @@
       "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
     },
     "contextBudget": {
-      "type": "object"
-    },
-    "capabilities": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
-    },
-    "capabilityGroups": {
-      "type": "array",
-      "items": {
-        "type": "object"
+      "type": "object",
+      "required": [
+        "maxTokens"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
-    },
-    "documents": {
-      "type": "array"
-    },
-    "inputs": {
-      "type": "array"
-    },
-    "outputs": {
-      "type": "array"
     },
     "requiresCapabilities": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "minLength": 1
-      },
-      "uniqueItems": true
+      }
     },
     "recommendedAgents": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "minLength": 1
-      },
-      "uniqueItems": true
+      }
     }
   }
 }

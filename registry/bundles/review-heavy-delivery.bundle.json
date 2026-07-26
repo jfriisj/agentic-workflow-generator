@@ -1,17 +1,288 @@
 {
   "name": "review-heavy-delivery",
   "description": "Review-heavy bundle with architecture, pre-test code review, test execution, final QA, and fail-closed orchestration.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "profile": "review-heavy-delivery",
   "workflow": "review-heavy-delivery",
-  "agents": [
-    "Architect",
-    "CodeReviewer",
-    "Implementer",
-    "Orchestrator",
-    "QA",
-    "Requirements",
-    "TestRunner"
+  "agentInstances": [
+    {
+      "id": "requirements-worker",
+      "profile": "Requirements",
+      "displayName": "Requirements",
+      "permissionProfile": "read-only",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "architecture-worker",
+      "profile": "Architect",
+      "displayName": "Architect",
+      "permissionProfile": "read-only",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "implementation-worker",
+      "profile": "Implementer",
+      "displayName": "Implementer",
+      "permissionProfile": "implementation",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "code-review-worker",
+      "profile": "CodeReviewer",
+      "displayName": "CodeReviewer",
+      "permissionProfile": "read-only",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "test-runner",
+      "profile": "TestRunner",
+      "displayName": "TestRunner",
+      "permissionProfile": "test-runner",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "qa-worker",
+      "profile": "QA",
+      "displayName": "QA",
+      "permissionProfile": "read-only",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    },
+    {
+      "id": "workflow-controller",
+      "profile": "Orchestrator",
+      "displayName": "Orchestrator",
+      "permissionProfile": "read-only",
+      "sharedContextPolicy": "shared-with-assigned-bindings"
+    }
+  ],
+  "roleBindings": [
+    {
+      "roleName": "requirements",
+      "bindingType": "state-owner",
+      "agentInstance": "requirements-worker",
+      "workflowState": "Requirements",
+      "requiredCapabilities": [
+        "requirements.elicit",
+        "requirements.define-acceptance-criteria"
+      ],
+      "selectedSkills": [
+        "requirements-analysis"
+      ],
+      "produces": [
+        "Requirements"
+      ],
+      "responsibilities": [
+        "Clarify the problem statement",
+        "Identify explicit and implicit requirements",
+        "Document assumptions and constraints",
+        "Define measurable acceptance criteria",
+        "Create requirements artifacts"
+      ],
+      "guardrails": [
+        "Design implementation details",
+        "Approve release",
+        "Skip unresolved assumptions",
+        "Change workflow routing"
+      ],
+      "workflowGate": "requirements-review"
+    },
+    {
+      "roleName": "architecture",
+      "bindingType": "state-owner",
+      "agentInstance": "architecture-worker",
+      "workflowState": "Architect",
+      "requiredCapabilities": [
+        "architecture.design",
+        "architecture.evaluate-tradeoffs"
+      ],
+      "selectedSkills": [
+        "architecture-design"
+      ],
+      "produces": [
+        "ArchitectureDecision"
+      ],
+      "responsibilities": [
+        "Define system boundaries",
+        "Identify architectural tradeoffs",
+        "Review technical risks",
+        "Document architecture decisions",
+        "Keep design aligned with requirements"
+      ],
+      "guardrails": [
+        "Implement product code",
+        "Skip quality gates",
+        "Approve release",
+        "Ignore unresolved requirements"
+      ],
+      "workflowGate": "architecture-review"
+    },
+    {
+      "roleName": "implementation",
+      "bindingType": "state-owner",
+      "agentInstance": "implementation-worker",
+      "workflowState": "Implementer",
+      "requiredCapabilities": [
+        "implementation.code",
+        "implementation.refactor",
+        "implementation.update-tests"
+      ],
+      "selectedSkills": [
+        "implementation-engineering"
+      ],
+      "produces": [
+        "ImplementationReport"
+      ],
+      "responsibilities": [
+        "Modify product code",
+        "Update tests",
+        "Keep implementation aligned with approved artifacts",
+        "Create implementation report"
+      ],
+      "guardrails": [
+        "Change workflow routing",
+        "Self-approve implementation",
+        "Skip validation evidence"
+      ],
+      "workflowGate": "implementation-complete"
+    },
+    {
+      "roleName": "code-review",
+      "bindingType": "state-owner",
+      "agentInstance": "code-review-worker",
+      "workflowState": "CodeReviewer",
+      "requiredCapabilities": [
+        "review.clean-code",
+        "review.tests",
+        "review.security"
+      ],
+      "selectedSkills": [
+        "code-review-clean-code",
+        "code-review-tests",
+        "security-review"
+      ],
+      "produces": [
+        "CodeReview"
+      ],
+      "responsibilities": [
+        "Review changed code",
+        "Check maintainability and readability",
+        "Check test coverage evidence",
+        "Create code review artifact",
+        "Record failed review disposition and recommend the configured remediation target"
+      ],
+      "guardrails": [
+        "Implement feature behavior",
+        "Approve release",
+        "Change workflow routing",
+        "Perform workflow transitions"
+      ],
+      "workflowGate": "pre-test-code-review"
+    },
+    {
+      "roleName": "test-execution",
+      "bindingType": "state-owner",
+      "agentInstance": "test-runner",
+      "workflowState": "TestRunner",
+      "requiredCapabilities": [
+        "test.run",
+        "test.report",
+        "test.diagnose-failure"
+      ],
+      "selectedSkills": [
+        "test-execution"
+      ],
+      "produces": [
+        "TestReport"
+      ],
+      "responsibilities": [
+        "Run relevant tests",
+        "Collect validation output",
+        "Diagnose test failures",
+        "Create test report"
+      ],
+      "guardrails": [
+        "Approve code quality",
+        "Change requirements",
+        "Hide failing validation"
+      ],
+      "workflowGate": "test-review"
+    },
+    {
+      "roleName": "quality-assurance",
+      "bindingType": "state-owner",
+      "agentInstance": "qa-worker",
+      "workflowState": "QA",
+      "requiredCapabilities": [
+        "qa.verify-acceptance-criteria",
+        "qa.validate-evidence"
+      ],
+      "selectedSkills": [
+        "qa-acceptance-validation"
+      ],
+      "produces": [
+        "QAReport"
+      ],
+      "responsibilities": [
+        "Verify acceptance criteria",
+        "Validate evidence from tests and reviews",
+        "Check that required artifacts exist",
+        "Identify unresolved quality risks",
+        "Create QA report"
+      ],
+      "guardrails": [
+        "Implement product code",
+        "Override failed tests",
+        "Approve missing evidence",
+        "Change requirements"
+      ],
+      "workflowGate": "qa-review"
+    },
+    {
+      "roleName": "workflow-controller",
+      "bindingType": "workflow-controller",
+      "agentInstance": "workflow-controller",
+      "requiredCapabilities": [
+        "workflow.route",
+        "workflow.validate-state",
+        "workflow.handoff"
+      ],
+      "selectedSkills": [
+        "workflow-routing"
+      ],
+      "produces": [],
+      "responsibilities": [
+        "Read workflow state",
+        "Interpret gate results",
+        "Route work only through a unique configured transition",
+        "Stop on missing evidence",
+        "Stop without transition when routing is missing or ambiguous",
+        "Keep workflow execution fail-closed"
+      ],
+      "guardrails": [
+        "Implement product code",
+        "Override gates without evidence",
+        "Perform domain-specific review",
+        "Invent workflow transitions",
+        "Route work without a unique validated transition"
+      ]
+    }
+  ],
+  "separationPolicies": [
+    {
+      "id": "role-independence",
+      "mode": "required",
+      "roleBindings": [
+        "requirements",
+        "architecture",
+        "implementation",
+        "code-review",
+        "test-execution",
+        "quality-assurance",
+        "workflow-controller"
+      ],
+      "requireDistinctInstances": true,
+      "reason": "This bundle requires independent workers for each workflow responsibility and routing authority."
+    }
   ],
   "skills": [
     "architecture-design",

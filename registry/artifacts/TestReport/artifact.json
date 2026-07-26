@@ -1,5 +1,6 @@
 {
   "type": "TestReport",
+  "version": "0.2.0",
   "description": "Artifact contract for test execution and validation output.",
   "pathPattern": "agent-output/test-report/*.md",
   "status": {

@@ -1,29 +1,28 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "workflow.schema.json",
-  "title": "Workflow Registry Entry",
   "type": "object",
   "required": [
     "name",
-    "description",
     "version",
+    "description",
     "startState",
-    "states",
     "terminalStates",
-    "defaultFailureRoute",
+    "defaultFailureState",
     "failClosed",
+    "states",
     "transitions"
   ],
+  "additionalProperties": false,
   "properties": {
     "name": {
       "type": "string",
       "minLength": 1
     },
-    "description": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
       "type": "string",
       "minLength": 1
     },
@@ -31,7 +30,16 @@
       "type": "string",
       "minLength": 1
     },
-    "defaultFailureRoute": {
+    "terminalStates": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "defaultFailureState": {
       "type": "string",
       "minLength": 1
     },
@@ -42,73 +50,77 @@
       "type": "array",
       "minItems": 1,
       "items": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "agent": {
-            "type": "string",
-            "minLength": 1
-          },
-          "gate": {
-            "type": "string",
-            "minLength": 1
-          },
-          "terminal": {
-            "type": "boolean"
-          }
-        },
-        "allOf": [
+        "oneOf": [
           {
-            "if": {
-              "properties": {
-                "terminal": {
-                  "const": true
-                }
+            "type": "object",
+            "required": [
+              "name",
+              "gate"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
               },
-              "required": [
-                "terminal"
-              ]
-            },
-            "then": {
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "agent"
-                    ]
+              "gate": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "blocking",
+                  "requiredCapabilities",
+                  "requiredArtifacts"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
                   },
-                  {
-                    "required": [
-                      "gate"
-                    ]
+                  "blocking": {
+                    "const": true
+                  },
+                  "requiredCapabilities": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "requiredArtifacts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   }
-                ]
+                }
               }
-            },
-            "else": {
-              "required": [
-                "agent",
-                "gate"
-              ]
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "terminal"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "terminal": {
+                "const": true
+              }
             }
           }
         ]
       }
-    },
-    "terminalStates": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
     },
     "transitions": {
       "type": "array",

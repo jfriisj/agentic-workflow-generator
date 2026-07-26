@@ -1,5 +1,6 @@
 {
   "type": "ImplementationReport",
+  "version": "0.2.0",
   "description": "Artifact contract for implementation output produced by Implementer agents.",
   "pathPattern": "agent-output/implementation/*.md",
   "status": {

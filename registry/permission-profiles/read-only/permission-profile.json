@@ -1,0 +1,9 @@
+{
+  "name": "read-only",
+  "version": "0.1.0",
+  "description": "Read-only access for analysis, review, evaluation, requirements, architecture, quality assurance, and routing.",
+  "read": true,
+  "write": false,
+  "edit": false,
+  "bash": "deny"
+}

@@ -1,47 +1,116 @@
 {
   "name": "ai-application-delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A fail-closed delivery workflow for AI applications with explicit AI quality, safety, and operational evaluation.",
   "startState": "Requirements",
   "terminalStates": [
     "Done",
     "Blocked"
   ],
+  "defaultFailureState": "Blocked",
+  "failClosed": true,
   "states": [
     {
       "name": "Requirements",
-      "agent": "Requirements",
-      "gate": "requirements-review"
+      "gate": {
+        "name": "requirements-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "requirements.elicit",
+          "requirements.define-acceptance-criteria"
+        ],
+        "requiredArtifacts": [
+          "Requirements"
+        ]
+      }
     },
     {
       "name": "Architect",
-      "agent": "Architect",
-      "gate": "architecture-review"
+      "gate": {
+        "name": "architecture-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "architecture.design",
+          "architecture.evaluate-tradeoffs"
+        ],
+        "requiredArtifacts": [
+          "ArchitectureDecision"
+        ]
+      }
     },
     {
       "name": "Implementer",
-      "agent": "Implementer",
-      "gate": "implementation-complete"
+      "gate": {
+        "name": "implementation-complete",
+        "blocking": true,
+        "requiredCapabilities": [
+          "implementation.code",
+          "implementation.refactor",
+          "implementation.update-tests"
+        ],
+        "requiredArtifacts": [
+          "ImplementationReport"
+        ]
+      }
     },
     {
       "name": "AIEvaluator",
-      "agent": "AIEvaluator",
-      "gate": "ai-evaluation-review"
+      "gate": {
+        "name": "ai-evaluation-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "ai.evaluate-quality",
+          "ai.evaluate-safety",
+          "ai.evaluate-operational-risks"
+        ],
+        "requiredArtifacts": [
+          "AIEvaluationReport"
+        ]
+      }
     },
     {
       "name": "TestRunner",
-      "agent": "TestRunner",
-      "gate": "test-review"
+      "gate": {
+        "name": "test-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "test.run",
+          "test.report",
+          "test.diagnose-failure"
+        ],
+        "requiredArtifacts": [
+          "TestReport"
+        ]
+      }
     },
     {
       "name": "CodeReviewer",
-      "agent": "CodeReviewer",
-      "gate": "code-review"
+      "gate": {
+        "name": "code-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "review.clean-code",
+          "review.tests",
+          "review.security"
+        ],
+        "requiredArtifacts": [
+          "CodeReview"
+        ]
+      }
     },
     {
       "name": "QA",
-      "agent": "QA",
-      "gate": "qa-review"
+      "gate": {
+        "name": "qa-review",
+        "blocking": true,
+        "requiredCapabilities": [
+          "qa.verify-acceptance-criteria",
+          "qa.validate-evidence"
+        ],
+        "requiredArtifacts": [
+          "QAReport"
+        ]
+      }
     },
     {
       "name": "Done",
@@ -52,8 +121,6 @@
       "terminal": true
     }
   ],
-  "defaultFailureRoute": "Orchestrator",
-  "failClosed": true,
   "transitions": [
     {
       "from": "Requirements",

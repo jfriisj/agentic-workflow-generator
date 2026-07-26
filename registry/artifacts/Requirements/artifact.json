@@ -1,11 +1,17 @@
 {
+  "type": "Requirements",
+  "version": "0.2.0",
+  "description": "Artifact contract for requirements output produced by Requirements agents.",
+  "pathPattern": "agent-output/requirements/*.md",
+  "status": {
+    "heading": "## Status",
+    "pattern": "PASS|FAIL|BLOCKED"
+  },
   "allowedStatuses": [
     "PASS",
     "FAIL",
     "BLOCKED"
   ],
-  "description": "Artifact contract for requirements output produced by Requirements agents.",
-  "pathPattern": "agent-output/requirements/*.md",
   "requiredHeadings": [
     "# Requirements",
     "## Status",
@@ -16,10 +22,5 @@
     "## Assumptions",
     "## Constraints",
     "## Handoff Target"
-  ],
-  "status": {
-    "heading": "## Status",
-    "pattern": "PASS|FAIL|BLOCKED"
-  },
-  "type": "Requirements"
+  ]
 }

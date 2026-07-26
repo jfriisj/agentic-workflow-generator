@@ -1,8 +1,8 @@
 {
   "name": "microservice-platform",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Workflow profile for event-driven microservice platforms.",
-  "workflow": "orchestrated-delivery",
+  "recommendedWorkflow": "orchestrated-delivery",
   "recommendedAgents": [
     "Orchestrator",
     "Requirements",

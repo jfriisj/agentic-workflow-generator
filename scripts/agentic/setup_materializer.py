@@ -288,21 +288,6 @@ def materialize_selected(
             "workflow",
             setup_path,
         ),
-        "agents": require_string_list(
-            final_recommendation,
-            "agents",
-            setup_path,
-        ),
-        "skills": require_string_list(
-            final_recommendation,
-            "skills",
-            setup_path,
-        ),
-        "artifacts": require_string_list(
-            final_recommendation,
-            "artifacts",
-            setup_path,
-        ),
         "targets": require_string_list(
             final_recommendation,
             "targets",
@@ -361,7 +346,7 @@ def materialize_selected(
                 f"{question_id}={answer_selected}"
             )
 
-        for field in ("agents", "skills", "artifacts", "targets"):
+        for field in ("targets",):
             recommended_values = (
                 require_optional_recommend_string_list(
                     recommends,
@@ -452,7 +437,7 @@ def materialize_setup_profile(
 
     return {
         "$schema": "./schemas/setup-profile.schema.json",
-        "schemaVersion": "0.1.0",
+        "schemaVersion": "0.2.0",
         "mode": mode,
         "setup": setup_name,
         "answers": answers,

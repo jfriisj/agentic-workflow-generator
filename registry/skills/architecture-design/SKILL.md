@@ -7,7 +7,8 @@ description: "Use when designing system boundaries, evaluating architectural alt
 
 ## Purpose
 
-Produce an architecture decision that satisfies approved requirements while making boundaries, tradeoffs, consequences, and risks explicit.
+Produce an architecture decision that satisfies approved requirements while making boundaries, tradeoffs, consequences,
+and risks explicit.
 
 ## Required Inputs
 
@@ -24,7 +25,8 @@ Stop when the requirements needed for an architecture decision are unresolved.
 ## Working Method
 
 1. Identify the architectural drivers from the approved requirements.
-2. Identify required quality attributes such as availability, security, performance, modifiability, deployability, testability, and operability.
+2. Identify required quality attributes such as availability, security, performance, modifiability, deployability,
+   testability, and operability.
 3. Define system boundaries and external dependencies.
 4. Identify the responsibilities of major components.
 5. Define important interfaces, data flows, and ownership boundaries.

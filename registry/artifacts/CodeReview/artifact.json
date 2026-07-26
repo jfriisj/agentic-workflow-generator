@@ -1,5 +1,6 @@
 {
   "type": "CodeReview",
+  "version": "0.2.0",
   "description": "Artifact contract for code review gate output.",
   "pathPattern": "agent-output/code-review/*.md",
   "status": {

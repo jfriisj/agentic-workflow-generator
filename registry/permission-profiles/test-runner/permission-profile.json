@@ -1,0 +1,9 @@
+{
+  "name": "test-runner",
+  "version": "0.1.0",
+  "description": "Repository access for running tests, collecting evidence, and writing test outputs with restricted shell execution.",
+  "read": true,
+  "write": true,
+  "edit": true,
+  "bash": "limited"
+}

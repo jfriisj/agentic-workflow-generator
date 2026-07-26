@@ -4,6 +4,11 @@ set -euo pipefail
 COMMAND="${1:-}"
 TARGET="${2:-all}"
 
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv is required but was not found in PATH." >&2
+  exit 1
+fi
+
 usage() {
   cat <<'USAGE'
 Usage:
@@ -21,8 +26,8 @@ Usage:
   scripts/agentic/agentic-gen.sh manifest
   scripts/agentic/agentic-gen.sh validate-manifest
   scripts/agentic/agentic-gen.sh validate-artifacts
+  scripts/agentic/agentic-gen.sh validate-permission-profiles
   scripts/agentic/agentic-gen.sh validate-agents
-  scripts/agentic/agentic-gen.sh validate-agent-artifacts
   scripts/agentic/agentic-gen.sh validate-targets
   scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-skills
@@ -67,10 +72,10 @@ Commands:
              Validate generated output manifest.
   validate-artifacts
              Validate registered artifact contracts and existing artifact files.
+  validate-permission-profiles
+             Validate registered permission profile definitions.
   validate-agents
              Validate registered agent definitions.
-  validate-agent-artifacts
-             Validate that agent produces bindings point to registered artifact contracts.
   validate-targets
              Validate registered target adapters.
   validate-skills
@@ -126,10 +131,10 @@ require_file() {
 }
 
 validate_json_files() {
-  find registry .agentic -name "*.json" -print0 | xargs -0 -r -n1 python -m json.tool >/dev/null
+  find registry .agentic -name "*.json" -print0 | xargs -0 -r -n1 uv run python -m json.tool >/dev/null
 
   if [[ -f opencode.json ]]; then
-    python -m json.tool opencode.json >/dev/null
+    uv run python -m json.tool opencode.json >/dev/null
   fi
 
   echo "PASS: JSON files are syntactically valid."
@@ -151,8 +156,8 @@ check_scripts() {
   require_file "scripts/agentic/target_generation_support.py"
   require_file "scripts/agentic/validate-target-compatibility.py"
   require_file "scripts/agentic/validate-artifacts.py"
+  require_file "scripts/agentic/validate-permission-profile-registry.py"
   require_file "scripts/agentic/validate-agent-registry.py"
-  require_file "scripts/agentic/validate-agent-artifact-bindings.py"
   require_file "scripts/agentic/validate-target-adapters.py"
   require_file "scripts/agentic/validate-skill-registry.py"
   require_file "scripts/agentic/validate-workflow-registry.py"
@@ -168,39 +173,39 @@ check_scripts() {
   require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
 
-  python -m py_compile "scripts/agentic/validate-environment.py"
-  python -m py_compile "scripts/agentic/validate-setup-registry.py"
-  python -m py_compile "scripts/agentic/validate-setup-profile.py"
+  uv run python -m py_compile "scripts/agentic/validate-environment.py"
+  uv run python -m py_compile "scripts/agentic/validate-setup-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-setup-profile.py"
   bash -n "scripts/agentic/validate-agentic-config.sh"
-  python -m py_compile "scripts/agentic/validate-agentic-semantics.py"
+  uv run python -m py_compile "scripts/agentic/validate-agentic-semantics.py"
   bash -n "scripts/agentic/agentic-gen.sh"
 
-  python -m py_compile "scripts/agentic/resolve-agentic-config.py"
-  python -m py_compile "scripts/agentic/validate-resolution-output.py"
-  python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
-  python -m py_compile "scripts/agentic/generate-opencode.py"
-  python -m py_compile "scripts/agentic/generate-lockfile.py"
-  python -m py_compile "scripts/agentic/validate-lockfile.py"
-  python -m py_compile "scripts/agentic/validate-generated-output.py"
-  python -m py_compile "scripts/agentic/target_generation_support.py"
-  python -m py_compile "scripts/agentic/validate-target-compatibility.py"
-  python -m py_compile "scripts/agentic/validate-artifacts.py"
-  python -m py_compile "scripts/agentic/validate-agent-registry.py"
-  python -m py_compile "scripts/agentic/validate-agent-artifact-bindings.py"
-  python -m py_compile "scripts/agentic/validate-target-adapters.py"
-  python -m py_compile "scripts/agentic/validate-skill-registry.py"
-  python -m py_compile "scripts/agentic/validate-workflow-registry.py"
-  python -m py_compile "scripts/agentic/validate-profile-registry.py"
-  python -m py_compile "scripts/agentic/init-from-bundle.py"
-  python -m py_compile "scripts/agentic/init_support.py"
-  python -m py_compile "scripts/agentic/setup_materializer.py"
-  python -m py_compile "scripts/agentic/guided_init.py"
-  python -m py_compile "scripts/agentic/validate-init-idempotency.py"
-  python -m py_compile "scripts/agentic/test-isolated-e2e.py"
-  python -m py_compile "scripts/agentic/validate-bundle-registry.py"
-  python -m py_compile "scripts/agentic/validate-registry-references.py"
-  python -m py_compile "scripts/agentic/validate-registry-schemas.py"
-  python -m py_compile "scripts/agentic/report-capability-coverage.py"
+  uv run python -m py_compile "scripts/agentic/resolve-agentic-config.py"
+  uv run python -m py_compile "scripts/agentic/validate-resolution-output.py"
+  uv run python -m py_compile "scripts/agentic/generate-vscode-copilot.py"
+  uv run python -m py_compile "scripts/agentic/generate-opencode.py"
+  uv run python -m py_compile "scripts/agentic/generate-lockfile.py"
+  uv run python -m py_compile "scripts/agentic/validate-lockfile.py"
+  uv run python -m py_compile "scripts/agentic/validate-generated-output.py"
+  uv run python -m py_compile "scripts/agentic/target_generation_support.py"
+  uv run python -m py_compile "scripts/agentic/validate-target-compatibility.py"
+  uv run python -m py_compile "scripts/agentic/validate-artifacts.py"
+  uv run python -m py_compile "scripts/agentic/validate-permission-profile-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-agent-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-target-adapters.py"
+  uv run python -m py_compile "scripts/agentic/validate-skill-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-workflow-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-profile-registry.py"
+  uv run python -m py_compile "scripts/agentic/init-from-bundle.py"
+  uv run python -m py_compile "scripts/agentic/init_support.py"
+  uv run python -m py_compile "scripts/agentic/setup_materializer.py"
+  uv run python -m py_compile "scripts/agentic/guided_init.py"
+  uv run python -m py_compile "scripts/agentic/validate-init-idempotency.py"
+  uv run python -m py_compile "scripts/agentic/test-isolated-e2e.py"
+  uv run python -m py_compile "scripts/agentic/validate-bundle-registry.py"
+  uv run python -m py_compile "scripts/agentic/validate-registry-references.py"
+  uv run python -m py_compile "scripts/agentic/validate-registry-schemas.py"
+  uv run python -m py_compile "scripts/agentic/report-capability-coverage.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -210,14 +215,14 @@ generate_target() {
 
   case "$target" in
     vscode-copilot)
-      python scripts/agentic/generate-vscode-copilot.py
+      uv run python scripts/agentic/generate-vscode-copilot.py
       ;;
     opencode)
-      python scripts/agentic/generate-opencode.py
+      uv run python scripts/agentic/generate-opencode.py
       ;;
     all|all-targets)
-      python scripts/agentic/generate-vscode-copilot.py
-      python scripts/agentic/generate-opencode.py
+      uv run python scripts/agentic/generate-vscode-copilot.py
+      uv run python scripts/agentic/generate-opencode.py
       ;;
     *)
       echo "ERROR: Unsupported target: $target" >&2
@@ -233,27 +238,27 @@ run_pipeline() {
   check_scripts || return 1
   validate_json_files || return 1
   scripts/agentic/validate-agentic-config.sh || return 1
-  python scripts/agentic/validate-agentic-semantics.py || return 1
-  python scripts/agentic/validate-target-adapters.py || return 1
-  python scripts/agentic/validate-skill-registry.py || return 1
-  python scripts/agentic/validate-workflow-registry.py || return 1
-  python scripts/agentic/validate-profile-registry.py || return 1
-  python scripts/agentic/validate-bundle-registry.py || return 1
-  python scripts/agentic/validate-setup-registry.py || return 1
-  python scripts/agentic/validate-setup-profile.py || return 1
-  python scripts/agentic/validate-registry-references.py || return 1
-  python scripts/agentic/validate-registry-schemas.py || return 1
-  python scripts/agentic/report-capability-coverage.py || return 1
-  python scripts/agentic/resolve-agentic-config.py || return 1
-  python scripts/agentic/validate-resolution-output.py || return 1
-  python scripts/agentic/generate-lockfile.py || return 1
-  python scripts/agentic/validate-lockfile.py || return 1
-  python scripts/agentic/validate-artifacts.py || return 1
-  python scripts/agentic/validate-agent-registry.py || return 1
-  python scripts/agentic/validate-agent-artifact-bindings.py || return 1
+  uv run python scripts/agentic/validate-agentic-semantics.py || return 1
+  uv run python scripts/agentic/validate-target-adapters.py || return 1
+  uv run python scripts/agentic/validate-skill-registry.py || return 1
+  uv run python scripts/agentic/validate-workflow-registry.py || return 1
+  uv run python scripts/agentic/validate-profile-registry.py || return 1
+  uv run python scripts/agentic/validate-bundle-registry.py || return 1
+  uv run python scripts/agentic/validate-setup-registry.py || return 1
+  uv run python scripts/agentic/validate-setup-profile.py || return 1
+  uv run python scripts/agentic/validate-registry-references.py || return 1
+  uv run python scripts/agentic/validate-registry-schemas.py || return 1
+  uv run python scripts/agentic/validate-permission-profile-registry.py || return 1
+  uv run python scripts/agentic/report-capability-coverage.py || return 1
+  uv run python scripts/agentic/resolve-agentic-config.py || return 1
+  uv run python scripts/agentic/validate-resolution-output.py || return 1
+  uv run python scripts/agentic/generate-lockfile.py || return 1
+  uv run python scripts/agentic/validate-lockfile.py || return 1
+  uv run python scripts/agentic/validate-artifacts.py || return 1
+  uv run python scripts/agentic/validate-agent-registry.py || return 1
   generate_target "$target" || return 1
-  python scripts/agentic/validate-generated-output.py || return 1
-  python scripts/agentic/validate-target-compatibility.py || return 1
+  uv run python scripts/agentic/validate-generated-output.py || return 1
+  uv run python scripts/agentic/validate-target-compatibility.py || return 1
 }
 
 verify_no_drift() {
@@ -379,106 +384,106 @@ show_status() {
 
 case "$COMMAND" in
   validate-environment)
-    python scripts/agentic/validate-environment.py
+    uv run python scripts/agentic/validate-environment.py
     ;;
 
   init)
-    python scripts/agentic/init-from-bundle.py "${@:2}"
+    uv run python scripts/agentic/init-from-bundle.py "${@:2}"
     ;;
 
   validate)
     scripts/agentic/validate-agentic-config.sh
-    python scripts/agentic/validate-agentic-semantics.py
+    uv run python scripts/agentic/validate-agentic-semantics.py
     ;;
   validate-semantics)
-    python scripts/agentic/validate-agentic-semantics.py
+    uv run python scripts/agentic/validate-agentic-semantics.py
     ;;
   resolve)
-    python scripts/agentic/resolve-agentic-config.py
+    uv run python scripts/agentic/resolve-agentic-config.py
     ;;
   validate-resolution)
-    python scripts/agentic/validate-resolution-output.py
+    uv run python scripts/agentic/validate-resolution-output.py
     ;;
   lock)
-    python scripts/agentic/generate-lockfile.py
+    uv run python scripts/agentic/generate-lockfile.py
     ;;
   validate-lockfile)
-    python scripts/agentic/validate-lockfile.py
+    uv run python scripts/agentic/validate-lockfile.py
     ;;
 
   manifest)
-    python scripts/agentic/generate-output-manifest.py
+    uv run python scripts/agentic/generate-output-manifest.py
     ;;
 
   validate-manifest)
-    python scripts/agentic/validate-output-manifest.py
+    uv run python scripts/agentic/validate-output-manifest.py
     ;;
 
   cleanup-generated)
-    python scripts/agentic/cleanup-generated-output.py "${@:2}"
+    uv run python scripts/agentic/cleanup-generated-output.py "${@:2}"
     ;;
   validate-artifacts)
-    python scripts/agentic/validate-artifacts.py
+    uv run python scripts/agentic/validate-artifacts.py
+    ;;
+  validate-permission-profiles)
+    uv run python scripts/agentic/validate-permission-profile-registry.py
     ;;
   validate-agents)
-    python scripts/agentic/validate-agent-registry.py
-    ;;
-  validate-agent-artifacts)
-    python scripts/agentic/validate-agent-artifact-bindings.py
+    uv run python scripts/agentic/validate-agent-registry.py
     ;;
   validate-targets)
-    python scripts/agentic/validate-target-adapters.py
+    uv run python scripts/agentic/validate-target-adapters.py
     ;;
 
   validate-target-semantics)
-    python scripts/agentic/validate-target-adapter-semantics.py
+    uv run python scripts/agentic/validate-target-adapter-semantics.py
     ;;
   validate-skills)
-    python scripts/agentic/validate-skill-registry.py
+    uv run python scripts/agentic/validate-skill-registry.py
     ;;
   validate-workflows)
-    python scripts/agentic/validate-workflow-registry.py
+    uv run python scripts/agentic/validate-workflow-registry.py
     ;;
   validate-profiles)
-    python scripts/agentic/validate-profile-registry.py
+    uv run python scripts/agentic/validate-profile-registry.py
     ;;
   validate-bundles)
-    python scripts/agentic/validate-bundle-registry.py
+    uv run python scripts/agentic/validate-bundle-registry.py
     ;;
   validate-setups)
-    python scripts/agentic/validate-setup-registry.py
+    uv run python scripts/agentic/validate-setup-registry.py
     ;;
   validate-setup-profile)
-    python scripts/agentic/validate-setup-profile.py
+    uv run python scripts/agentic/validate-setup-profile.py
     ;;
   validate-references)
-    python scripts/agentic/validate-registry-references.py
+    uv run python scripts/agentic/validate-registry-references.py
     ;;
   validate-registry-schemas)
-    python scripts/agentic/validate-registry-schemas.py
+    uv run python scripts/agentic/validate-registry-schemas.py
     ;;
   coverage)
-    python scripts/agentic/report-capability-coverage.py
+    uv run python scripts/agentic/report-capability-coverage.py
     ;;
   generate)
-    python scripts/agentic/resolve-agentic-config.py
-    python scripts/agentic/generate-lockfile.py
+    uv run python scripts/agentic/resolve-agentic-config.py
+    uv run python scripts/agentic/generate-lockfile.py
     generate_target "$TARGET"
     ;;
   validate-generated)
-    python scripts/agentic/validate-generated-output.py
+    uv run python scripts/agentic/validate-generated-output.py
     ;;
   validate-target-compatibility)
-    python scripts/agentic/validate-target-compatibility.py
+    uv run python scripts/agentic/validate-target-compatibility.py
     ;;
   validate-target-runtime)
-    python scripts/agentic/validate-target-compatibility.py --require-opencode-runtime
+    uv run python scripts/agentic/validate-target-compatibility.py --require-opencode-runtime
     ;;
   validate-idempotency)
-    python scripts/agentic/validate-generation-idempotency.py
+    uv run python scripts/agentic/validate-generation-idempotency.py
     ;;
   validate-init-idempotency)
-    python scripts/agentic/validate-init-idempotency.py "${@:2}"
+    uv run python scripts/agentic/validate-init-idempotency.py "${@:2}"
     ;;
   test-isolated-e2e)
     scripts/agentic/test-isolated-e2e.py
@@ -487,7 +492,7 @@ case "$COMMAND" in
     scripts/agentic/test-isolated-e2e.py --require-opencode-runtime
     ;;
   test-negative)
-    scripts/agentic/test-negative-gates.py
+    scripts/agentic/test-negative-gates.py "${@:2}"
     ;;
   check)
     check_scripts

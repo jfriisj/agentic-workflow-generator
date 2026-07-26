@@ -1,5 +1,6 @@
 {
   "type": "QAReport",
+  "version": "0.2.0",
   "description": "Artifact contract for final QA gate output.",
   "pathPattern": "agent-output/qa-report/*.md",
   "status": {

@@ -1,8 +1,8 @@
 {
   "name": "review-heavy-delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Workflow profile for changes that require architecture, independent pre-test code review, test evidence, and final QA.",
-  "workflow": "review-heavy-delivery",
+  "recommendedWorkflow": "review-heavy-delivery",
   "recommendedAgents": [
     "Orchestrator",
     "Requirements",
