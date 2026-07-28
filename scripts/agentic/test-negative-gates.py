@@ -1869,30 +1869,6 @@ def break_target_adapter_owned_paths(worktree: Path) -> None:
     write_json(path, data)
 
 
-def break_target_adapter_owned_path_parent_reference(worktree: Path) -> None:
-    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
-    data = load_json(path)
-
-    owned_paths = data.get("ownedPaths")
-    if not isinstance(owned_paths, list):
-        raise RuntimeError("ownedPaths must be a list before mutation")
-
-    owned_paths.append("../outside-repo")
-    write_json(path, data)
-
-
-def break_target_adapter_owned_path_absolute(worktree: Path) -> None:
-    path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
-    data = load_json(path)
-
-    owned_paths = data.get("ownedPaths")
-    if not isinstance(owned_paths, list):
-        raise RuntimeError("ownedPaths must be a list before mutation")
-
-    owned_paths.append("/tmp/agentic-danger-test")
-    write_json(path, data)
-
-
 def break_target_adapter_duplicate_name(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "vscode-copilot" / "adapter.json"
     data = load_json(path)
@@ -5571,38 +5547,17 @@ def main() -> int:
         ),
         (
             "failure",
-            "target adapter semantic validation fails when ownedPaths overlap",
-            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            "target adapter validation fails when ownedPaths overlap across targets",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_owned_path_overlap,
-            "ownedPaths overlap between targets",
+            "AWG-TARGET-009",
         ),
         (
             "failure",
-            "target adapter semantic validation fails when ownedPaths has duplicate",
-            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
-            break_target_adapter_duplicate_owned_path,
-            "duplicate ownedPath",
-        ),
-        (
-            "failure",
-            "target adapter semantic validation fails when target name is duplicate",
-            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
+            "target adapter validation fails when target name is duplicate",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_duplicate_name,
-            "duplicate target name",
-        ),
-        (
-            "failure",
-            "target adapter semantic validation fails when ownedPaths contains parent reference",
-            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
-            break_target_adapter_owned_path_parent_reference,
-            "is unsafe",
-        ),
-        (
-            "failure",
-            "target adapter semantic validation fails when ownedPaths is absolute",
-            ["scripts/agentic/agentic-gen.sh", "validate-target-semantics"],
-            break_target_adapter_owned_path_absolute,
-            "is unsafe",
+            "AWG-TARGET-004",
         ),
         (
             "failure",
@@ -7152,70 +7107,70 @@ def main() -> int:
             "target adapter validation fails when name is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_missing_name,
-            "name must be a non-empty string",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when name is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_empty_name,
-            "name must be a non-empty string",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when name does not match folder",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_name_folder_mismatch,
-            "does not match target folder",
+            "AWG-TARGET-003",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPaths is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_missing_owned_paths,
-            "ownedPaths must be a non-empty list",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPaths has invalid type",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_invalid_owned_paths_type,
-            "ownedPaths must be a non-empty list",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPaths is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_empty_owned_paths,
-            "ownedPaths must be a non-empty list",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPath entry is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_empty_owned_path_entry,
-            "ownedPaths[0] must be a non-empty string",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPath is duplicated",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_duplicate_owned_path,
-            "is duplicated",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPath contains parent reference",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_parent_owned_path,
-            "must be a safe relative path",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when ownedPath is absolute",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_absolute_owned_path,
-            "must be a safe relative path",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
@@ -7229,28 +7184,28 @@ def main() -> int:
             "target adapter validation fails when description has invalid type",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_invalid_description_type,
-            "description must be a string when present",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
             "target adapter validation fails when version is empty",
             ["scripts/agentic/agentic-gen.sh", "validate-targets"],
             break_target_adapter_empty_version,
-            "version must be a non-empty string when present",
+            "AWG-TARGET-001",
         ),
         (
             "failure",
-            "target adapter validation fails when config target name is duplicated",
-            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            "active config validation fails when target entry is duplicated",
+            ["scripts/agentic/agentic-gen.sh", "validate"],
             break_agentic_config_duplicate_target_name,
-            "is duplicated",
+            "must NOT have duplicate items",
         ),
         (
             "failure",
-            "target adapter validation fails when config target enabled has invalid type",
-            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            "active config validation fails when target enabled is not true",
+            ["scripts/agentic/agentic-gen.sh", "validate"],
             break_agentic_config_target_enabled_invalid_type,
-            "enabled must be a boolean",
+            "must be equal to constant",
         ),
         (
             "failure",

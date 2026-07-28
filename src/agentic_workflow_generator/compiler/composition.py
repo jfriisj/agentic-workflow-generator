@@ -19,6 +19,7 @@ from agentic_workflow_generator.domain import (
     SeparationPolicy,
     SharedContextPolicy,
     Skill,
+    TargetAdapter,
     Workflow,
 )
 
@@ -29,12 +30,6 @@ class CompositionError(ValueError):
 
 class CompositionRegistry(Protocol):
     """Typed lookup surface required by composition compilation."""
-
-    @property
-    def targets(self) -> frozenset[str]:
-        """Return all registered target identities."""
-
-        ...
 
     def agent_by_name(self, name: str) -> AgentProfile: ...
 
@@ -54,6 +49,8 @@ class CompositionRegistry(Protocol):
 
     def skill_by_name(self, name: str) -> Skill: ...
 
+    def target_by_name(self, name: str) -> TargetAdapter: ...
+
     def workflow_by_name(self, name: str) -> Workflow: ...
 
 
@@ -71,9 +68,9 @@ class ProjectMetadata:
 
 @dataclass(frozen=True, slots=True)
 class CompiledTarget:
-    """One enabled target with deterministic priority."""
+    """One enabled validated target with deterministic priority."""
 
-    name: str
+    adapter: TargetAdapter
     priority: int
 
 
@@ -324,24 +321,25 @@ def _compile_targets(
             f"{bundle.name!r}: {outside_bundle}"
         )
 
-    unknown = tuple(
-        name
-        for name in names
-        if name not in registry.targets
-    )
+    compiled: list[CompiledTarget] = []
 
-    if unknown:
-        raise CompositionError(
-            f"selected targets are not registered: {unknown}"
+    for index, name in enumerate(names, start=1):
+        try:
+            adapter = registry.target_by_name(name)
+        except LookupError as exc:
+            raise CompositionError(
+                "selected target is not registered: "
+                f"{name!r}"
+            ) from exc
+
+        compiled.append(
+            CompiledTarget(
+                adapter=adapter,
+                priority=index,
+            )
         )
 
-    return tuple(
-        CompiledTarget(
-            name=name,
-            priority=index,
-        )
-        for index, name in enumerate(names, start=1)
-    )
+    return tuple(compiled)
 
 
 def _compile_binding(

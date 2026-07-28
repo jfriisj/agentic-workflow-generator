@@ -109,3 +109,48 @@ def test_schema_rejects_obsolete_runtime_authority() -> None:
     )
     assert "agents" in errors[0].message
     assert "gates" in errors[0].message
+
+
+def test_schema_rejects_duplicate_target_entries() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT
+        / ".agentic"
+        / "agentic.json"
+    )
+    targets = cast(list[Any], config["targets"])
+    targets.append(dict(cast(dict[str, Any], targets[0])))
+
+    errors = list(
+        Draft202012Validator(
+            active_config_schema()
+        ).iter_errors(config)
+    )
+
+    assert any(
+        error.validator == "uniqueItems"
+        and error.json_path == "$.targets"
+        for error in errors
+    )
+
+
+def test_schema_requires_target_enabled_to_be_true() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT
+        / ".agentic"
+        / "agentic.json"
+    )
+    targets = cast(list[Any], config["targets"])
+    first_target = cast(dict[str, Any], targets[0])
+    first_target["enabled"] = "true"
+
+    errors = list(
+        Draft202012Validator(
+            active_config_schema()
+        ).iter_errors(config)
+    )
+
+    assert any(
+        error.validator == "const"
+        and error.json_path == "$.targets[0].enabled"
+        for error in errors
+    )

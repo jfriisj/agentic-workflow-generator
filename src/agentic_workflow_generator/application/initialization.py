@@ -97,7 +97,7 @@ class InitializationPlan:
         """Return enabled target identities in deterministic order."""
 
         return tuple(
-            target.name
+            target.adapter.name
             for target in self.composition.targets
         )
 

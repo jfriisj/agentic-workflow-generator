@@ -64,7 +64,7 @@ def test_all_real_bundles_compile_to_complete_runtime_authority() -> None:
         assert len(composition.workflow_gates) == gate_count
         assert composition.controller_binding == "workflow-controller"
         assert tuple(
-            target.name
+            target.adapter.name
             for target in composition.targets
         ) == (
             "opencode",
@@ -158,7 +158,7 @@ def test_selected_targets_can_narrow_bundle_targets() -> None:
     )
 
     assert tuple(
-        target.name
+        target.adapter.name
         for target in composition.targets
     ) == ("opencode",)
     assert composition.targets[0].priority == 1

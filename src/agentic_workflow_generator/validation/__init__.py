@@ -39,6 +39,11 @@ from .skills import (
     SkillValidationResult,
     validate_skill_registry,
 )
+from .targets import (
+    TargetReferenceData,
+    TargetValidationResult,
+    validate_target_registry,
+)
 from .workflows import (
     WorkflowReferenceData,
     WorkflowValidationResult,
@@ -61,6 +66,8 @@ __all__ = [
     "SetupValidationResult",
     "SkillReferenceData",
     "SkillValidationResult",
+    "TargetReferenceData",
+    "TargetValidationResult",
     "WorkflowReferenceData",
     "WorkflowValidationResult",
     "validate_agent_registry",
@@ -71,5 +78,6 @@ __all__ = [
     "validate_setup_profile",
     "validate_setup_registry",
     "validate_skill_registry",
+    "validate_target_registry",
     "validate_workflow_registry",
 ]

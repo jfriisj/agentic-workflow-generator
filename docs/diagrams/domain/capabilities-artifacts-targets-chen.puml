@@ -93,7 +93,8 @@ relationship "recommends capability" as AGENT_RECOMMENDS_CAPABILITY {
 }
 
 relationship "maps permission" as MAPS_PERMISSION {
-  targetPolicy : STRING
+  settingName : STRING <<multi>>
+  settingValue : STRING <<multi>>
 }
 
 BINDING_REQUIRES_CAPABILITY -(1,N)- ROLE_BINDING
@@ -131,7 +132,8 @@ MAPS_PERMISSION -(1,N)- PERMISSION_PROFILE
 
 ' - Artifact production belongs to role bindings.
 
-' - Every effective permission maps through every enabled target.
+' - Every target adapter maps every registered permission profile exactly once.
+' - Permission settings are immutable typed name-value entries.
 
 ' - Target-specific behavior belongs to renderer code.
 

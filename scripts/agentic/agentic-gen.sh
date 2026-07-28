@@ -28,7 +28,6 @@ Usage:
   scripts/agentic/agentic-gen.sh validate-permission-profiles
   scripts/agentic/agentic-gen.sh validate-agents
   scripts/agentic/agentic-gen.sh validate-targets
-  scripts/agentic/agentic-gen.sh validate-target-semantics
   scripts/agentic/agentic-gen.sh validate-skills
   scripts/agentic/agentic-gen.sh validate-workflows
   scripts/agentic/agentic-gen.sh validate-profiles
@@ -409,10 +408,6 @@ case "$COMMAND" in
     ;;
   validate-targets)
     uv run python scripts/agentic/validate-target-adapters.py
-    ;;
-
-  validate-target-semantics)
-    uv run python scripts/agentic/validate-target-adapter-semantics.py
     ;;
   validate-skills)
     uv run python scripts/agentic/validate-skill-registry.py

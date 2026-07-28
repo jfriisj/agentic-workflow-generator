@@ -68,7 +68,7 @@ def composition_to_json_object(
             },
             "targets": [
                 {
-                    "name": target.name,
+                    "name": target.adapter.name,
                     "enabled": True,
                     "priority": target.priority,
                 }

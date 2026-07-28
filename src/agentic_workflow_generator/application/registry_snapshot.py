@@ -13,6 +13,7 @@ from agentic_workflow_generator.domain import (
     PermissionProfile,
     Profile,
     Skill,
+    TargetAdapter,
     Workflow,
 )
 from agentic_workflow_generator.infrastructure import (
@@ -46,7 +47,6 @@ from agentic_workflow_generator.validation.bundles import (
     project_artifact_contracts,
     project_profile_names,
     project_skills,
-    project_target_names,
     project_workflows,
     validate_bundle_registry,
 )
@@ -74,6 +74,10 @@ from agentic_workflow_generator.validation.skills import (
     SkillReferenceData,
     project_agent_names,
     validate_skill_registry,
+)
+from agentic_workflow_generator.validation.targets import (
+    TargetReferenceData,
+    validate_target_registry,
 )
 from agentic_workflow_generator.validation.workflows import (
     WorkflowReferenceData,
@@ -109,7 +113,10 @@ class RegistrySnapshotValidationError(RegistrySnapshotError):
         )
 
 
-class RegistrySnapshotLookupError(RegistrySnapshotError):
+class RegistrySnapshotLookupError(
+    RegistrySnapshotError,
+    LookupError,
+):
     """Raised when an exact validated registry identity is missing."""
 
 
@@ -126,8 +133,8 @@ class ValidatedRegistrySnapshot:
     permission_profiles: tuple[PermissionProfile, ...]
     profiles: tuple[Profile, ...]
     skills: tuple[Skill, ...]
+    targets: tuple[TargetAdapter, ...]
     workflows: tuple[Workflow, ...]
-    targets: frozenset[str]
 
     def agent_by_name(self, name: str) -> AgentProfile:
         """Return one exact validated agent profile."""
@@ -192,6 +199,16 @@ class ValidatedRegistrySnapshot:
             lambda item: item.name,
         )
 
+    def target_by_name(self, name: str) -> TargetAdapter:
+        """Return one exact validated target adapter."""
+
+        return _lookup_identity(
+            self.targets,
+            name,
+            "target adapter",
+            lambda item: item.name,
+        )
+
     def workflow_by_name(self, name: str) -> Workflow:
         """Return one exact validated workflow."""
 
@@ -236,6 +253,24 @@ def load_validated_registry_snapshot(
         _require_valid(
             "permission profile registry",
             permission_result.diagnostics,
+        )
+
+        target_result = validate_target_registry(
+            target_sources,
+            _registry_schema(
+                paths,
+                "target-adapter.schema.json",
+            ),
+            TargetReferenceData(
+                permission_profiles=frozenset(
+                    profile.name
+                    for profile in permission_result.profiles
+                ),
+            ),
+        )
+        _require_valid(
+            "target adapter registry",
+            target_result.diagnostics,
         )
 
         skill_result = validate_skill_registry(
@@ -319,7 +354,10 @@ def load_validated_registry_snapshot(
             profile_result.diagnostics,
         )
 
-        target_names = project_target_names(target_sources)
+        target_names = frozenset(
+            adapter.name
+            for adapter in target_result.adapters
+        )
         bundle_result = validate_bundle_registry(
             bundle_sources,
             _registry_schema(paths, "bundle.schema.json"),
@@ -357,8 +395,8 @@ def load_validated_registry_snapshot(
         permission_profiles=permission_result.profiles,
         profiles=profile_result.profiles,
         skills=skill_result.skills,
+        targets=target_result.adapters,
         workflows=workflow_result.workflows,
-        targets=target_names,
     )
 
 

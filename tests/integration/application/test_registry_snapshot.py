@@ -30,12 +30,20 @@ def test_real_registry_loads_one_complete_validated_snapshot() -> None:
     assert len(snapshot.permission_profiles) == 3
     assert len(snapshot.profiles) == 4
     assert len(snapshot.skills) == 10
+    assert len(snapshot.targets) == 2
     assert len(snapshot.workflows) == 4
-    assert snapshot.targets == frozenset(
-        {
-            "opencode",
-            "vscode-copilot",
-        }
+    assert tuple(
+        target.name
+        for target in snapshot.targets
+    ) == (
+        "opencode",
+        "vscode-copilot",
+    )
+    assert snapshot.target_by_name("opencode").owned_paths == (
+        ".opencode/agents",
+        ".opencode/skills",
+        "AGENTS.md",
+        "opencode.json",
     )
 
     bundle = snapshot.bundle_by_name(

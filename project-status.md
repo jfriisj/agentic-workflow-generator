@@ -30,7 +30,7 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Det separate resolutionlag, targetgenerering og flere downstream-consumers anvender fortsat pre-migration-antagelser.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups, materialiserede setup-profiler og target adapters er migreret. Den typed initialization pipeline er integreret med alle virkelige registryfiler og compiler targetvalg til typed `CompiledTarget`-objekter. Det separate resolutionlag, targetrendererne og flere downstream-consumers anvender fortsat pre-migration-antagelser.
 
 Repositoryet er derfor fortsat bevidst ikke globalt green. Den dokumenterede compilerarkitektur og den nye testarkitektur anvendes nu til kontrollerede vertikale migrations-slices uden compatibility projection eller fallback.
 
@@ -88,6 +88,12 @@ registry
 * Den typed guided-init application service adskiller terminal-IO fra selection og materialisering, validerer før writes og bevarer back-navigation, cancellation og dry-run.
 * En typed initialization service loader hele registryet til et valideret immutable snapshot, compiler bundle-ejet runtimeautoritet til én canonical `CompiledComposition` og serialiserer den direkte til den aktive konfiguration.
 * `.agentic/agentic.json` og `.agentic/schemas/agentic.schema.json` er migreret til schemaVersion `0.3.0` med fulde agent-instances, role bindings, state ownership, controller binding, workflow gates, artifact production og separation constraints. De fjernede felter `agents`, `gates`, `runtimeContext` og `validation` materialiseres ikke. Target-adapterfeltet `supportedFeatures` er fjernet og afvises eksplicit.
+* De 2 registrerede target adapters er migreret til immutable typed `TargetAdapter`-, output-path- og permission-mapping-værdier med et stramt Draft 2020-12-schema.
+* Target-valideringen afviser usikre eller overlappende ejerskaber, output uden for ejede paths, duplicate identities og manglende eller ukendte permission mappings med stabile `AWG-TARGET-*` diagnostics.
+* Hver target adapter skal mappe præcis alle 3 registrerede permission-profiler. `ValidatedRegistrySnapshot` ejer de validerede adapterobjekter, og `CompiledTarget` refererer direkte til den validerede adapter uden en parallel target-projection.
+* `validate-targets` er den eneste autoritative target-registry-kommando. Den separate `validate-target-adapter-semantics.py` er fjernet, og `validate-target-adapters.py` er reduceret til en tynd launcher.
+* Active-config-schemaet kræver unikke target entries og `enabled: true`; disse kontrakter valideres af active-config-grænsen og ikke af target-registry-validatoren.
+* Den fokuserede target-slice består med 43 domain-, validation-, CLI-, contract- og integrationstests samt 17 target-gates og 2 active-config-target-gates. Hele Python-suiten består med 703 tests; Ruff, mypy og Pylint består, og Pylint vurderer pakken til 10,00/10.
 * Initialization commit-grænsen schema-validerer alle outputs før side effects, springer byte-identiske filer over og skriver guided setup-profil samt aktiv konfiguration som én flerfilstransaktion med fail-fast rollback.
 * Den offentlige init-CLI anvender kun typed application services. Direct bundle init, non-interactive guided init, answer overrides, dry-run, interaktivt setupvalg, back-navigation, cancellation og confirmation er bevaret uden raw registry- eller kompositionslogik i CLI-laget.
 * `scripts/agentic/init-from-bundle.py` er reduceret til en tynd launcher. De obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
@@ -104,7 +110,6 @@ registry
 
 ### Endnu ikke migreret eller afsluttet
 
-* typed domain models og validators for targets
 * `validate-registry-references.py`
 * fjernelse af det separate resolution-format, resolver og resolution-validator sammen med deres sidste consumers
 * lockfile-inputmodellen efter den endelige compilerstruktur
@@ -1130,18 +1135,18 @@ For hver resterende slice:
 
 ## Næste konkrete opgave
 
-Migrér target-registryet og targetmaterialiseringen til typed domain-, validation- og compilergrænser.
+Migrér targetmaterialiseringen til den typed compilergrænse og fjern resolutionlaget sammen med dets sidste consumers.
 
-Init-slicen er afsluttet isoleret: bundle ejer hele den konkrete runtimekomposition, setup ejer kun bundle og targets, aktiv konfiguration serialiseres fra `CompiledComposition`, og den offentlige init-rute er en typed CLI med transaktionelle writes.
+Target-registry-slicen er afsluttet isoleret: adapterne er immutable typed domæneobjekter, targetvalideringen har én autoritativ CLI-grænse, og `CompiledTarget` ejer den validerede adapter direkte.
 
 Arbejdet skal nu:
 
-1. indføre typed immutable target adapter-modeller og strukturerede validators
-2. lade targetgeneratorerne modtage `CompiledComposition` frem for raw registry eller stale active-config projections
-3. bevare role-binding responsibilities, guardrails, permissions, artifact contracts og fuld workflow-routing inklusive `BLOCKED`
-4. harmonisere OpenCode- og VS Code Copilot-materialisering uden target-specifik semantisk drift
+1. lade targetgeneratorerne modtage `CompiledComposition` og `CompiledTarget` frem for raw registry, resolution-output eller stale active-config projections
+2. bevare role-binding responsibilities, guardrails, permissions, artifact contracts og fuld workflow-routing inklusive `BLOCKED`
+3. harmonisere OpenCode- og VS Code Copilot-materialisering uden target-specifik semantisk drift
+4. producere og validere komplette deterministiske outputplaner før transaktionelle writes
 5. migrere target compatibility-, generated-output- og runtime-validering til de nye compileroutputs
-6. fjerne de tilsvarende obsolete scripts og projections i samme vertikale slices
+6. fjerne resolver, resolution-format, resolution-validator og tilsvarende obsolete scripts og projections i samme vertikale slices
 
 Arbejdet må ikke:
 
@@ -1151,7 +1156,7 @@ Arbejdet må ikke:
 * miste bundle-ejet runtimeautoritet mellem compiler og targetoutput
 * bruge `test-negative-gates.py` eller hele pre-migration-pipelinen som komponentgate
 
-Næste vertikale registry-slice er targets.
+Næste vertikale slice er typed targetmaterialisering og fjernelse af resolutionlaget.
 
 ## Autoritativ domænemodel
 

@@ -118,14 +118,44 @@ Hard restrictions are reserved for explicit safety invariants:
 
 ## Current implementation status
 
-The current MVP still materializes capabilities, permission defaults, and
-artifact responsibility directly from static agent definitions.
+The registry is migrated to the authoritative composition model:
 
-The target composition-binding model is documented but not yet fully
-implemented.
+~~~text
+AgentProfile
+  -> AgentInstance
+  -> RoleBinding
+  -> CompiledComposition
+  -> TargetAdapter
+~~~
 
-Until that migration is complete, validators must continue to fail closed and
-must not silently emulate the target model.
+Agent profiles contain reusable recommendations and defaults only.
+
+Bundles own concrete agent instances, role bindings, selected skills,
+artifact production, effective permission profiles, workflow ownership and
+separation policies.
+
+Target adapters are immutable typed registry entities containing only:
+
+~~~text
+name
+version
+description
+outputPaths
+ownedPaths
+permissionMapping
+~~~
+
+Every registered target adapter must map every registered permission profile
+exactly once. Output paths must be safe, deterministic and contained within
+the adapter's non-overlapping owned paths.
+
+The typed registry snapshot and compiler consume validated `TargetAdapter`
+objects directly. There is no compatibility projection, fallback target model
+or separate semantic target validator.
+
+Target renderers and the remaining downstream generation pipeline are still
+being migrated to consume `CompiledComposition` directly. Until that work is
+complete, the repository is intentionally not globally green.
 
 ## Registry scope
 

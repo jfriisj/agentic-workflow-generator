@@ -31,6 +31,12 @@ from .setups import (
     SetupSelectionPatch,
 )
 from .skills import Skill, SkillContextBudget
+from .targets import (
+    TargetAdapter,
+    TargetOutputPath,
+    TargetPermissionMapping,
+    TargetPermissionSetting,
+)
 from .workflows import (
     Workflow,
     WorkflowGate,
@@ -67,6 +73,10 @@ __all__ = [
     "SharedContextPolicy",
     "Skill",
     "SkillContextBudget",
+    "TargetAdapter",
+    "TargetOutputPath",
+    "TargetPermissionMapping",
+    "TargetPermissionSetting",
     "Workflow",
     "WorkflowGate",
     "WorkflowState",
