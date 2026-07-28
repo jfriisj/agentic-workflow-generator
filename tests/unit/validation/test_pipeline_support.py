@@ -39,7 +39,7 @@ def diagnostic(
 
 def test_pipeline_preserves_fail_fast_order() -> None:
     sources = (
-        source("legacy"),
+        source("obsolete"),
         source("schema"),
         source("valid"),
     )
@@ -49,7 +49,7 @@ def test_pipeline_preserves_fail_fast_order() -> None:
         Draft202012Validator({}),
         lambda item: (
             (diagnostic("AWG-TEST-001", item),)
-            if item.data["name"] == "legacy"
+            if item.data["name"] == "obsolete"
             else ()
         ),
         lambda item, _validator: (

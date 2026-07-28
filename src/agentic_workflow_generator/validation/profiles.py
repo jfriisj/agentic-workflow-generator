@@ -36,14 +36,14 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-PROFILE-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-PROFILE-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-PROFILE-002"
 FILE_NAME_DIAGNOSTIC = "AWG-PROFILE-003"
 DUPLICATE_NAME_DIAGNOSTIC = "AWG-PROFILE-004"
 UNKNOWN_WORKFLOW_DIAGNOSTIC = "AWG-PROFILE-005"
 UNKNOWN_AGENT_DIAGNOSTIC = "AWG-PROFILE-006"
 UNKNOWN_CAPABILITY_DIAGNOSTIC = "AWG-PROFILE-007"
 
-LEGACY_PROFILE_FIELDS = frozenset(
+OBSOLETE_PROFILE_FIELDS = frozenset(
     {
         "agents",
         "artifacts",
@@ -157,7 +157,7 @@ def validate_profile_registry(
     parsed_profiles, diagnostics = validate_and_parse_sources(
         sources,
         validator,
-        _validate_legacy_fields,
+        _validate_obsolete_fields,
         _validate_schema,
         _parse_profile,
         lambda parsed: _validate_profile_semantics(parsed, references),
@@ -194,15 +194,15 @@ def _project_identity_names(
     return frozenset(names)
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
-    fields = sorted(LEGACY_PROFILE_FIELDS.intersection(source.data))
+    fields = sorted(OBSOLETE_PROFILE_FIELDS.intersection(source.data))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=f"legacy profile field {field!r} is not allowed",
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=f"obsolete profile field {field!r} is not allowed",
             source_path=source.source_path.as_posix(),
             location=field,
             related_identities=(field,),

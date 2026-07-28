@@ -105,6 +105,11 @@ def validate_adapter_file(adapter_path: Path) -> list[str]:
 
     errors.extend(validate_owned_paths(adapter_path, adapter))
 
+    if "supportedFeatures" in adapter:
+        errors.append(
+            f"{adapter_path}: supportedFeatures is obsolete and must not be declared"
+        )
+
     permission_mapping = adapter.get("permissionMapping")
     if permission_mapping is not None and not isinstance(permission_mapping, dict):
         errors.append(f"{adapter_path}: permissionMapping must be an object when present")

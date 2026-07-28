@@ -21,10 +21,10 @@ from agentic_workflow_generator.validation.bundles import (
     DUPLICATE_SEPARATION_POLICY_DIAGNOSTIC,
     DUPLICATE_STATE_OWNER_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
     MISSING_GATE_ARTIFACT_DIAGNOSTIC,
     MISSING_GATE_CAPABILITY_DIAGNOSTIC,
     MISSING_STATE_OWNER_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     SEPARATION_INSTANCE_DIAGNOSTIC,
     SKILL_OUTSIDE_BUNDLE_DIAGNOSTIC,
@@ -330,7 +330,7 @@ def test_file_name_must_match_bundle_name() -> None:
     assert FILE_NAME_DIAGNOSTIC in diagnostic_codes(result)
 
 
-def test_legacy_agents_field_is_rejected() -> None:
+def test_obsolete_agents_field_is_rejected() -> None:
     data = bundle_data()
     data["agents"] = [
         "Requirements",
@@ -339,7 +339,7 @@ def test_legacy_agents_field_is_rejected() -> None:
     result = validate(source(data=data))
 
     assert result.bundles == ()
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == "agents"
 
 

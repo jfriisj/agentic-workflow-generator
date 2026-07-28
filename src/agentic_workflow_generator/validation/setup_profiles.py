@@ -38,7 +38,7 @@ from agentic_workflow_generator.validation.setups import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-SETUP-PROFILE-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-SETUP-PROFILE-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-SETUP-PROFILE-002"
 UNKNOWN_SETUP_DIAGNOSTIC = "AWG-SETUP-PROFILE-003"
 MODE_MISMATCH_DIAGNOSTIC = "AWG-SETUP-PROFILE-004"
 DUPLICATE_ANSWER_DIAGNOSTIC = "AWG-SETUP-PROFILE-005"
@@ -54,7 +54,7 @@ UNKNOWN_BUNDLE_DIAGNOSTIC = "AWG-SETUP-PROFILE-014"
 UNKNOWN_TARGET_DIAGNOSTIC = "AWG-SETUP-PROFILE-015"
 TARGET_OUTSIDE_BUNDLE_DIAGNOSTIC = "AWG-SETUP-PROFILE-016"
 
-_LEGACY_SELECTED_FIELDS = frozenset(
+_OBSOLETE_SELECTED_FIELDS = frozenset(
     {
         "profile",
         "workflow",
@@ -86,15 +86,15 @@ def validate_setup_profile(
 ) -> SetupProfileValidationResult:
     """Validate one materialized setup profile without side effects."""
 
-    legacy_diagnostics = _validate_legacy_fields(
+    obsolete_diagnostics = _validate_obsolete_fields(
         data,
         source_path,
     )
 
-    if legacy_diagnostics:
+    if obsolete_diagnostics:
         return SetupProfileValidationResult(
             profile=None,
-            diagnostics=legacy_diagnostics,
+            diagnostics=obsolete_diagnostics,
         )
 
     validator = Draft202012Validator(cast(Mapping[str, Any], schema))
@@ -124,7 +124,7 @@ def validate_setup_profile(
     )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     data: JsonObject,
     source_path: Path,
 ) -> tuple[Diagnostic, ...]:
@@ -133,12 +133,12 @@ def _validate_legacy_fields(
     if not isinstance(selected, Mapping):
         return ()
 
-    fields = sorted(_LEGACY_SELECTED_FIELDS.intersection(selected))
+    fields = sorted(_OBSOLETE_SELECTED_FIELDS.intersection(selected))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=(f"legacy selected field {field!r} is not allowed"),
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=(f"obsolete selected field {field!r} is not allowed"),
             source_path=source_path.as_posix(),
             location=f"selected.{field}",
             related_identities=(field,),

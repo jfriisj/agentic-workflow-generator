@@ -58,7 +58,7 @@ def test_profile_schema_requires_recommended_workflow() -> None:
     assert "workflow" not in required
 
 
-def test_profile_schema_rejects_legacy_workflow_field() -> None:
+def test_profile_schema_rejects_obsolete_workflow_field() -> None:
     schema = profile_schema()
     properties = schema["properties"]
 

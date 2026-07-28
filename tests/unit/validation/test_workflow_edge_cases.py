@@ -19,8 +19,8 @@ from agentic_workflow_generator.validation.workflows import (
     DUPLICATE_GATE_DIAGNOSTIC,
     DUPLICATE_STATE_DIAGNOSTIC,
     DUPLICATE_WORKFLOW_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
     NO_TERMINAL_PATH_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     START_STATE_DIAGNOSTIC,
     TERMINAL_OUTGOING_DIAGNOSTIC,
@@ -569,16 +569,16 @@ def test_schema_diagnostics_cover_public_error_shapes(
         ),
     ],
 )
-def test_legacy_root_fields_are_rejected(
+def test_obsolete_root_fields_are_rejected(
     field: str,
     location: str,
 ) -> None:
     data = workflow_data()
-    data[field] = "legacy"
+    data[field] = "obsolete"
 
     result = validate(workflow_source(data=data))
 
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == location
 
 
@@ -595,16 +595,16 @@ def test_legacy_root_fields_are_rejected(
         ),
     ],
 )
-def test_legacy_state_fields_are_rejected(
+def test_obsolete_state_fields_are_rejected(
     field: str,
     location: str,
 ) -> None:
     data = workflow_data()
-    first_state(data)[field] = "legacy"
+    first_state(data)[field] = "obsolete"
 
     result = validate(workflow_source(data=data))
 
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == location
 
 
@@ -621,20 +621,20 @@ def test_legacy_state_fields_are_rejected(
         ),
     ],
 )
-def test_legacy_gate_fields_are_rejected(
+def test_obsolete_gate_fields_are_rejected(
     field: str,
     location: str,
 ) -> None:
     data = workflow_data()
-    first_gate(data)[field] = "legacy"
+    first_gate(data)[field] = "obsolete"
 
     result = validate(workflow_source(data=data))
 
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == location
 
 
-def test_legacy_scan_tolerates_invalid_state_shapes() -> None:
+def test_obsolete_scan_tolerates_invalid_state_shapes() -> None:
     data = workflow_data()
     data["states"] = "invalid"
 

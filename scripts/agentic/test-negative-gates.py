@@ -4142,29 +4142,18 @@ def break_agentic_config_target_enabled_invalid_type(worktree: Path) -> None:
     write_json(path, data)
 
 
-def break_agentic_config_runtime_context_enabled(worktree: Path) -> None:
-    path = worktree / ".agentic" / "agentic.json"
+def break_target_adapter_supported_features(worktree: Path) -> None:
+    path = (
+        worktree
+        / "registry"
+        / "targets"
+        / "opencode"
+        / "adapter.json"
+    )
     data = load_json(path)
-
-    runtime_context = data.get("runtimeContext")
-    if not isinstance(runtime_context, dict):
-        raise RuntimeError("config runtimeContext must be an object before mutation")
-
-    runtime_context["enabled"] = True
-    write_json(path, data)
-
-
-def break_agentic_config_runtime_context_fail_if_missing(
-    worktree: Path,
-) -> None:
-    path = worktree / ".agentic" / "agentic.json"
-    data = load_json(path)
-
-    runtime_context = data.get("runtimeContext")
-    if not isinstance(runtime_context, dict):
-        raise RuntimeError("config runtimeContext must be an object before mutation")
-
-    runtime_context["failIfMissing"] = True
+    data["supportedFeatures"] = {
+        "agents": True,
+    }
     write_json(path, data)
 
 
@@ -4290,7 +4279,7 @@ def break_setup_registry_recommended_overlaps_blocked(worktree: Path) -> None:
     awg_mutate_first_setup(worktree, mutate)
 
 
-def break_setup_registry_option_recommends_legacy_agents(
+def break_setup_registry_option_recommends_obsolete_agents(
     worktree: Path,
 ) -> None:
     def mutate(data: dict[str, Any]) -> None:
@@ -4419,7 +4408,7 @@ def break_setup_profile_answer_blocked_option(worktree: Path) -> None:
     awg_mutate_setup_profile(worktree, mutate)
 
 
-def break_setup_profile_selected_legacy_skill(
+def break_setup_profile_selected_obsolete_skill(
     worktree: Path,
 ) -> None:
     def mutate(data: dict[str, Any]) -> None:
@@ -4868,12 +4857,12 @@ def break_agent_registry_unknown_default_permission_profile(
     write_json(path, data)
 
 
-def break_agent_registry_legacy_field(
+def break_agent_registry_obsolete_field(
     worktree: Path,
 ) -> None:
     path = first_agent_registry_file(worktree)
     data = load_json(path)
-    data["produces"] = ["LegacyArtifact"]
+    data["produces"] = ["ObsoleteArtifact"]
     write_json(path, data)
 
 
@@ -6793,10 +6782,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "agent registry validation rejects legacy agent fields",
+            "agent registry validation rejects obsolete agent fields",
             ["scripts/agentic/agentic-gen.sh", "validate-agents"],
-            break_agent_registry_legacy_field,
-            "legacy agent field 'produces' is not allowed",
+            break_agent_registry_obsolete_field,
+            "obsolete agent field 'produces' is not allowed",
         ),
         (
             "failure",
@@ -7090,10 +7079,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "setup registry validation rejects legacy agent recommendations",
+            "setup registry validation rejects obsolete agent recommendations",
             ["scripts/agentic/agentic-gen.sh", "validate-setups"],
-            break_setup_registry_option_recommends_legacy_agents,
-            "legacy recommendation field 'agents' is not allowed",
+            break_setup_registry_option_recommends_obsolete_agents,
+            "obsolete recommendation field 'agents' is not allowed",
         ),
         (
             "failure",
@@ -7125,10 +7114,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "setup profile validation rejects legacy selected skills",
+            "setup profile validation rejects obsolete selected skills",
             ["scripts/agentic/agentic-gen.sh", "validate-setup-profile"],
-            break_setup_profile_selected_legacy_skill,
-            "legacy selected field 'skills' is not allowed",
+            break_setup_profile_selected_obsolete_skill,
+            "obsolete selected field 'skills' is not allowed",
         ),
         (
             "failure",
@@ -7265,17 +7254,10 @@ def main() -> int:
         ),
         (
             "failure",
-            "agentic config semantic validation fails when runtime context is enabled before Milestone 4",
-            ["scripts/agentic/agentic-gen.sh", "validate"],
-            break_agentic_config_runtime_context_enabled,
-            "runtimeContext.enabled must be false before Milestone 4",
-        ),
-        (
-            "failure",
-            "agentic config semantic validation fails when missing runtime context is required before Milestone 4",
-            ["scripts/agentic/agentic-gen.sh", "validate"],
-            break_agentic_config_runtime_context_fail_if_missing,
-            "runtimeContext.failIfMissing must be false before Milestone 4",
+            "target adapter validation rejects obsolete supported features",
+            ["scripts/agentic/agentic-gen.sh", "validate-targets"],
+            break_target_adapter_supported_features,
+            "supportedFeatures is obsolete and must not be declared",
         ),
         (
             "failure",

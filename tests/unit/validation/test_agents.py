@@ -11,7 +11,7 @@ from agentic_workflow_generator.registry import (
 from agentic_workflow_generator.validation.agents import (
     DUPLICATE_NAME_DIAGNOSTIC,
     FOLDER_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
     UNKNOWN_PERMISSION_PROFILE_DIAGNOSTIC,
@@ -110,7 +110,7 @@ def source(
     guardrails: JsonValue = None,
     capabilities: JsonValue = None,
     permission_profile: JsonValue = "implementation",
-    legacy_field: str | None = None,
+    obsolete_field: str | None = None,
 ) -> RegistrySource:
     data: JsonObject = {
         "name": name,
@@ -129,8 +129,8 @@ def source(
         "defaultPermissionProfile": permission_profile,
     }
 
-    if legacy_field is not None:
-        data[legacy_field] = ["LegacyArtifact"]
+    if obsolete_field is not None:
+        data[obsolete_field] = ["ObsoleteArtifact"]
 
     return RegistrySource(
         kind=RegistryKind.AGENT,
@@ -205,11 +205,11 @@ def test_schema_diagnostics_are_deterministic() -> None:
     )
 
 
-def test_legacy_field_has_specific_diagnostic() -> None:
+def test_obsolete_field_has_specific_diagnostic() -> None:
     result = validate_agent_registry(
         (
             source(
-                legacy_field="produces",
+                obsolete_field="produces",
             ),
         ),
         SCHEMA,
@@ -217,17 +217,17 @@ def test_legacy_field_has_specific_diagnostic() -> None:
     )
 
     assert result.profiles == ()
-    assert codes(source(legacy_field="produces")) == (LEGACY_FIELD_DIAGNOSTIC,)
+    assert codes(source(obsolete_field="produces")) == (OBSOLETE_FIELD_DIAGNOSTIC,)
     assert (
-        result.diagnostics[0].message == "legacy agent field 'produces' is not allowed"
+        result.diagnostics[0].message == "obsolete agent field 'produces' is not allowed"
     )
 
 
-def test_all_legacy_fields_are_reported_in_order() -> None:
+def test_all_obsolete_fields_are_reported_in_order() -> None:
     invalid = source()
     data = invalid.to_json_object()
-    data["skills"] = ["legacy"]
-    data["produces"] = ["LegacyArtifact"]
+    data["skills"] = ["obsolete"]
+    data["produces"] = ["ObsoleteArtifact"]
 
     result = validate_agent_registry(
         (

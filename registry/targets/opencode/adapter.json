@@ -8,14 +8,6 @@
     "instructions": "AGENTS.md",
     "config": "opencode.json"
   },
-  "supportedFeatures": {
-    "agents": true,
-    "skills": true,
-    "handoffs": "instruction-only",
-    "permissionProfiles": true,
-    "runtimeContext": false,
-    "toolRestrictions": true
-  },
   "permissionMapping": {
     "read-only": {
       "edit": "deny",

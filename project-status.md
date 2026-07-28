@@ -30,7 +30,7 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Active-config-schemaet, legacy bundle-init, legacy resolution, targetgenerering og flere downstream-consumers anvender fortsat legacy-modellen.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Det separate resolutionlag, targetgenerering og flere downstream-consumers anvender fortsat pre-migration-antagelser.
 
 Repositoryet er derfor fortsat bevidst ikke globalt green. Den dokumenterede compilerarkitektur og den nye testarkitektur anvendes nu til kontrollerede vertikale migrations-slices uden compatibility projection eller fallback.
 
@@ -52,7 +52,7 @@ registry
 
 * `CompiledComposition` er compilerens eneste interne mellemrepræsentation.
 * `.agentic/agentic.json` er den persistente aktive serialisering af kompositionen.
-* Det separate legacy-resolutionlag fjernes, når typed target-generation overtager dets sidste consumers.
+* Det separate resolutionlag fjernes, når typed target-generation overtager dets sidste consumers.
 * Lockfile og output manifest bevares med adskilte ansvar: inputprovenance henholdsvis outputejerskab og outputintegritet.
 * Runtime-context-generation er ikke del af den aktuelle compiler og må ikke materialiseres som deaktiveret konfiguration.
 * Fail-closed-, artifact- og evidencekrav er compilerinvarianter, ikke konfigurerbare validation policies.
@@ -77,7 +77,7 @@ registry
 * 3 permission-profiler og tilhørende schema og semantisk validator er implementeret.
 * 8 agentprofiler og 10 skills har typed immutable domænemodeller, strikte schemaer og strukturerede semantiske validators.
 * Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller, stabile diagnostics og midlertidige tynde launchers.
-* Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og legacy-schema-parse-pipelinen uden fallback eller parallel autoritet.
+* Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og en pre-schema rejection pipeline uden fallback eller parallel autoritet.
 * CLI-laget anvender fælles diagnostic-rendering og et typed setup-validation context.
 * Pylint duplicate-code er konfigureret som dev-gate for `src/agentic_workflow_generator` og består med rating 10,00/10.
 * Setup registry og setup profiles er migreret til version `0.2.0`.
@@ -87,7 +87,7 @@ registry
 * Den typed setupmaterialiseringsservice producerer immutable `SetupProfile`-objekter, anvender answer overrides eller default options og afviser ukendte, blocked eller modstridende valg fail-fast.
 * Den typed guided-init application service adskiller terminal-IO fra selection og materialisering, validerer før writes og bevarer back-navigation, cancellation og dry-run.
 * En typed initialization service loader hele registryet til et valideret immutable snapshot, compiler bundle-ejet runtimeautoritet til én canonical `CompiledComposition` og serialiserer den direkte til den aktive konfiguration.
-* `.agentic/agentic.json` og `.agentic/schemas/agentic.schema.json` er migreret til schemaVersion `0.2.0` med fulde agent-instances, role bindings, state ownership, controller binding, workflow gates, artifact production og separation constraints. Legacyfelterne `agents` og `gates` afvises.
+* `.agentic/agentic.json` og `.agentic/schemas/agentic.schema.json` er migreret til schemaVersion `0.3.0` med fulde agent-instances, role bindings, state ownership, controller binding, workflow gates, artifact production og separation constraints. De fjernede felter `agents`, `gates`, `runtimeContext` og `validation` materialiseres ikke. Target-adapterfeltet `supportedFeatures` er fjernet og afvises eksplicit.
 * Initialization commit-grænsen schema-validerer alle outputs før side effects, springer byte-identiske filer over og skriver guided setup-profil samt aktiv konfiguration som én flerfilstransaktion med fail-fast rollback.
 * Den offentlige init-CLI anvender kun typed application services. Direct bundle init, non-interactive guided init, answer overrides, dry-run, interaktivt setupvalg, back-navigation, cancellation og confirmation er bevaret uden raw registry- eller kompositionslogik i CLI-laget.
 * `scripts/agentic/init-from-bundle.py` er reduceret til en tynd launcher. De obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
@@ -98,7 +98,7 @@ registry
 * Artifact-produktion valideres mod `roleBindings[].produces` i stedet for agentprofiler.
 * Registry-schema-validation består for 46 registryfiler.
 * De migrerede semantic validators består isoleret på den aktuelle registry.
-* Legacy-felter afvises eksplicit i de migrerede schemaer og validators.
+* Obsolete felter afvises eksplicit i de migrerede schemaer og validators.
 * Den konceptuelle domænemodel er opdelt i ét navigationsdiagram og fire autoritative bounded-context Chen-diagrammer med synkroniserede SVG-filer.
 * `README.md`, registrydokumentationen og de autoritative dokumenter under `docs/` er synkroniseret med den reducerede compilerarkitektur uden et separat resolutionlag, runtime-context-policy eller konfigurerbar validation policy.
 
@@ -106,7 +106,7 @@ registry
 
 * typed domain models og validators for targets
 * `validate-registry-references.py`
-* fjernelse af legacy resolution-format, resolver og resolution-validator sammen med deres sidste consumers
+* fjernelse af det separate resolution-format, resolver og resolution-validator sammen med deres sidste consumers
 * lockfile-inputmodellen efter den endelige compilerstruktur
 * OpenCode- og Copilot-generatorerne
 * output manifest og target compatibility-validering
@@ -116,7 +116,7 @@ registry
 * regenerering af alle `.agentic`- og targetfiler
 * opdatering af arkitektur-, registry- og brugerdokumentation
 
-Der indføres ingen compatibility projection, fallback eller parallel legacy-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
+Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
 
 ## Afsluttet
 
@@ -167,7 +167,6 @@ Færdige forbedringer omfatter:
 * deterministisk skill-materialisering
 * target compatibility-validator
 * OpenCode runtime parsing
-* legacy `runtimeContext` materialiseres fortsat som deaktiveret konfiguration i gamle consumers og skal fjernes; runtime-context-generation er ikke et senere migrationsmål
 
 ## Aktuel validering
 
@@ -192,7 +191,7 @@ agentic-gen.sh test-target-runtime-e2e
   OpenCode runtime parser alle setups
 
 Disse to E2E-kommandoer tilhører den historiske før-migrationspipeline.
-Det legacy `test-isolated-e2e.py` er nu fjernet; init-E2E ligger under
+Det tidligere `test-isolated-e2e.py` er nu fjernet; init-E2E ligger under
 pytest, mens target-runtime-E2E genetableres i target-slicen.
 
 agentic-gen.sh test-negative
@@ -301,18 +300,18 @@ coverage
   PASS: 21 skill capabilities
 
 
-skill legacy regression gates
+skill obsolete-field regression gates
   PASS: 16 tests
 
-artifact legacy regression gates
+artifact obsolete-field regression gates
   17 artifact-ejede gates er fjernet fra monolitten
   De dækkes nu af den isolerede artifact-testpakke
 
-workflow legacy regression gates
+workflow obsolete-field regression gates
   30 workflow-ejede tests og 31 helpers er fjernet fra monolitten
   De dækkes nu af den isolerede workflow-testpakke
 
-Den fulde legacy-runner er ikke en migrationsgate
+Den fulde pre-migration-runner er ikke en migrationsgate
 ~~~
 
 Den fulde `all`-, negative-gate-, idempotency- og end-to-end-pipeline betragtes ikke som grøn efter migrationen.
@@ -343,7 +342,7 @@ Auditten den 24. juli 2026 viste:
 ingen pytest-, ruff-, mypy- eller coverage-konfiguration
 ~~~
 
-Auditten identificerede før de afsluttede validator-slices flere store legacy-komponenter. Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er siden erstattet af pakkebaserede implementationer med tynde midlertidige launchers. Setupmaterialisering og guided init er flyttet til typed application services. Bundle-init, resolution, targetgenerering og pipeline-orchestrering forbliver endnu i legacy-strukturen.
+Auditten identificerede før de afsluttede validator-slices flere store pre-migration-komponenter. Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er siden erstattet af pakkebaserede implementationer med tynde midlertidige launchers. Setupmaterialisering, guided init og bundle-init er flyttet til typed application services. Resolution, targetgenerering og pipeline-orchestrering forbliver endnu i pre-migration-strukturen.
 
 Der findes omfattende duplikation af blandt andet:
 
@@ -361,7 +360,7 @@ Migrationen udføres på den pushede branch `refactor/validation-deduplication`.
 * compilerarkitekturen er dokumenteret
 * refaktoreringen er opdelt i kontrollerede slices
 * stale downstream-consumers er migreret
-* legacy-kode er fjernet
+* obsolete kode er fjernet
 * generated output er regenereret
 * den fulde pipeline igen er grøn
 * `project-status.md` og dokumentationen matcher implementationen
@@ -383,7 +382,7 @@ Aktuelle problemer:
 * komponenttests starter ofte hele pipelinen
 * tests er primært koblet til fejltekst frem for stabile diagnostics
 * der findes ingen tydelig dependency direction mellem CLI, application, domain, registry, compiler og targets
-* `pytest`, Ruff, strict mypy, coverage og Pylint duplicate-code er konfigureret; legacy negative- og E2E-gates mangler fortsat migration
+* `pytest`, Ruff, strict mypy, coverage og Pylint duplicate-code er konfigureret; pre-migration negative- og E2E-gates mangler fortsat migration
 
 `registry/core` er tomt og skal ikke bruges som placering for Python-kode. Registryet forbliver deklarativt compiler-input.
 
@@ -423,7 +422,7 @@ De tidligere statiske låse er fjernet fra agent-, workflow- og bundle-registrye
 * konkrete permissions er flyttet til agent-instances
 * konkrete capabilities, skills, artifacts, responsibilities og guardrails er flyttet til role bindings
 
-Legacy-antagelser findes fortsat i downstream-koden og skal fjernes helt fra:
+Stale pre-migration-antagelser findes fortsat i downstream-koden og skal fjernes helt fra:
 
 * `resolve-agentic-config.py`
 * resolution-schemaet og resolution-validatoren
@@ -643,7 +642,7 @@ coverage
 public CLI
   PASS: 3 permission profiles
 
-legacy negative gates
+pre-migration negative gates
   PASS: 4 permission-profile tests
 ~~~
 
@@ -691,7 +690,7 @@ public CLI
   PASS: 21 skill capability references
   PASS: 3 permission profiles
 
-legacy negative gates
+pre-migration negative gates
   PASS: 8 agent-registry tests
 ~~~
 
@@ -745,7 +744,7 @@ public CLI
   PASS: 21 capability providers
   PASS: 8 agent profiles
 
-legacy negative gates
+pre-migration negative gates
   PASS: 16 skill-registry tests
 ~~~
 
@@ -786,19 +785,19 @@ public CLI
 registry schema validation
   PASS: 46 registryfiler
 
-legacy negative gates
+pre-migration negative gates
   17 artifact-ejede tests er fjernet fra test-negative-gates.py
   De tilsvarende cases dækkes af den isolerede artifact-testpakke
 ~~~
 
-Den fulde legacy negative-gate-runner blev ikke gjort til artifact-slicens gate. Den starter stale downstream-targetgeneratorer, som fortsat forventer det fjernede `workflow.states[].agent`-felt.
+Den fulde pre-migration negative-gate-runner blev ikke gjort til artifact-slicens gate. Den starter stale downstream-targetgeneratorer, som fortsat forventer det fjernede `workflow.states[].agent`-felt.
 
 Workflow-slicen omfatter nu:
 
 * immutable `Workflow`, `WorkflowState`, `WorkflowGate` og `WorkflowTransition`
 * eksplicit parsing fra `RegistrySource`
 * strikt JSON Schema Draft 2020-12-kontrakt
-* særskilte diagnostics for workflow-, state- og gate-legacyfelter
+* særskilte diagnostics for obsolete workflow-, state- og gatefelter
 * filnavns- og workflow-identitetsvalidering
 * unikke workflow-, state- og gate-identiteter
 * semantisk krav om `failClosed=true`
@@ -817,7 +816,7 @@ Workflow-slicen omfatter nu:
 * unit-, edge-case-, CLI- og integrationstests
 * bevaret offentlig CLI-kommando `validate-workflows`
 * tynd midlertidig launcher på den eksisterende scriptsti
-* fuldstændig erstatning af den 778-linjers legacy workflow-validator
+* fuldstændig erstatning af den 778-linjers tidligere workflow-validator
 * eksplicit afgrænsning: state-owner- og controller-bindings forbliver bundle-ejet
 * fortsat forbud mod genindførelse af `workflow.states[].agent`
 
@@ -836,13 +835,13 @@ public CLI
   PASS: 21 skill capability references
   PASS: 7 artifact contracts
 
-legacy negative gates
+pre-migration negative gates
   30 workflow-ejede tests er fjernet fra test-negative-gates.py
   31 workflow-ejede mutationshelpers er fjernet
   De tilsvarende cases dækkes af den isolerede workflow-testpakke
 ~~~
 
-Stale downstream-forbrug af det fjernede `workflow.states[].agent`-felt findes fortsat i legacy bundle-init-, resolution- og targetlagene. De må ikke repareres med compatibility projection i workflow-slicen.
+Stale downstream-forbrug af det fjernede `workflow.states[].agent`-felt findes fortsat i resolution- og targetlagene. De må ikke repareres med compatibility projection.
 
 Bundle-slicen omfatter nu:
 
@@ -864,7 +863,7 @@ Bundle-slicen omfatter nu:
 * unit-, projection-, CLI- og semantiske tests
 * bevaret offentlig CLI-kommando `validate-bundles`
 * tynd midlertidig launcher på den eksisterende scriptsti
-* fuldstændig erstatning af den 1.085-linjers legacy bundle-validator
+* fuldstændig erstatning af den 1.085-linjers tidligere bundle-validator
 * fuldstændig fjernelse af den separate `validate-artifact-production.py`
 * fortsat forbud mod legacyfeltet `agents`, aliases, fallback og parallel autoritet
 
@@ -892,11 +891,11 @@ public CLI
 registry schema validation
   PASS: 46 registryfiler
 
-legacy negative gates
+pre-migration negative gates
   23 bundle-ejede semantic gates er fjernet
   2 bundle-ejede schema gates er fjernet
   5 fælles bundle-mutationshelpers er fjernet
-  Den separate artifact-production-validator og dens 5 legacy-gates er fjernet
+  Den separate artifact-production-validator og dens 5 pre-migration-gates er fjernet
   De tilsvarende kontrakter dækkes af den isolerede bundle-testpakke
 ~~~
 
@@ -937,7 +936,7 @@ public CLI
 registry schema validation
   PASS: 46 registryfiler
 
-legacy negative gates
+pre-migration negative gates
   12 direkte profile-gates er fjernet
   Den forældede profile/workflow-mismatch-gate er fjernet
   De tilsvarende kontrakter dækkes af den isolerede profile-testpakke og bundle-kontrakttesten
@@ -1044,7 +1043,7 @@ De resterende init-consumers er migreret:
 * Gentagen direct og guided init valideres gennem
   `InitializationService`, typed planer og byte-identiske commits.
 * Clean-consumer init-E2E ligger under `tests/e2e` og dækker alle fire
-  registrerede setups uden legacy resolution- eller target-antagelser.
+  registrerede setups uden pre-migration resolution- eller target-antagelser.
 * `scripts/agentic/test-isolated-e2e.py` og dets offentlige
   `test-isolated-e2e`/`test-target-runtime-e2e`-routes er fjernet.
 * Target-generation og runtime-E2E migreres separat i target-slicen.
@@ -1138,19 +1137,19 @@ Init-slicen er afsluttet isoleret: bundle ejer hele den konkrete runtimekomposit
 Arbejdet skal nu:
 
 1. indføre typed immutable target adapter-modeller og strukturerede validators
-2. lade targetgeneratorerne modtage `CompiledComposition` frem for raw registry eller legacy aktiv konfiguration
+2. lade targetgeneratorerne modtage `CompiledComposition` frem for raw registry eller stale active-config projections
 3. bevare role-binding responsibilities, guardrails, permissions, artifact contracts og fuld workflow-routing inklusive `BLOCKED`
 4. harmonisere OpenCode- og VS Code Copilot-materialisering uden target-specifik semantisk drift
 5. migrere target compatibility-, generated-output- og runtime-validering til de nye compileroutputs
-6. fjerne de tilsvarende legacy scripts og projections i samme vertikale slices
+6. fjerne de tilsvarende obsolete scripts og projections i samme vertikale slices
 
 Arbejdet må ikke:
 
-* genindføre legacyfelter eller compatibility projections
+* genindføre fjernede felter eller compatibility projections
 * lade targetgeneratorer læse rå registrydata
 * udlede agentidentitet fra workflow state-navne eller agentprofilmapper
 * miste bundle-ejet runtimeautoritet mellem compiler og targetoutput
-* bruge `test-negative-gates.py` eller hele legacy-pipelinen som komponentgate
+* bruge `test-negative-gates.py` eller hele pre-migration-pipelinen som komponentgate
 
 Næste vertikale registry-slice er targets.
 

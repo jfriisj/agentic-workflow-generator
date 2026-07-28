@@ -330,7 +330,7 @@ artifact contracts and production ownership
 separation constraints
 ~~~
 
-It must not recreate legacy authority from agent-profile recommendations.
+It must not recreate superseded authority from agent-profile recommendations.
 
 The active config is validated against:
 
@@ -1183,7 +1183,7 @@ deterministic behavior
 fail-fast behavior
 diagnostic quality
 focused tests
-deleted legacy implementation
+deleted superseded implementation
 documentation consistency
 ~~~
 
@@ -1209,7 +1209,7 @@ test-negative-gates.py has been removed
 tests are divided by responsibility
 component tests do not invoke the full pipeline
 pytest, ruff and mypy are enforced
-all legacy runtime structures are removed
+all superseded runtime structures are removed
 all generated output is regenerated deterministically
 all supported setups pass isolated consumer E2E
 all target runtime tests pass

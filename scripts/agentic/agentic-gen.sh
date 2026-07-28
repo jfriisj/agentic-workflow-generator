@@ -18,7 +18,6 @@ Usage:
   scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
   scripts/agentic/agentic-gen.sh init --guided --setup <setup-name> --dry-run
   scripts/agentic/agentic-gen.sh validate
-  scripts/agentic/agentic-gen.sh validate-semantics
   scripts/agentic/agentic-gen.sh resolve
   scripts/agentic/agentic-gen.sh validate-resolution
   scripts/agentic/agentic-gen.sh lock
@@ -57,7 +56,6 @@ Commands:
              Validate required local command-line tools fail-fast.
   init      Initialize .agentic/agentic.json from a registered bundle or guided setup.
   validate   Validate .agentic/agentic.json against its JSON Schema and semantic contract.
-  validate-semantics
              Validate Milestone-specific agentic config semantics.
   resolve    Resolve agents, targets, capabilities, skills, and produced artifacts.
   validate-resolution
@@ -139,7 +137,6 @@ check_scripts() {
   require_file "scripts/agentic/validate-setup-registry.py"
   require_file "scripts/agentic/validate-setup-profile.py"
   require_file "scripts/agentic/validate-agentic-config.sh"
-  require_file "scripts/agentic/validate-agentic-semantics.py"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/validate-resolution-output.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
@@ -167,7 +164,6 @@ check_scripts() {
   uv run python -m py_compile "scripts/agentic/validate-setup-registry.py"
   uv run python -m py_compile "scripts/agentic/validate-setup-profile.py"
   bash -n "scripts/agentic/validate-agentic-config.sh"
-  uv run python -m py_compile "scripts/agentic/validate-agentic-semantics.py"
   bash -n "scripts/agentic/agentic-gen.sh"
 
   uv run python -m py_compile "scripts/agentic/resolve-agentic-config.py"
@@ -224,7 +220,6 @@ run_pipeline() {
   check_scripts || return 1
   validate_json_files || return 1
   scripts/agentic/validate-agentic-config.sh || return 1
-  uv run python scripts/agentic/validate-agentic-semantics.py || return 1
   uv run python scripts/agentic/validate-target-adapters.py || return 1
   uv run python scripts/agentic/validate-skill-registry.py || return 1
   uv run python scripts/agentic/validate-workflow-registry.py || return 1
@@ -378,10 +373,6 @@ case "$COMMAND" in
 
   validate)
     scripts/agentic/validate-agentic-config.sh
-    uv run python scripts/agentic/validate-agentic-semantics.py
-    ;;
-  validate-semantics)
-    uv run python scripts/agentic/validate-agentic-semantics.py
     ;;
   resolve)
     uv run python scripts/agentic/resolve-agentic-config.py

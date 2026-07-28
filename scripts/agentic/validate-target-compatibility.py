@@ -596,18 +596,6 @@ def validate_adapter_truth(
             f"{sorted(unsupported_output_keys)}"
         )
 
-    supported_features = adapter.get("supportedFeatures")
-    if not isinstance(supported_features, dict):
-        raise RuntimeError(
-            f"{target_name}: adapter supportedFeatures must be an object"
-        )
-
-    if supported_features.get("runtimeContext") is not False:
-        raise RuntimeError(
-            f"{target_name}: runtimeContext must be false before Milestone 4"
-        )
-
-
 def opencode_skill_names(data: Any) -> set[str]:
     if isinstance(data, list):
         return {
@@ -755,21 +743,6 @@ def main() -> int:
     try:
         config = load_json(CONFIG_PATH)
         resolution = load_json(RESOLUTION_PATH)
-
-        runtime_context = config.get("runtimeContext")
-        if not isinstance(runtime_context, dict):
-            raise RuntimeError(
-                "agentic config runtimeContext must be an object"
-            )
-
-        if (
-            runtime_context.get("enabled") is not False
-            or runtime_context.get("failIfMissing") is not False
-        ):
-            raise RuntimeError(
-                "Runtime context generation is unsupported before "
-                "Milestone 4; enabled and failIfMissing must both be false."
-            )
 
         config_agents = configured_agents(config)
         resolution_agents = resolved_agents(resolution)

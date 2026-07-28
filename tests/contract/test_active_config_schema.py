@@ -88,7 +88,7 @@ def test_active_repository_config_matches_schema() -> None:
     assert list(validator.iter_errors(config)) == []
 
 
-def test_schema_rejects_legacy_runtime_authority() -> None:
+def test_schema_rejects_obsolete_runtime_authority() -> None:
     config = read_json_object(
         REPOSITORY_ROOT
         / ".agentic"

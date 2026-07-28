@@ -33,7 +33,7 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-ARTIFACT-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-ARTIFACT-002"
 FOLDER_TYPE_DIAGNOSTIC = "AWG-ARTIFACT-003"
 DUPLICATE_TYPE_DIAGNOSTIC = "AWG-ARTIFACT-004"
 STATUS_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-005"
@@ -43,7 +43,7 @@ MISSING_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-008"
 ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-009"
 GENERATED_SCHEMA_DRIFT_DIAGNOSTIC = "AWG-ARTIFACT-010"
 
-LEGACY_ARTIFACT_FIELDS = frozenset(
+OBSOLETE_ARTIFACT_FIELDS = frozenset(
     {
         "binding",
         "producedBy",
@@ -101,10 +101,10 @@ def validate_artifact_registry(
     diagnostics: list[Diagnostic] = []
 
     for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
+        obsolete_diagnostics = _validate_obsolete_fields(source)
+        diagnostics.extend(obsolete_diagnostics)
 
-        if legacy_diagnostics:
+        if obsolete_diagnostics:
             continue
 
         schema_diagnostics = custom_registry_schema_diagnostics(
@@ -141,15 +141,15 @@ def validate_artifact_registry(
     )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
-    fields = sorted(LEGACY_ARTIFACT_FIELDS.intersection(source.data))
+    fields = sorted(OBSOLETE_ARTIFACT_FIELDS.intersection(source.data))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=(f"legacy artifact field {field!r} is not allowed"),
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=(f"obsolete artifact field {field!r} is not allowed"),
             source_path=source.source_path.as_posix(),
             location=field,
             related_identities=(field,),

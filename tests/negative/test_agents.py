@@ -10,7 +10,7 @@ from agentic_workflow_generator.registry import (
     RegistrySource,
 )
 from agentic_workflow_generator.validation.agents import (
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
     UNKNOWN_PERMISSION_PROFILE_DIAGNOSTIC,
@@ -136,8 +136,8 @@ def unknown_permission_profile(data: JsonObject) -> None:
     data["defaultPermissionProfile"] = "does-not-exist"
 
 
-def legacy_produces(data: JsonObject) -> None:
-    data["produces"] = ["LegacyArtifact"]
+def obsolete_produces(data: JsonObject) -> None:
+    data["produces"] = ["ObsoleteArtifact"]
 
 
 @pytest.mark.parametrize(
@@ -179,9 +179,9 @@ def legacy_produces(data: JsonObject) -> None:
             ("must reference an existing permission profile"),
         ),
         (
-            legacy_produces,
-            LEGACY_FIELD_DIAGNOSTIC,
-            ("legacy agent field 'produces' is not allowed"),
+            obsolete_produces,
+            OBSOLETE_FIELD_DIAGNOSTIC,
+            ("obsolete agent field 'produces' is not allowed"),
         ),
     ],
 )

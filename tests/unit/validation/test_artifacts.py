@@ -19,8 +19,8 @@ from agentic_workflow_generator.validation.artifacts import (
     FOLDER_TYPE_DIAGNOSTIC,
     GENERATED_SCHEMA_DRIFT_DIAGNOSTIC,
     INVALID_STATUS_PATTERN_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
     MISSING_GENERATED_SCHEMA_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     STATUS_HEADING_DIAGNOSTIC,
@@ -158,27 +158,27 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
 
 
 @pytest.mark.parametrize(
-    "legacy_field",
+    "obsolete_field",
     [
         "binding",
         "producedBy",
         "required",
     ],
 )
-def test_legacy_artifact_fields_are_rejected(
-    legacy_field: str,
+def test_obsolete_artifact_fields_are_rejected(
+    obsolete_field: str,
 ) -> None:
     result = validate(
-        source(extra=(legacy_field, True)),
+        source(extra=(obsolete_field, True)),
         snapshots=(),
     )
 
     assert len(result.diagnostics) == 1
     diagnostic = result.diagnostics[0]
-    assert diagnostic.code == LEGACY_FIELD_DIAGNOSTIC
-    assert diagnostic.location == legacy_field
+    assert diagnostic.code == OBSOLETE_FIELD_DIAGNOSTIC
+    assert diagnostic.location == obsolete_field
     assert (
-        diagnostic.message == f"legacy artifact field {legacy_field!r} is not allowed"
+        diagnostic.message == f"obsolete artifact field {obsolete_field!r} is not allowed"
     )
 
 

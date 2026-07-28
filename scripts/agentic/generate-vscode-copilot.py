@@ -71,21 +71,6 @@ def find_config_agent(config: dict[str, Any], agent_name: str) -> dict[str, Any]
     raise RuntimeError(f"Agent not found in config: {agent_name}")
 
 
-def require_supported_runtime_context(config: dict[str, Any]) -> None:
-    runtime_context = config.get("runtimeContext")
-    if not isinstance(runtime_context, dict):
-        raise RuntimeError("runtimeContext must be an object.")
-
-    enabled = runtime_context.get("enabled")
-    fail_if_missing = runtime_context.get("failIfMissing")
-
-    if enabled is not False or fail_if_missing is not False:
-        raise RuntimeError(
-            "Runtime context generation is not implemented until Milestone 4; "
-            "runtimeContext.enabled and runtimeContext.failIfMissing must both be false."
-        )
-
-
 def render_produced_artifacts(produces: list[dict[str, Any]]) -> str:
     if not produces:
         return """## Produced Artifacts
@@ -311,7 +296,6 @@ def copy_resolved_skills(resolution: dict[str, Any]) -> None:
 def main() -> int:
     config = load_json(CONFIG_PATH)
     resolution = load_json(RESOLUTION_PATH)
-    require_supported_runtime_context(config)
 
     if resolution.get("summary", {}).get("errorCount", 0) != 0:
         raise RuntimeError("Resolution contains errors. Run resolver first and fix all reported errors.")

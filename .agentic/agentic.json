@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.2.0",
+  "schemaVersion": "0.3.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -1163,17 +1163,5 @@
       "requireDistinctInstances": true,
       "reason": "This bundle requires independent workers for each workflow responsibility and routing authority."
     }
-  ],
-  "runtimeContext": {
-    "enabled": false,
-    "outputDirectory": ".runtime/context",
-    "resolutionDirectory": ".runtime/resolution",
-    "failIfMissing": false
-  },
-  "validation": {
-    "failClosed": true,
-    "requireLockfile": true,
-    "requireArtifacts": true,
-    "requireEvidence": true
-  }
+  ]
 }

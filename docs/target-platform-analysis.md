@@ -35,7 +35,7 @@ It must not consume:
 
 - raw agent, bundle, workflow or skill registry JSON directly
 - a separate persisted resolution model
-- legacy `agents` or workflow-state `agent` fields
+- removed `agents` or workflow-state `agent` fields
 - inferred capabilities or artifact ownership
 - advisory profile defaults as runtime fallback
 

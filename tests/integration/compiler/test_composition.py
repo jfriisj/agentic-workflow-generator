@@ -86,9 +86,6 @@ def test_all_real_bundles_compile_to_complete_runtime_authority() -> None:
             for binding in composition.role_bindings
         )
         assert len(composition.artifact_production) == gate_count
-        assert composition.runtime_context.enabled is False
-        assert composition.runtime_context.fail_if_missing is False
-        assert composition.validation.fail_closed is True
 
 
 def test_orchestrated_bundle_preserves_authoritative_binding_semantics() -> None:

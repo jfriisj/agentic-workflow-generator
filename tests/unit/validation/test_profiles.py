@@ -16,7 +16,7 @@ from agentic_workflow_generator.registry import (
 from agentic_workflow_generator.validation.profiles import (
     DUPLICATE_NAME_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     UNKNOWN_AGENT_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
@@ -145,7 +145,7 @@ def test_valid_profile_is_parsed() -> None:
     )
 
 
-def test_legacy_workflow_field_is_rejected_before_schema() -> None:
+def test_obsolete_workflow_field_is_rejected_before_schema() -> None:
     result = validate_profile_registry(
         (
             source(
@@ -158,11 +158,11 @@ def test_legacy_workflow_field_is_rejected_before_schema() -> None:
 
     assert not result.is_valid
     assert result.profiles == ()
-    assert result.diagnostics[0].code == (LEGACY_FIELD_DIAGNOSTIC)
+    assert result.diagnostics[0].code == (OBSOLETE_FIELD_DIAGNOSTIC)
     assert result.diagnostics[0].location == "workflow"
 
 
-def test_legacy_agents_field_is_rejected_before_schema() -> None:
+def test_obsolete_agents_field_is_rejected_before_schema() -> None:
     result = validate_profile_registry(
         (
             source(
@@ -177,7 +177,7 @@ def test_legacy_agents_field_is_rejected_before_schema() -> None:
 
     assert not result.is_valid
     assert result.profiles == ()
-    assert result.diagnostics[0].code == (LEGACY_FIELD_DIAGNOSTIC)
+    assert result.diagnostics[0].code == (OBSOLETE_FIELD_DIAGNOSTIC)
     assert result.diagnostics[0].location == "agents"
 
 

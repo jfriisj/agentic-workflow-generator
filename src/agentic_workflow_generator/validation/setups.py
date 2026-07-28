@@ -33,7 +33,7 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-SETUP-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-SETUP-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-SETUP-002"
 FILE_NAME_DIAGNOSTIC = "AWG-SETUP-003"
 DUPLICATE_NAME_DIAGNOSTIC = "AWG-SETUP-004"
 UNKNOWN_BUNDLE_DIAGNOSTIC = "AWG-SETUP-005"
@@ -45,25 +45,25 @@ DEFAULT_CLASSIFICATION_DIAGNOSTIC = "AWG-SETUP-010"
 DUPLICATE_OPTION_DIAGNOSTIC = "AWG-SETUP-011"
 BLOCKED_SELECTION_DIAGNOSTIC = "AWG-SETUP-012"
 
-_ROOT_LEGACY_FIELDS = frozenset(
+_ROOT_OBSOLETE_FIELDS = frozenset(
     {
         "defaultBundle",
         "finalRecommendation",
     }
 )
-_QUESTION_LEGACY_FIELDS = frozenset(
+_QUESTION_OBSOLETE_FIELDS = frozenset(
     {
         "recommended",
         "compatible",
         "blocked",
     }
 )
-_OPTION_LEGACY_FIELDS = frozenset(
+_OPTION_OBSOLETE_FIELDS = frozenset(
     {
         "recommends",
     }
 )
-_SELECTION_LEGACY_FIELDS = frozenset(
+_SELECTION_OBSOLETE_FIELDS = frozenset(
     {
         "profile",
         "workflow",
@@ -189,10 +189,10 @@ def validate_setup_registry(
     diagnostics: list[Diagnostic] = []
 
     for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
+        obsolete_diagnostics = _validate_obsolete_fields(source)
+        diagnostics.extend(obsolete_diagnostics)
 
-        if legacy_diagnostics:
+        if obsolete_diagnostics:
             continue
 
         schema_diagnostics = _validate_schema(source, validator)
@@ -229,18 +229,18 @@ def _project_name(source: RegistrySource) -> str:
     return raw_name
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
     found: list[tuple[str, str]] = []
 
-    for field in sorted(_ROOT_LEGACY_FIELDS.intersection(source.data)):
+    for field in sorted(_ROOT_OBSOLETE_FIELDS.intersection(source.data)):
         found.append((field, field))
 
     raw_default = source.data.get("defaultSelection")
 
     if isinstance(raw_default, Mapping):
-        for field in sorted(_SELECTION_LEGACY_FIELDS.intersection(raw_default)):
+        for field in sorted(_SELECTION_OBSOLETE_FIELDS.intersection(raw_default)):
             found.append((f"defaultSelection.{field}", field))
 
     raw_questions = source.data.get("questions")
@@ -250,7 +250,7 @@ def _validate_legacy_fields(
             if not isinstance(raw_question, Mapping):
                 continue
 
-            for field in sorted(_QUESTION_LEGACY_FIELDS.intersection(raw_question)):
+            for field in sorted(_QUESTION_OBSOLETE_FIELDS.intersection(raw_question)):
                 found.append(
                     (
                         f"questions[{question_index}].{field}",
@@ -267,7 +267,7 @@ def _validate_legacy_fields(
                 if not isinstance(raw_option, Mapping):
                     continue
 
-                for field in sorted(_OPTION_LEGACY_FIELDS.intersection(raw_option)):
+                for field in sorted(_OPTION_OBSOLETE_FIELDS.intersection(raw_option)):
                     found.append(
                         (
                             "questions"
@@ -283,7 +283,7 @@ def _validate_legacy_fields(
                     continue
 
                 for field in sorted(
-                    _SELECTION_LEGACY_FIELDS.intersection(raw_selection)
+                    _SELECTION_OBSOLETE_FIELDS.intersection(raw_selection)
                 ):
                     found.append(
                         (
@@ -296,8 +296,8 @@ def _validate_legacy_fields(
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=f"legacy setup field {field!r} is not allowed",
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=f"obsolete setup field {field!r} is not allowed",
             source_path=source.source_path.as_posix(),
             location=location,
             related_identities=(field,),

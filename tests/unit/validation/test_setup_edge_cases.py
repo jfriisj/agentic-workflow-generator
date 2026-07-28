@@ -8,9 +8,9 @@ from agentic_workflow_generator.registry import (
     RegistrySource,
 )
 from agentic_workflow_generator.validation.setups import (
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     _schema_error_location,
-    _validate_legacy_fields,
+    _validate_obsolete_fields,
 )
 
 
@@ -36,8 +36,8 @@ def test_schema_location_formats_array_indexes() -> None:
     assert _schema_error_location(error) == ("$.questions[0].options[1]")
 
 
-def test_default_selection_legacy_field_is_reported() -> None:
-    diagnostics = _validate_legacy_fields(
+def test_default_selection_obsolete_field_is_reported() -> None:
+    diagnostics = _validate_obsolete_fields(
         source(
             {
                 "defaultSelection": {
@@ -51,12 +51,12 @@ def test_default_selection_legacy_field_is_reported() -> None:
         )
     )
 
-    assert diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert diagnostics[0].location == ("defaultSelection.profile")
 
 
-def test_non_list_questions_are_ignored_by_legacy_scan() -> None:
-    assert not _validate_legacy_fields(
+def test_non_list_questions_are_ignored_by_obsolete_scan() -> None:
+    assert not _validate_obsolete_fields(
         source(
             {
                 "questions": "invalid",
@@ -65,8 +65,8 @@ def test_non_list_questions_are_ignored_by_legacy_scan() -> None:
     )
 
 
-def test_non_object_question_is_ignored_by_legacy_scan() -> None:
-    assert not _validate_legacy_fields(
+def test_non_object_question_is_ignored_by_obsolete_scan() -> None:
+    assert not _validate_obsolete_fields(
         source(
             {
                 "questions": [
@@ -77,8 +77,8 @@ def test_non_object_question_is_ignored_by_legacy_scan() -> None:
     )
 
 
-def test_non_list_options_are_ignored_by_legacy_scan() -> None:
-    assert not _validate_legacy_fields(
+def test_non_list_options_are_ignored_by_obsolete_scan() -> None:
+    assert not _validate_obsolete_fields(
         source(
             {
                 "questions": [
@@ -91,8 +91,8 @@ def test_non_list_options_are_ignored_by_legacy_scan() -> None:
     )
 
 
-def test_non_object_option_is_ignored_by_legacy_scan() -> None:
-    assert not _validate_legacy_fields(
+def test_non_object_option_is_ignored_by_obsolete_scan() -> None:
+    assert not _validate_obsolete_fields(
         source(
             {
                 "questions": [
@@ -107,8 +107,8 @@ def test_non_object_option_is_ignored_by_legacy_scan() -> None:
     )
 
 
-def test_non_object_selection_is_ignored_by_legacy_scan() -> None:
-    assert not _validate_legacy_fields(
+def test_non_object_selection_is_ignored_by_obsolete_scan() -> None:
+    assert not _validate_obsolete_fields(
         source(
             {
                 "questions": [

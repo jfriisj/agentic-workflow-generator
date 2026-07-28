@@ -37,7 +37,7 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-SKILL-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-SKILL-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-SKILL-002"
 CONTENT_FILE_DIAGNOSTIC = "AWG-SKILL-003"
 FOLDER_NAME_DIAGNOSTIC = "AWG-SKILL-004"
 DUPLICATE_NAME_DIAGNOSTIC = "AWG-SKILL-005"
@@ -46,7 +46,7 @@ UNKNOWN_AGENT_DIAGNOSTIC = "AWG-SKILL-007"
 UNKNOWN_REQUIRED_CAPABILITY_DIAGNOSTIC = "AWG-SKILL-008"
 SELF_REQUIRED_CAPABILITY_DIAGNOSTIC = "AWG-SKILL-009"
 
-LEGACY_SKILL_FIELDS = frozenset(
+OBSOLETE_SKILL_FIELDS = frozenset(
     {
         "capability",
         "capabilities",
@@ -133,7 +133,7 @@ def validate_skill_registry(
     parsed_skills, diagnostics = validate_and_parse_sources(
         sources,
         validator,
-        _validate_legacy_fields,
+        _validate_obsolete_fields,
         lambda source, active_validator: (
             custom_registry_schema_diagnostics(
                 source,
@@ -167,15 +167,15 @@ def validate_skill_registry(
     )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
-    fields = sorted(LEGACY_SKILL_FIELDS.intersection(source.data))
+    fields = sorted(OBSOLETE_SKILL_FIELDS.intersection(source.data))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=f"legacy skill field {field!r} is not allowed",
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=f"obsolete skill field {field!r} is not allowed",
             source_path=source.source_path.as_posix(),
             location=field,
             related_identities=(field,),

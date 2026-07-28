@@ -25,7 +25,7 @@ from agentic_workflow_generator.validation.setups import (
     DUPLICATE_OPTION_DIAGNOSTIC,
     DUPLICATE_QUESTION_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     TARGET_OUTSIDE_BUNDLE_DIAGNOSTIC,
     UNKNOWN_BUNDLE_DIAGNOSTIC,
@@ -238,7 +238,7 @@ def test_valid_setup_is_parsed() -> None:
         ),
     ],
 )
-def test_legacy_fields_are_rejected_before_schema(
+def test_obsolete_fields_are_rejected_before_schema(
     mutator: Callable[[JsonObject], None],
     location: str,
 ) -> None:
@@ -248,7 +248,7 @@ def test_legacy_fields_are_rejected_before_schema(
     result = validate(data)
 
     assert result.setups == ()
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == location
 
 

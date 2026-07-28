@@ -34,7 +34,7 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-BUNDLE-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-BUNDLE-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-BUNDLE-002"
 FILE_NAME_DIAGNOSTIC = "AWG-BUNDLE-003"
 DUPLICATE_BUNDLE_DIAGNOSTIC = "AWG-BUNDLE-004"
 UNKNOWN_PROFILE_DIAGNOSTIC = "AWG-BUNDLE-005"
@@ -67,7 +67,7 @@ SEPARATION_INSTANCE_DIAGNOSTIC = "AWG-BUNDLE-031"
 UNPRODUCED_BUNDLE_ARTIFACT_DIAGNOSTIC = "AWG-BUNDLE-032"
 UNPRODUCED_CONTRACT_DIAGNOSTIC = "AWG-BUNDLE-033"
 
-LEGACY_BUNDLE_FIELDS = frozenset(
+OBSOLETE_BUNDLE_FIELDS = frozenset(
     {
         "agents",
     }
@@ -359,10 +359,10 @@ def validate_bundle_registry(
     fully_parsed = True
 
     for source in sources:
-        legacy_diagnostics = _validate_legacy_fields(source)
-        diagnostics.extend(legacy_diagnostics)
+        obsolete_diagnostics = _validate_obsolete_fields(source)
+        diagnostics.extend(obsolete_diagnostics)
 
-        if legacy_diagnostics:
+        if obsolete_diagnostics:
             fully_parsed = False
             continue
 
@@ -521,15 +521,15 @@ def _reject_duplicate_projection(
         )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
-    fields = sorted(LEGACY_BUNDLE_FIELDS.intersection(source.data))
+    fields = sorted(OBSOLETE_BUNDLE_FIELDS.intersection(source.data))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=(f"legacy bundle field {field!r} is not allowed"),
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=(f"obsolete bundle field {field!r} is not allowed"),
             source_path=(source.source_path.as_posix()),
             location=field,
             related_identities=(field,),

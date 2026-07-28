@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.2.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.3.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -25,7 +25,7 @@ GENERATOR_VERSION = "0.1.0"
 def composition_to_json_object(
     composition: CompiledComposition,
 ) -> JsonObject:
-    """Serialize canonical composition without legacy authority."""
+    """Serialize canonical composition without superseded authority."""
 
     return cast(
         JsonObject,
@@ -190,34 +190,7 @@ def composition_to_json_object(
                 _serialize_separation_constraint(constraint)
                 for constraint
                 in composition.separation_constraints
-            ],
-            "runtimeContext": {
-                "enabled": composition.runtime_context.enabled,
-                "outputDirectory": (
-                    composition.runtime_context.output_directory
-                ),
-                "resolutionDirectory": (
-                    composition.runtime_context.resolution_directory
-                ),
-                "failIfMissing": (
-                    composition.runtime_context.fail_if_missing
-                ),
-            },
-            "validation": {
-                "failClosed": (
-                    composition.validation.fail_closed
-                ),
-                "requireLockfile": (
-                    composition.validation.require_lockfile
-                ),
-                "requireArtifacts": (
-                    composition.validation.require_artifacts
-                ),
-                "requireEvidence": (
-                    composition.validation.require_evidence
-                ),
-            },
-        },
+            ],        },
     )
 
 

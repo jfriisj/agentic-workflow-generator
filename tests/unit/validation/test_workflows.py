@@ -16,8 +16,8 @@ from agentic_workflow_generator.validation.workflows import (
     DUPLICATE_EVENT_DIAGNOSTIC,
     FAIL_CLOSED_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
     MISSING_OUTGOING_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     UNKNOWN_ARTIFACT_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
     WorkflowReferenceData,
@@ -164,7 +164,7 @@ def test_fail_closed_must_be_true() -> None:
     )
 
 
-def test_legacy_state_agent_is_rejected() -> None:
+def test_obsolete_state_agent_is_rejected() -> None:
     data = workflow_data()
     states = data["states"]
     assert isinstance(states, list)
@@ -175,7 +175,7 @@ def test_legacy_state_agent_is_rejected() -> None:
     result = validate(source(data=data))
 
     diagnostic = result.diagnostics[0]
-    assert diagnostic.code == LEGACY_FIELD_DIAGNOSTIC
+    assert diagnostic.code == OBSOLETE_FIELD_DIAGNOSTIC
     assert diagnostic.location == "states[0].agent"
 
 

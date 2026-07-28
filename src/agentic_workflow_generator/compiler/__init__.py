@@ -12,8 +12,6 @@ from .composition import (
     CompositionError,
     CompositionRegistry,
     ProjectMetadata,
-    RuntimeContextPolicy,
-    ValidationPolicy,
     compile_bundle_composition,
 )
 from .serialization import (
@@ -34,8 +32,6 @@ __all__ = [
     "CompositionError",
     "CompositionRegistry",
     "ProjectMetadata",
-    "RuntimeContextPolicy",
-    "ValidationPolicy",
     "compile_bundle_composition",
     "composition_to_json_object",
 ]

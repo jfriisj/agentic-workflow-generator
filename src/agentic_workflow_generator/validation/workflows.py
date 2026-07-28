@@ -34,7 +34,7 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-WORKFLOW-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-WORKFLOW-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-WORKFLOW-002"
 FILE_NAME_DIAGNOSTIC = "AWG-WORKFLOW-003"
 DUPLICATE_WORKFLOW_DIAGNOSTIC = "AWG-WORKFLOW-004"
 DUPLICATE_STATE_DIAGNOSTIC = "AWG-WORKFLOW-005"
@@ -53,19 +53,19 @@ UNREACHABLE_STATE_DIAGNOSTIC = "AWG-WORKFLOW-017"
 NO_TERMINAL_PATH_DIAGNOSTIC = "AWG-WORKFLOW-018"
 ARTIFACT_STATUS_EVENT_DIAGNOSTIC = "AWG-WORKFLOW-019"
 
-LEGACY_WORKFLOW_FIELDS = frozenset(
+OBSOLETE_WORKFLOW_FIELDS = frozenset(
     {
         "defaultFailureRoute",
         "initialState",
     }
 )
-LEGACY_STATE_FIELDS = frozenset(
+OBSOLETE_STATE_FIELDS = frozenset(
     {
         "agent",
         "id",
     }
 )
-LEGACY_GATE_FIELDS = frozenset(
+OBSOLETE_GATE_FIELDS = frozenset(
     {
         "agent",
         "produces",
@@ -188,7 +188,7 @@ def validate_workflow_registry(
     parsed_workflows, diagnostics = validate_and_parse_sources(
         sources,
         validator,
-        _validate_legacy_fields,
+        _validate_obsolete_fields,
         _validate_schema,
         _parse_workflow,
         lambda parsed: _validate_workflow_semantics(parsed, references),
@@ -202,14 +202,14 @@ def validate_workflow_registry(
     )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
     diagnostics: list[Diagnostic] = []
 
-    for field in sorted(LEGACY_WORKFLOW_FIELDS.intersection(source.data)):
+    for field in sorted(OBSOLETE_WORKFLOW_FIELDS.intersection(source.data)):
         diagnostics.append(
-            _legacy_diagnostic(
+            _obsolete_diagnostic(
                 source,
                 field,
                 field,
@@ -225,9 +225,9 @@ def _validate_legacy_fields(
         if not isinstance(raw_state, dict):
             continue
 
-        for field in sorted(LEGACY_STATE_FIELDS.intersection(raw_state)):
+        for field in sorted(OBSOLETE_STATE_FIELDS.intersection(raw_state)):
             diagnostics.append(
-                _legacy_diagnostic(
+                _obsolete_diagnostic(
                     source,
                     field,
                     f"states[{state_index}].{field}",
@@ -239,9 +239,9 @@ def _validate_legacy_fields(
         if not isinstance(raw_gate, dict):
             continue
 
-        for field in sorted(LEGACY_GATE_FIELDS.intersection(raw_gate)):
+        for field in sorted(OBSOLETE_GATE_FIELDS.intersection(raw_gate)):
             diagnostics.append(
-                _legacy_diagnostic(
+                _obsolete_diagnostic(
                     source,
                     field,
                     f"states[{state_index}].gate.{field}",
@@ -251,14 +251,14 @@ def _validate_legacy_fields(
     return tuple(diagnostics)
 
 
-def _legacy_diagnostic(
+def _obsolete_diagnostic(
     source: RegistrySource,
     field: str,
     location: str,
 ) -> Diagnostic:
     return Diagnostic(
-        code=LEGACY_FIELD_DIAGNOSTIC,
-        message=f"legacy workflow field {field!r} is not allowed",
+        code=OBSOLETE_FIELD_DIAGNOSTIC,
+        message=f"obsolete workflow field {field!r} is not allowed",
         source_path=source.source_path.as_posix(),
         location=location,
         related_identities=(field,),

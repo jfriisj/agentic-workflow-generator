@@ -19,9 +19,7 @@
     "controllerBinding",
     "workflowGates",
     "artifactProduction",
-    "separationConstraints",
-    "runtimeContext",
-    "validation"
+    "separationConstraints"
   ],
   "additionalProperties": false,
   "properties": {
@@ -30,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.2.0"
+      "const": "0.3.0"
     },
     "project": {
       "type": "object",
@@ -895,56 +893,6 @@
             "type": "string",
             "minLength": 1
           }
-        }
-      }
-    },
-    "runtimeContext": {
-      "type": "object",
-      "required": [
-        "enabled",
-        "outputDirectory",
-        "resolutionDirectory",
-        "failIfMissing"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "const": false
-        },
-        "outputDirectory": {
-          "type": "string",
-          "minLength": 1
-        },
-        "resolutionDirectory": {
-          "type": "string",
-          "minLength": 1
-        },
-        "failIfMissing": {
-          "const": false
-        }
-      }
-    },
-    "validation": {
-      "type": "object",
-      "required": [
-        "failClosed",
-        "requireLockfile",
-        "requireArtifacts",
-        "requireEvidence"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "failClosed": {
-          "const": true
-        },
-        "requireLockfile": {
-          "const": true
-        },
-        "requireArtifacts": {
-          "const": true
-        },
-        "requireEvidence": {
-          "const": true
         }
       }
     }

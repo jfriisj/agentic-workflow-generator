@@ -7,14 +7,6 @@
     "skills": ".github/skills",
     "instructions": ".github/copilot-instructions.md"
   },
-  "supportedFeatures": {
-    "agents": true,
-    "skills": true,
-    "handoffs": true,
-    "permissionProfiles": "partial",
-    "runtimeContext": false,
-    "toolRestrictions": "partial"
-  },
   "permissionMapping": {
     "read-only": {
       "tools": [

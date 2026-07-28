@@ -25,9 +25,9 @@ from agentic_workflow_generator.validation.setup_profiles import (
     BLOCKED_OPTION_DIAGNOSTIC,
     CLASSIFICATION_DIAGNOSTIC,
     DUPLICATE_ANSWER_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
     MISSING_ANSWER_DIAGNOSTIC,
     MODE_MISMATCH_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     REASON_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     SELECTED_MISMATCH_DIAGNOSTIC,
@@ -246,14 +246,14 @@ def test_valid_setup_profile_is_parsed() -> None:
     assert len(result.profile.answers) == 2
 
 
-def test_legacy_selected_field_is_rejected_before_schema() -> None:
+def test_obsolete_selected_field_is_rejected_before_schema() -> None:
     data = profile_data()
     selected(data)["workflow"] = "lean-delivery"
 
     result = validate(data)
 
     assert result.profile is None
-    assert result.diagnostics[0].code == LEGACY_FIELD_DIAGNOSTIC
+    assert result.diagnostics[0].code == OBSOLETE_FIELD_DIAGNOSTIC
     assert result.diagnostics[0].location == "selected.workflow"
 
 

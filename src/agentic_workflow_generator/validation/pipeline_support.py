@@ -16,7 +16,7 @@ ParsedT = TypeVar("ParsedT")
 def validate_and_parse_sources(
     sources: Iterable[RegistrySource],
     validator: Draft202012Validator,
-    legacy_validator: Callable[
+    pre_schema_validator: Callable[
         [RegistrySource],
         tuple[Diagnostic, ...],
     ],
@@ -37,10 +37,10 @@ def validate_and_parse_sources(
     diagnostics: list[Diagnostic] = []
 
     for source in sources:
-        legacy_diagnostics = legacy_validator(source)
-        diagnostics.extend(legacy_diagnostics)
+        pre_schema_diagnostics = pre_schema_validator(source)
+        diagnostics.extend(pre_schema_diagnostics)
 
-        if legacy_diagnostics:
+        if pre_schema_diagnostics:
             continue
 
         schema_diagnostics = schema_validator(

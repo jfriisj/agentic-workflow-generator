@@ -70,26 +70,6 @@ class ProjectMetadata:
 
 
 @dataclass(frozen=True, slots=True)
-class RuntimeContextPolicy:
-    """Runtime-context policy for the current compiler milestone."""
-
-    enabled: bool
-    output_directory: str
-    resolution_directory: str
-    fail_if_missing: bool
-
-
-@dataclass(frozen=True, slots=True)
-class ValidationPolicy:
-    """Fail-closed active configuration validation policy."""
-
-    fail_closed: bool
-    require_lockfile: bool
-    require_artifacts: bool
-    require_evidence: bool
-
-
-@dataclass(frozen=True, slots=True)
 class CompiledTarget:
     """One enabled target with deterministic priority."""
 
@@ -194,23 +174,6 @@ class CompiledComposition:
     workflow_gates: tuple[CompiledWorkflowGate, ...]
     artifact_production: tuple[CompiledArtifactProduction, ...]
     separation_constraints: tuple[CompiledSeparationConstraint, ...]
-    runtime_context: RuntimeContextPolicy
-    validation: ValidationPolicy
-
-
-DEFAULT_RUNTIME_CONTEXT = RuntimeContextPolicy(
-    enabled=False,
-    output_directory=".runtime/context",
-    resolution_directory=".runtime/resolution",
-    fail_if_missing=False,
-)
-
-DEFAULT_VALIDATION_POLICY = ValidationPolicy(
-    fail_closed=True,
-    require_lockfile=True,
-    require_artifacts=True,
-    require_evidence=True,
-)
 
 
 RegistryItemT = TypeVar("RegistryItemT")
@@ -325,8 +288,6 @@ def compile_bundle_composition(
         workflow_gates=workflow_gates,
         artifact_production=artifact_production,
         separation_constraints=separation_constraints,
-        runtime_context=DEFAULT_RUNTIME_CONTEXT,
-        validation=DEFAULT_VALIDATION_POLICY,
     )
 
 

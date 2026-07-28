@@ -37,14 +37,14 @@ from agentic_workflow_generator.validation.schema_support import (
 )
 
 SCHEMA_DIAGNOSTIC = "AWG-AGENT-001"
-LEGACY_FIELD_DIAGNOSTIC = "AWG-AGENT-002"
+OBSOLETE_FIELD_DIAGNOSTIC = "AWG-AGENT-002"
 FOLDER_NAME_DIAGNOSTIC = "AWG-AGENT-003"
 DUPLICATE_NAME_DIAGNOSTIC = "AWG-AGENT-004"
 UNKNOWN_CAPABILITY_DIAGNOSTIC = "AWG-AGENT-005"
 UNKNOWN_PERMISSION_PROFILE_DIAGNOSTIC = "AWG-AGENT-006"
 
 
-LEGACY_AGENT_FIELDS = frozenset(
+OBSOLETE_AGENT_FIELDS = frozenset(
     {
         "agents",
         "capabilities",
@@ -160,7 +160,7 @@ def validate_agent_registry(
     parsed_agents, diagnostics = validate_and_parse_sources(
         sources,
         validator,
-        _validate_legacy_fields,
+        _validate_obsolete_fields,
         _validate_schema,
         _parse_agent,
         lambda parsed: _validate_agent_semantics(parsed, references),
@@ -174,15 +174,15 @@ def validate_agent_registry(
     )
 
 
-def _validate_legacy_fields(
+def _validate_obsolete_fields(
     source: RegistrySource,
 ) -> tuple[Diagnostic, ...]:
-    fields = sorted(LEGACY_AGENT_FIELDS.intersection(source.data))
+    fields = sorted(OBSOLETE_AGENT_FIELDS.intersection(source.data))
 
     return tuple(
         Diagnostic(
-            code=LEGACY_FIELD_DIAGNOSTIC,
-            message=(f"legacy agent field {field!r} is not allowed"),
+            code=OBSOLETE_FIELD_DIAGNOSTIC,
+            message=(f"obsolete agent field {field!r} is not allowed"),
             source_path=source.source_path.as_posix(),
             location=field,
             related_identities=(field,),

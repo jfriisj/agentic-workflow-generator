@@ -63,6 +63,7 @@
     },
     "permissionMapping": {
       "type": "object"
-    }
+    },
+    "supportedFeatures": false
   }
 }

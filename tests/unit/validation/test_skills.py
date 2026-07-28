@@ -19,7 +19,7 @@ from agentic_workflow_generator.validation.skills import (
     DUPLICATE_CAPABILITY_PROVIDER_DIAGNOSTIC,
     DUPLICATE_NAME_DIAGNOSTIC,
     FOLDER_NAME_DIAGNOSTIC,
-    LEGACY_FIELD_DIAGNOSTIC,
+    OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     SELF_REQUIRED_CAPABILITY_DIAGNOSTIC,
     UNKNOWN_AGENT_DIAGNOSTIC,
@@ -314,7 +314,7 @@ def test_generic_schema_violation_is_reported(
     assert result.diagnostics[0].message.startswith("schema violation:")
 
 
-def test_all_legacy_fields_are_reported_in_order() -> None:
+def test_all_obsolete_fields_are_reported_in_order() -> None:
     invalid = source()
     data = invalid.to_json_object()
 
@@ -350,7 +350,7 @@ def test_all_legacy_fields_are_reported_in_order() -> None:
         "provided_capabilities",
     )
     assert all(
-        diagnostic.code == LEGACY_FIELD_DIAGNOSTIC for diagnostic in result.diagnostics
+        diagnostic.code == OBSOLETE_FIELD_DIAGNOSTIC for diagnostic in result.diagnostics
     )
 
 
