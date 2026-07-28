@@ -1,0 +1,153 @@
+@startchen
+
+' Agentic Workflow Generator
+
+' Setup and selection context
+
+'
+
+' Full entities belong to this bounded context.
+
+' Reference entities are defined authoritatively elsewhere.
+
+entity "Project" as PROJECT {
+  name : STRING <<key>>
+  type : STRING
+  description : STRING
+  languageProfile : STRING <<multi>>
+  runtimeProfile : STRING <<multi>>
+  architectureProfile : STRING
+}
+
+entity "Setup" as SETUP {
+  name : STRING <<key>>
+  version : STRING
+  mode : STRING
+  description : STRING
+}
+
+entity "Setup question" as SETUP_QUESTION <<weak>> {
+  id : STRING <<key>>
+  prompt : STRING
+  defaultOption : STRING
+}
+
+entity "Setup option" as SETUP_OPTION <<weak>> {
+  value : STRING <<key>>
+  label : STRING
+  classification : STRING
+  reason : STRING
+}
+
+entity "Bundle" as BUNDLE {
+  name : STRING <<key>>
+  version : STRING
+  description : STRING
+}
+
+entity "Profile" as PROFILE {
+  name : STRING <<key>>
+  version : STRING
+  description : STRING
+  recommendedLanguageProfile : STRING <<multi>>
+  recommendedRuntimeProfile : STRING <<multi>>
+}
+
+entity "Workflow" as WORKFLOW <<reference>> {
+  name : STRING <<key>>
+}
+
+entity "Target adapter" as TARGET_ADAPTER <<reference>> {
+  name : STRING <<key>>
+}
+
+entity "Agent profile" as AGENT_PROFILE <<reference>> {
+  name : STRING <<key>>
+}
+
+entity "Capability" as CAPABILITY <<reference>> {
+  name : STRING <<key>>
+}
+
+relationship "selects active bundle" as PROJECT_SELECTS_BUNDLE {
+}
+
+relationship "enables target" as PROJECT_ENABLES_TARGET {
+}
+
+relationship "contains question" as HAS_QUESTION <<identifying>> {
+}
+
+relationship "contains option" as HAS_OPTION <<identifying>> {
+}
+
+relationship "defaults to bundle" as DEFAULT_SELECTION_BUNDLE {
+}
+
+relationship "defaults to target" as DEFAULT_SELECTION_TARGET {
+}
+
+relationship "overrides bundle" as OPTION_OVERRIDES_BUNDLE {
+}
+
+relationship "overrides target" as OPTION_OVERRIDES_TARGET {
+}
+
+relationship "selects profile" as SELECTS_PROFILE {
+}
+
+relationship "selects workflow" as SELECTS_WORKFLOW {
+}
+
+relationship "recommends workflow" as RECOMMENDS_WORKFLOW {
+  advisory : BOOLEAN
+}
+
+relationship "recommends agent profile" as PROFILE_RECOMMENDS_AGENT {
+  advisory : BOOLEAN
+}
+
+relationship "recommends capability" as PROFILE_RECOMMENDS_CAPABILITY {
+  advisory : BOOLEAN
+}
+
+PROJECT_SELECTS_BUNDLE -(1,1)- PROJECT
+PROJECT_SELECTS_BUNDLE -(0,N)- BUNDLE
+PROJECT_ENABLES_TARGET -(1,N)- PROJECT
+PROJECT_ENABLES_TARGET -(0,N)- TARGET_ADAPTER
+HAS_QUESTION =1= SETUP
+HAS_QUESTION =N= SETUP_QUESTION
+HAS_OPTION =1= SETUP_QUESTION
+HAS_OPTION =N= SETUP_OPTION
+DEFAULT_SELECTION_BUNDLE -(1,1)- SETUP
+DEFAULT_SELECTION_BUNDLE -(0,N)- BUNDLE
+DEFAULT_SELECTION_TARGET -(1,N)- SETUP
+DEFAULT_SELECTION_TARGET -(0,N)- TARGET_ADAPTER
+OPTION_OVERRIDES_BUNDLE -(0,1)- SETUP_OPTION
+OPTION_OVERRIDES_BUNDLE -(0,N)- BUNDLE
+OPTION_OVERRIDES_TARGET -(0,N)- SETUP_OPTION
+OPTION_OVERRIDES_TARGET -(0,N)- TARGET_ADAPTER
+SELECTS_PROFILE -(1,1)- BUNDLE
+SELECTS_PROFILE -(0,N)- PROFILE
+SELECTS_WORKFLOW -(1,1)- BUNDLE
+SELECTS_WORKFLOW -(0,N)- WORKFLOW
+RECOMMENDS_WORKFLOW -(0,N)- PROFILE
+RECOMMENDS_WORKFLOW -(0,N)- WORKFLOW
+PROFILE_RECOMMENDS_AGENT -(0,N)- PROFILE
+PROFILE_RECOMMENDS_AGENT -(0,N)- AGENT_PROFILE
+PROFILE_RECOMMENDS_CAPABILITY -(0,N)- PROFILE
+PROFILE_RECOMMENDS_CAPABILITY -(0,N)- CAPABILITY
+
+' Invariants not expressible by cardinality alone:
+
+' - An initialized project selects exactly one active bundle.
+
+' - An initialized project enables one or more targets.
+
+' - Each setup question has exactly one default option.
+
+' - Setup choices own only bundle and target selection.
+
+' - Profile recommendations remain advisory.
+
+@endchen

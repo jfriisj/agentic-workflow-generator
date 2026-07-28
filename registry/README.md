@@ -44,16 +44,28 @@ Setup
 
 ## Conceptual domain model
 
-The authoritative conceptual entity and relationship model is:
+The domain overview is the navigation entry point:
 
 ~~~text
-docs/diagrams/agentic-domain-model-chen.puml
+docs/diagrams/domain/agentic-domain-overview.puml
 ~~~
 
-The rendered SVG is:
+The authoritative entity, relationship and cardinality models are divided by
+bounded context:
 
 ~~~text
-docs/diagrams/agentic-domain-model-chen.svg
+docs/diagrams/domain/setup-selection-chen.puml
+docs/diagrams/domain/workflow-control-chen.puml
+docs/diagrams/domain/agent-composition-chen.puml
+docs/diagrams/domain/capabilities-artifacts-targets-chen.puml
+~~~
+
+Rendered SVG files are maintained beside each PlantUML source.
+
+Cross-context ownership and diagram authority are documented in:
+
+~~~text
+docs/diagrams/domain/README.md
 ~~~
 
 The central target-model distinction is:

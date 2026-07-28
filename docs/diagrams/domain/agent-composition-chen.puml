@@ -1,0 +1,107 @@
+@startchen
+
+' Agentic Workflow Generator
+
+' Agent composition context
+
+'
+
+' Full entities belong to this bounded context.
+
+' Reference entities are defined authoritatively elsewhere.
+
+entity "Bundle" as BUNDLE {
+  name : STRING <<key>>
+  version : STRING
+  description : STRING
+}
+
+entity "Agent profile" as AGENT_PROFILE {
+  name : STRING <<key>>
+  version : STRING
+  role : STRING
+  description : STRING
+  recommendedResponsibility : STRING <<multi>>
+  defaultGuardrail : STRING <<multi>>
+}
+
+entity "Agent instance" as AGENT_INSTANCE <<weak>> {
+  id : STRING <<key>>
+  displayName : STRING
+  sharedContextPolicy : STRING
+}
+
+entity "Role binding" as ROLE_BINDING <<weak>> {
+  roleName : STRING <<key>>
+  bindingType : STRING
+  responsibility : STRING <<multi>>
+  guardrail : STRING <<multi>>
+}
+
+entity "Separation policy" as SEPARATION_POLICY <<weak>> {
+  id : STRING <<key>>
+  mode : STRING
+  requireDistinctInstances : BOOLEAN
+  reason : STRING
+}
+
+entity "Permission profile" as PERMISSION_PROFILE <<reference>> {
+  name : STRING <<key>>
+}
+
+relationship "contains agent instance" as HAS_AGENT_INSTANCE <<identifying>> {
+}
+
+relationship "instantiates profile" as INSTANTIATES_PROFILE {
+}
+
+relationship "contains role binding" as HAS_ROLE_BINDING <<identifying>> {
+}
+
+relationship "assigns agent instance" as ASSIGNS_INSTANCE {
+}
+
+relationship "uses effective permission" as INSTANCE_USES_PERMISSION {
+  authoritative : BOOLEAN
+}
+
+relationship "contains separation policy" as HAS_SEPARATION_POLICY <<identifying>> {
+}
+
+relationship "constrains role binding" as CONSTRAINS_BINDING {
+}
+
+relationship "defaults to permission" as DEFAULT_PERMISSION {
+  advisory : BOOLEAN
+}
+
+HAS_AGENT_INSTANCE =1= BUNDLE
+HAS_AGENT_INSTANCE =N= AGENT_INSTANCE
+INSTANTIATES_PROFILE -(1,1)- AGENT_INSTANCE
+INSTANTIATES_PROFILE -(0,N)- AGENT_PROFILE
+HAS_ROLE_BINDING =1= BUNDLE
+HAS_ROLE_BINDING =N= ROLE_BINDING
+ASSIGNS_INSTANCE -(1,N)- AGENT_INSTANCE
+ASSIGNS_INSTANCE -(1,1)- ROLE_BINDING
+INSTANCE_USES_PERMISSION -(1,1)- AGENT_INSTANCE
+INSTANCE_USES_PERMISSION -(0,N)- PERMISSION_PROFILE
+HAS_SEPARATION_POLICY -1- BUNDLE
+HAS_SEPARATION_POLICY =N= SEPARATION_POLICY
+CONSTRAINS_BINDING -(2,N)- SEPARATION_POLICY
+CONSTRAINS_BINDING -(0,N)- ROLE_BINDING
+DEFAULT_PERMISSION -(1,1)- AGENT_PROFILE
+DEFAULT_PERMISSION -(0,N)- PERMISSION_PROFILE
+
+' Invariants not expressible by cardinality alone:
+
+' - The bundle owns concrete instances and role bindings.
+
+' - One agent instance may serve several role bindings.
+
+' - Each agent instance has one effective permission profile.
+
+' - Agent-profile permissions remain advisory defaults.
+
+' - Required separation uses distinct agent instances.
+
+@endchen

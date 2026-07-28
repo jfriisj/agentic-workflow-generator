@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 26. juli 2026
+Opdateret: 28. juli 2026
 
 Denne fil er projektets autoritative status og roadmap. Den skal kun indeholde den aktuelle tilstand, afsluttede hovedleverancer, kendte mangler og næste prioriterede arbejde.
 
@@ -15,10 +15,10 @@ Projektet betragtes som færdigt, når følgende er opfyldt:
 * Registry-modellen understøtter genanvendelige agentprofiler, konkrete agent-instances, role bindings, separation policies, capabilities, skills, artifact contracts, workflows, permission-profiler og target adapters.
 * Den samme registry kan sammensætte både kompakte generalistsetups og specialiserede teams uden at svække sikkerhedsinvarianter eller kræve duplikerede agentdefinitioner.
 * Setup vælger et bundle og aktive targets. Det valgte bundle ejer alle øvrige konkrete runtimevalg, herunder profile, workflow, agent-instances, roller, skills, capabilities, permissions, artifacts og krav om separation of duties.
-* Alle workflows er fail-closed og har entydige state owners, controller-binding, transitions, gates, evidenskrav, `BLOCKED`-routing samt definerede retry- og eskalationsgrænser.
+* Alle workflows er fail-closed og har entydige state owners, controller-binding, transitions, gates, evidenskrav, `BLOCKED`-routing og en eksplicit default failure state.
 * Artifact contracts kan validere status, provenance, revision, inputreferencer og reproducerbar evidens ved workflow-gates.
 * Genereret output bevarer den fulde semantik fra registryet og er gyldigt, konsistent og operationelt anvendeligt for hvert understøttet target.
-* Init, resolution, generation, lockfile og manifest er deterministiske, idempotente og byte-identiske ved gentaget kørsel med samme input.
+* Init, compilation, generation, lockfile og manifest er deterministiske, idempotente og byte-identiske ved gentaget kørsel med samme input.
 * Ugyldige registries, usikre kompositioner, manglende bindings og outputdrift afvises eksplicit uden fallback eller silent degradation.
 * Alle registrerede setups kan initialiseres og genereres fra et tomt, isoleret consumer-repository og bestå schema-, semantic-, compatibility-, runtime- og negative-gate-tests.
 * Nye agents, skills, workflows, artifacts, setups, bundles, profiles og targets kan tilføjes gennem dokumenterede kontrakter uden ændringer i compilerens kerne, medmindre et nyt domænekoncept introduceres.
@@ -30,7 +30,7 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Runtime-schema, bundle-init, resolution, targetgenerering og flere downstream-consumers anvender fortsat legacy-modellen.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups og materialiserede setup-profiler er migreret. Den typed, side-effect-free setupmaterialiseringsservice og guided-init application service er implementeret og integreret med alle fire virkelige setup-registryfiler. Active-config-schemaet, legacy bundle-init, legacy resolution, targetgenerering og flere downstream-consumers anvender fortsat legacy-modellen.
 
 Repositoryet er derfor fortsat bevidst ikke globalt green. Den dokumenterede compilerarkitektur og den nye testarkitektur anvendes nu til kontrollerede vertikale migrations-slices uden compatibility projection eller fallback.
 
@@ -42,12 +42,23 @@ registry
 → agent instances og role bindings
 → compiled composition
 → agentic.json
-→ resolution
-→ lockfile
+→ lockfile over compilerinput
 → target-output
-→ output manifest
+→ output manifest over genererede filer
 → validering
 ~~~
+
+### Fastlåst scope for migrationsfasen
+
+* `CompiledComposition` er compilerens eneste interne mellemrepræsentation.
+* `.agentic/agentic.json` er den persistente aktive serialisering af kompositionen.
+* Det separate legacy-resolutionlag fjernes, når typed target-generation overtager dets sidste consumers.
+* Lockfile og output manifest bevares med adskilte ansvar: inputprovenance henholdsvis outputejerskab og outputintegritet.
+* Runtime-context-generation er ikke del af den aktuelle compiler og må ikke materialiseres som deaktiveret konfiguration.
+* Fail-closed-, artifact- og evidencekrav er compilerinvarianter, ikke konfigurerbare validation policies.
+* Target adapters begrænses til identity, output paths, owned paths og permission mapping. Targetspecifik adfærd ejes af renderer-kode og contract tests.
+* Der tilføjes ingen nye targets, runtime-orchestration, plugin discovery, template engine eller generisk target-DSL, før den breaking migration er green.
+* Hver afsluttet migrationsslice skal samtidig opdatere kode, tests, `docs/`, relevante diagramkilder og renderede diagrammer samt `project-status.md`, så alle beskriver den samme implementerede model.
 
 ### Implementeret på migrationsbranchen
 
@@ -88,12 +99,14 @@ registry
 * Registry-schema-validation består for 46 registryfiler.
 * De migrerede semantic validators består isoleret på den aktuelle registry.
 * Legacy-felter afvises eksplicit i de migrerede schemaer og validators.
+* Den konceptuelle domænemodel er opdelt i ét navigationsdiagram og fire autoritative bounded-context Chen-diagrammer med synkroniserede SVG-filer.
+* `README.md`, registrydokumentationen og de autoritative dokumenter under `docs/` er synkroniseret med den reducerede compilerarkitektur uden et separat resolutionlag, runtime-context-policy eller konfigurerbar validation policy.
 
 ### Endnu ikke migreret eller afsluttet
 
 * typed domain models og validators for targets
 * `validate-registry-references.py`
-* resolution-format, resolver og resolution-validator
+* fjernelse af legacy resolution-format, resolver og resolution-validator sammen med deres sidste consumers
 * lockfile-inputmodellen efter den endelige compilerstruktur
 * OpenCode- og Copilot-generatorerne
 * output manifest og target compatibility-validering
@@ -154,7 +167,7 @@ Færdige forbedringer omfatter:
 * deterministisk skill-materialisering
 * target compatibility-validator
 * OpenCode runtime parsing
-* runtime context eksplicit deaktiveret indtil senere milepæl
+* legacy `runtimeContext` materialiseres fortsat som deaktiveret konfiguration i gamle consumers og skal fjernes; runtime-context-generation er ikke et senere migrationsmål
 
 ## Aktuel validering
 
@@ -442,7 +455,7 @@ Workflowmodellen mangler blandt andet:
 
 * eksplicit `BLOCKED`-routing
 * entydig Orchestrator/controller-semantik
-* retry- og eskalationsgrænser
+* targetoutput skal bevare workflowets eksisterende fail-closed routing og eksplicitte default failure state
 * artifact-invalidation efter ændringer
 * klar test-evidens i review-heavy-flowet
 * klar execution-model for AI-evaluering
@@ -471,13 +484,13 @@ Workflowmodellen mangler blandt andet:
 * Reaktiv fejl-for-fejl-patching af downstream-scripts er sat på pause.
 * Architecture hardening er en nødvendig del af den igangværende migration og ikke en ny produktfeature.
 * `docs/architecture.md` er autoritativ for compilerens kodearkitektur.
-* Chen-modellen i `docs/diagrams/agentic-domain-model-chen.puml` er fortsat autoritativ for domæneentities og relationer.
+* De fire fokuserede Chen-diagrammer under `docs/diagrams/domain/` er autoritative for entities, relationer og cardinalities i hvert deres bounded context; oversigtsdiagrammet er kun navigation.
 * Python-kode skal flyttes til en pakke under `src/agentic_workflow_generator/`.
 * Tests skal opdeles under `tests/unit`, `tests/contract`, `tests/integration`, `tests/negative` og `tests/e2e`.
 * `scripts/agentic/agentic-gen.sh` er kun en midlertidig migrationslauncher, må ikke eje domæne- eller compilerlogik og skal fjernes sammen med resten af `scripts/agentic`, når pakkens CLI dækker den offentlige kontrakt.
 * Registry-loading, diagnostics, JSON IO, path-sikkerhed og hashing skal have én implementation.
 * Rå JSON dictionaries må kun være den eksterne grænse. Compilerens interne lag skal bruge typed modeller.
-* Resolver og targets skal anvende den samme canonical compiled composition eller compiler-IR.
+* Targetgenerering skal anvende den canonical `CompiledComposition` og må ikke indføre et separat resolution- eller compiler-IR-lag.
 * Validatorer skal returnere strukturerede diagnostics med stabile fejlkoder.
 * Unit- og negative tests skal kalde den relevante Python-komponent direkte.
 * Kun egentlige integration- og E2E-tests må starte hele pipelinen.
@@ -829,7 +842,7 @@ legacy negative gates
   De tilsvarende cases dækkes af den isolerede workflow-testpakke
 ~~~
 
-Stale downstream-forbrug af det fjernede `workflow.states[].agent`-felt findes fortsat i init-, resolution- og targetlagene. De må ikke repareres med compatibility projection i workflow-slicen.
+Stale downstream-forbrug af det fjernede `workflow.states[].agent`-felt findes fortsat i legacy bundle-init-, resolution- og targetlagene. De må ikke repareres med compatibility projection i workflow-slicen.
 
 Bundle-slicen omfatter nu:
 
@@ -1067,10 +1080,10 @@ For hver resterende slice:
 #### 0.5 Migrér compilerens downstream-lag
 
 * definer canonical compiled composition
-* migrér runtime-schema og `agentic.json`
+* migrér active-config-schemaet og typed deserialisering af `.agentic/agentic.json`
 * migrér init og materialisering
 * migrér registry-reference-validation
-* migrér resolver og resolution-format
+* fjern resolver og resolution-format sammen med deres sidste consumers
 * migrér lockfile
 * migrér targetgeneratorer
 * migrér manifest
@@ -1088,9 +1101,9 @@ For hver resterende slice:
 
 * implementér eksplicit `BLOCKED`-routing
 * afklar controller- og routingsemantik
-* tilføj retry- og eskalationspolitik
-* implementér artifact-invalidation
-* ret review-heavy- og AI-evalueringsflow
+* retry- og eskalationspolitik er uden for migrationsscopet og kræver en separat beslutning efter green baseline
+* artifact-invalidation er uden for migrationsscopet og kræver en separat beslutning efter green baseline
+* funktionelle udvidelser af review-heavy- og AI-evalueringsflow er udsat, indtil den breaking migration er green
 
 ### Fase 3 — Profiles, bundles og setups
 
@@ -1143,8 +1156,23 @@ Næste vertikale registry-slice er targets.
 
 ## Autoritativ domænemodel
 
-Chen-målmodellen er autoritativ for konceptuelle entities, boundaries, relationer og cardinalities:
-- [docs/diagrams/agentic-domain-model-chen.puml](docs/diagrams/agentic-domain-model-chen.puml)
+Domænemodellen er opdelt efter bounded context.
 
+Oversigten er kun navigation:
 
-`project-status.md` indeholder kun implementeringsstatus, beslutninger, kendte mangler og prioriteret arbejde. Diagrammets fulde PlantUML-kilde vedligeholdes kun i diagramfilen.
+- [Domain overview](docs/diagrams/domain/agentic-domain-overview.puml)
+
+De autoritative Chen-modeller er:
+
+- [Setup and selection](docs/diagrams/domain/setup-selection-chen.puml)
+- [Workflow control](docs/diagrams/domain/workflow-control-chen.puml)
+- [Agent composition](docs/diagrams/domain/agent-composition-chen.puml)
+- [Capabilities, artifacts and targets](docs/diagrams/domain/capabilities-artifacts-targets-chen.puml)
+
+Hvert detaljeret diagram er autoritativt for entities, boundaries, relationer og
+cardinalities i sit eget område. Cross-context entities markeres som references
+og defineres fuldt i det diagram, som ejer dem.
+
+`project-status.md` indeholder kun implementeringsstatus, beslutninger, kendte
+mangler og prioriteret arbejde. PlantUML-kilder og renderede SVG-filer
+vedligeholdes under `docs/diagrams/domain/`.

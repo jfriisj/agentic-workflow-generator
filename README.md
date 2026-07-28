@@ -15,13 +15,15 @@ This project treats agent workflows like a compiler problem:
 ```text
 registry source of truth
         ↓
-bundle selection
+bundle selection and compilation
         ↓
 .agentic/agentic.json
         ↓
-resolution + lockfile
+lockfile over compiler inputs
         ↓
 target-specific generated output
+        ↓
+output manifest
         ↓
 validation gates
 ```
@@ -39,21 +41,29 @@ The goal is to make agentic workflows reproducible, deterministic, and fail-fast
 | Capability | Defines a stable interface implemented by a skill |
 | Skill | Provides capabilities and an operational working method |
 | Workflow | Defines states, transitions, gates, terminal states, and fail-closed routing |
-| Bundle | Selects the effective workflow and complete deployable composition |
-| Profile | Provides advisory domain and workflow recommendations |
-| Setup | Defines guided questions, classifications, recommendations, and the default bundle |
-| Setup profile | Records selected guided answers and the materialized recommendation |
+| Bundle | Owns the effective workflow and complete concrete composition |
+| Profile | Provides advisory project and workflow recommendations |
+| Setup | Defines guided questions with default and override selections for bundle and targets |
+| Setup profile | Records guided answers and the materialized bundle and target selection |
 | Artifact contract | Defines required output evidence, structure, paths, and statuses |
-| Target adapter | Maps the platform-neutral composition to a target platform |
-| Lockfile | Records deterministic compiler input state |
-| Output manifest | Records generated files and active bundle metadata |
+| Target adapter | Maps permissions and owned output paths for one target platform |
+| Lockfile | Records deterministic compiler-input provenance and integrity |
+| Output manifest | Records generated-file ownership and integrity |
 
-The authoritative conceptual model is maintained in
-[`docs/diagrams/agentic-domain-model-chen.puml`](docs/diagrams/agentic-domain-model-chen.puml).
+The conceptual model is divided into focused bounded-context diagrams.
 
-A rendered
-[`SVG diagram`](docs/diagrams/agentic-domain-model-chen.svg)
-is maintained beside it.
+Start with the
+[`domain overview`](docs/diagrams/domain/agentic-domain-overview.puml)
+or its
+[`rendered SVG`](docs/diagrams/domain/agentic-domain-overview.svg).
+
+The four detailed Chen diagrams are authoritative for the entities,
+relationships and cardinalities owned by their respective bounded contexts:
+
+- [`Setup and selection`](docs/diagrams/domain/setup-selection-chen.puml)
+- [`Workflow control`](docs/diagrams/domain/workflow-control-chen.puml)
+- [`Agent composition`](docs/diagrams/domain/agent-composition-chen.puml)
+- [`Capabilities, artifacts and targets`](docs/diagrams/domain/capabilities-artifacts-targets-chen.puml)
 
 The target composition chain is:
 
@@ -377,8 +387,10 @@ agent artifact bindings
 registry schemas
 registry references
 capability coverage
-resolution output
+compiled composition
+active config
 lockfile structure
+output manifest
 generated output
 generation idempotency
 init idempotency

@@ -1,22 +1,44 @@
 # Agentic Workflow Generator — Core Domain Model
 
-## 1. Purpose
+## Purpose
 
-This document defines the platform-neutral core model.
+This document defines the platform-neutral core domain used by
+`agentic-workflow-generator`.
 
-The core model must not depend on VS Code Copilot, OpenCode, Codex, Claude Code, or any other target platform.
+The conceptual model is divided by bounded context.
 
-Target-specific differences must be handled by target adapters.
-
-## 2. Main Entities
-
-The conceptual relationships are defined in:
+The navigation overview is:
 
 ~~~text
-docs/diagrams/agentic-domain-model-chen.puml
+docs/diagrams/domain/agentic-domain-overview.puml
 ~~~
 
-Main entities:
+The authoritative detailed Chen diagrams are:
+
+~~~text
+docs/diagrams/domain/setup-selection-chen.puml
+docs/diagrams/domain/workflow-control-chen.puml
+docs/diagrams/domain/agent-composition-chen.puml
+docs/diagrams/domain/capabilities-artifacts-targets-chen.puml
+~~~
+
+Each detailed diagram owns the complete definitions and cardinalities for its
+bounded context. Entities marked `<<reference>>` are defined authoritatively in
+another detailed diagram.
+
+The compiler pipeline and implementation boundaries are authoritative in:
+
+~~~text
+docs/architecture.md
+~~~
+
+The core model must not depend on OpenCode, VS Code Copilot or another target
+platform. Target-specific translation belongs to target renderers and their
+contract tests.
+
+## Domain boundary
+
+The stable conceptual entities are:
 
 ~~~text
 Project
@@ -38,455 +60,365 @@ Skill
 ArtifactContract
 PermissionProfile
 TargetAdapter
-RuntimeContext
-Lockfile
-OutputManifest
 ~~~
 
-The model distinguishes reusable registry definitions from concrete runtime composition:
+Compiler implementation types such as `CompiledComposition` and its compiled
+children are not separate registry entities. They are immutable derived
+representations of a validated bundle composition.
+
+Lockfiles and output manifests are compiler outputs rather than registry domain
+entities.
+
+## Project
+
+A project contains the metadata preserved in the active configuration:
 
 ~~~text
-AgentProfile = reusable defaults and recommendations
-AgentInstance = concrete generated worker
-RoleBinding = authoritative workflow assignment
-SeparationPolicy = explicit independence requirement
+name
+type
+description
+language profiles
+runtime profiles
+architecture profile
 ~~~
 
-## 3. Project
+An initialized project selects exactly one active bundle and one or more enabled
+targets.
 
-A project is the root configuration for generation.
+Project metadata does not own agent assignments, workflow ownership, skills,
+permissions or artifact production.
 
-Example:
+## Setup
 
-~~~json
-{
-  "project": {
-    "name": "real-time-speech-translation",
-    "type": "microservice-platform",
-    "languageProfiles": ["python", "typescript"],
-    "runtimeProfiles": ["docker", "k3s", "kafka"],
-    "architectureProfile": "event-driven-microservices"
-  }
-}
+A setup provides guided selection of:
+
+~~~text
+bundle
+targets
 ~~~
 
-## 4. Workflow
+A setup has one default selection and may contain questions with options that
+override the selected bundle or targets.
 
-A workflow is a state machine.
+Each question has exactly one default option.
 
-Example:
+A setup must not independently select profile, workflow, agent instances, role
+bindings, capabilities, skills, permissions or artifacts. Those concrete values
+belong to the selected bundle.
 
-~~~json
-{
-  "workflow": {
-    "profile": "orchestrated-delivery",
-    "start": "Requirements",
-    "terminalStates": ["Done", "Blocked"],
-    "failClosed": true
-  }
-}
+## Profile
+
+A profile is advisory project metadata.
+
+It may recommend:
+
+~~~text
+workflow
+agent profiles
+capabilities
+language profiles
+runtime profiles
 ~~~
 
-A workflow contains:
+Profile recommendations must never become fallback runtime authority.
 
-- states
-- transitions
-- gates
-- handoff rules
-- failure rules
+## Bundle
 
-## 5. Agent Profile
+A bundle owns the complete concrete composition:
 
-An agent profile is a reusable registry definition with safe defaults and
-recommendations. It is not a concrete generated worker and does not own an
-immutable runtime assignment.
-
-Example:
-
-~~~json
-{
-  "name": "CodeReviewer",
-  "role": "code-quality-gate",
-  "description": "Reviews code for correctness, maintainability, tests, and security risks.",
-  "recommendedResponsibilities": [
-    "Review changed code",
-    "Create code review evidence",
-    "Reject unsafe or unmaintainable implementation"
-  ],
-  "defaultGuardrails": [
-    "Do not implement feature behavior",
-    "Do not change workflow routing",
-    "Do not approve release"
-  ],
-  "recommendedCapabilities": [
-    "review.clean-code",
-    "review.tests",
-    "review.security"
-  ],
-  "defaultPermissionProfile": "read-only"
-}
+~~~text
+profile
+workflow
+agent instances
+role bindings
+separation policies
+skills
+artifacts
+targets
 ~~~
 
-Recommendations do not prevent a validated composition from assigning a
-different capability, skill, responsibility, or permission profile.
+A bundle is the only registry entity that assembles these concrete runtime
+choices.
 
-## 5.1 Agent Instance
+## Agent profile
+
+An agent profile is a reusable advisory definition.
+
+It contains recommendations and defaults such as:
+
+~~~text
+role
+responsibilities
+guardrails
+capabilities
+default permission profile
+~~~
+
+An agent profile is not a generated worker and does not own workflow state,
+artifact production or effective permissions.
+
+## Agent instance
 
 An agent instance is a concrete worker owned by one bundle.
 
-Example:
-
-~~~json
-{
-  "id": "delivery-worker",
-  "profile": "CodeReviewer",
-  "displayName": "Delivery Worker",
-  "permissionProfile": "implementation",
-  "sharedContextPolicy": "shared-with-assigned-bindings"
-}
-~~~
-
-One agent instance may serve several role bindings. It materializes the union
-of their required capabilities, selected skills, responsibilities, and
-guardrails.
-
-Each agent instance has exactly one effective permission profile. The profile
-must be selected explicitly and must satisfy every assigned role binding.
-Validation must fail rather than silently broaden permissions.
-
-## 5.2 Role Binding
-
-A role binding is the authoritative assignment of workflow responsibility to
-an agent instance.
-
-Example:
-
-~~~json
-{
-  "roleName": "implementation",
-  "bindingType": "state-owner",
-  "agentInstance": "delivery-worker",
-  "workflowState": "Implementer",
-  "requiredCapabilities": [
-    "implementation.code",
-    "implementation.update-tests"
-  ],
-  "selectedSkills": [
-    "implementation-engineering"
-  ],
-  "produces": [
-    "ImplementationReport"
-  ],
-  "responsibilities": [
-    "Implement the approved change"
-  ],
-  "guardrails": [
-    "Do not self-approve implementation"
-  ]
-}
-~~~
-
-A role binding has one of two binding types:
-
-- `state-owner`: owns exactly one non-terminal workflow state and its gate
-- `workflow-controller`: owns routing authority but no workflow state or gate
-
-Every non-terminal workflow state has exactly one state-owner binding.
-
-Every workflow has exactly one workflow-controller binding.
-
-A role binding cannot be both a state owner and a workflow controller.
-
-## 5.3 Separation Policy
-
-A separation policy declares when selected role bindings must use distinct
-agent instances.
-
-Example:
-
-~~~json
-{
-  "id": "implementation-review-separation",
-  "mode": "required",
-  "roleBindings": [
-    "implementation",
-    "code-review"
-  ],
-  "requireDistinctInstances": true,
-  "reason": "Implementation must not approve its own work."
-}
-~~~
-
-Separation is bundle-specific. It must not be implemented as a global lock
-between agent profile names and skills.
-## 6. Capability
-
-A capability is a stable interface.
-
-Example:
-
-~~~json
-{
-  "name": "review.clean-code",
-  "description": "Ability to review code for readability, naming, duplication, and maintainability."
-}
-~~~
-
-Capabilities decouple workflow roles and agent profiles from concrete skill implementations.
-
-The composition owns the concrete assignment:
+It explicitly selects:
 
 ~~~text
-Setup
-  -> Bundle
-  -> Agent instance
-  -> Role binding
-  -> Required capabilities
-  -> Selected skills
+agent profile
+display name
+permission profile
+shared-context policy
 ~~~
 
-An agent's registry capabilities are recommendations and defaults. They must not force every setup containing that agent to install the complete default skill set.
+Each agent instance has exactly one effective permission profile.
 
-## 7. Skill
+One agent instance may serve several role bindings when the bundle's separation
+policies allow it.
+
+## Role binding
+
+A role binding is the authoritative assignment of workflow responsibility to an
+agent instance.
+
+A binding owns:
+
+~~~text
+binding type
+assigned agent instance
+workflow state and gate when state-owned
+required capabilities
+selected skills
+produced artifacts
+responsibilities
+guardrails
+~~~
+
+The supported binding types are:
+
+~~~text
+state-owner
+workflow-controller
+~~~
+
+A state-owner binding owns exactly one non-terminal workflow state and its gate.
+
+A workflow-controller binding owns routing authority and must not own a workflow
+state or gate.
+
+## Separation policy
+
+A separation policy declares whether selected role bindings must use distinct
+agent instances.
+
+Separation is bundle-specific. It must not be inferred from agent profile names,
+skills or global conventions.
+
+## Capability
+
+A capability is a stable platform-neutral identity used to connect workflow
+requirements with concrete skill implementations.
+
+Capabilities are currently represented by validated string identities. There is
+no separate capability registry.
+
+Role bindings own required capabilities. Skills provide capabilities.
+
+## Skill
 
 A skill is a concrete implementation of one or more capabilities.
 
-Example:
+A role binding explicitly selects the skills used for that role. Advisory agent
+or profile recommendations must not install skills implicitly.
 
-~~~json
-{
-  "name": "code-review-clean-code",
-  "version": "1.0.0",
-  "description": "Clean-code review guidance.",
-  "provides": [
-    "review.clean-code",
-    "review.naming",
-    "review.readability"
-  ],
-  "requiresCapabilities": [
-    "requirements.define-acceptance-criteria"
-  ],
-  "recommendedAgents": [
-    "CodeReviewer"
-  ],
-  "contentPath": "SKILL.md",
-  "contextBudget": {
-    "maxTokens": 1800
-  }
-}
-~~~
+A selected skill must provide the capabilities required by its binding.
 
-`recommendedAgents` is advisory metadata. It documents the most common specialist assignment but does not prevent another agent from receiving the skill through a validated setup or bundle.
+## Workflow
 
-Skills provide working methods and capability implementations. Authorization, artifact ownership, workflow routing, and separation of duties belong to the concrete composition and its gates.
-
-## 8. Gate
-
-A gate is a quality boundary.
-
-Example:
-
-~~~json
-{
-  "name": "code-review",
-  "owner": "CodeReviewer",
-  "requiredCapabilities": [
-    "review.clean-code",
-    "review.tests"
-  ],
-  "requiredArtifacts": [
-    {
-      "type": "CodeReview",
-      "pathPattern": "agent-output/code-review/*.md"
-    }
-  ],
-  "passRoute": "QA",
-  "failRoute": "Implementer",
-  "blockedRoute": "Orchestrator",
-  "blocking": true
-}
-~~~
-
-## 9. Artifact
-
-Artifacts are workflow memory.
-
-Example artifact types:
+A workflow is a fail-closed state machine containing:
 
 ~~~text
-Requirements
-Plan
-ArchitectureDecision
-SecurityReview
-ImplementationReport
-TestReport
-CodeReview
-QAReport
-UATReport
-ReleaseNote
-Retrospective
+start state
+terminal states
+states
+transitions
+gates
+default failure state
 ~~~
 
-Artifacts should have:
+Every non-terminal state has exactly one gate and exactly one state-owner
+binding.
 
-- type
-- schema
-- path pattern
-- owner
-- required sections
-- status field
-- evidence section
+Terminal states have no gate and no role binding.
 
-## 10. Runtime Context
+Every workflow has exactly one workflow-controller binding.
 
-Runtime context is generated for a specific agent and workflow run.
+Transitions and failure routing belong to the workflow, not to agents or target
+renderers.
 
-Example:
+## Gate
 
-~~~json
-{
-  "workflowId": "WF-042",
-  "agent": "CodeReviewer",
-  "contextPath": ".runtime/context/WF-042-CodeReviewer.context.md",
-  "resolutionPath": ".runtime/resolution/WF-042-CodeReviewer.skills.json",
-  "resolvedCapabilities": [
-    {
-      "capability": "review.clean-code",
-      "skill": "code-review-clean-code",
-      "version": "1.0.0"
-    }
-  ]
-}
-~~~
+A gate is a blocking workflow quality boundary.
 
-## 11. Permission Profile
-
-Permission profiles are platform-neutral.
-
-Example:
-
-~~~json
-{
-  "name": "read-only",
-  "read": true,
-  "write": false,
-  "edit": false,
-  "bash": "deny"
-}
-~~~
-
-Target adapters translate permission profiles to platform-specific output.
-
-An agent profile may recommend a default permission profile. The effective permission profile belongs to the concrete agent instance, because each generated worker has one target-level permission configuration. It must satisfy every role binding assigned to that instance and map successfully through every enabled target adapter.
-
-## 12. Target
-
-A target is an output platform.
-
-Example:
-
-~~~json
-{
-  "name": "vscode-copilot",
-  "enabled": true
-}
-~~~
-
-## 13. Target Adapter
-
-A target adapter maps the core model to platform files.
-
-Example:
-
-~~~json
-{
-  "name": "vscode-copilot",
-  "version": "0.1.0",
-  "templates": {
-    "agent": "templates/agent.md.hbs",
-    "skill": "templates/skill.md.hbs"
-  },
-  "outputPaths": {
-    "agents": ".github/agents",
-    "skills": ".github/skills"
-  }
-}
-~~~
-
-## 14. Lockfile
-
-The lockfile makes generation reproducible.
-
-Example:
-
-~~~json
-{
-  "lockfileVersion": 1,
-  "registry": {
-    "type": "local",
-    "path": "~/.agentic/registry",
-    "revision": "local"
-  },
-  "skills": {
-    "code-review-clean-code": {
-      "version": "1.0.0",
-      "checksum": "sha256:..."
-    }
-  },
-  "templates": {
-    "vscode-copilot/agent.md.hbs": {
-      "checksum": "sha256:..."
-    }
-  }
-}
-~~~
-
-## 15. Compilation Pipeline
+A gate owns:
 
 ~~~text
-agentic.json
-  ↓
-validate config
-  ↓
-load registry
-  ↓
-resolve workflow profile
-  ↓
-resolve agents
-  ↓
-resolve capabilities
-  ↓
-resolve skills
-  ↓
-build intermediate representation
-  ↓
-generate runtime context
-  ↓
-generate target output
-  ↓
-validate generated output
+name
+blocking policy
+required capabilities
+required artifacts and accepted statuses
 ~~~
 
-## 16. Intermediate Representation
+Pass, fail and blocked routing belongs to workflow transitions and the
+workflow's explicit default failure state. Gates do not own routes, retry
+limits or escalation policy.
 
-The IR is the compiled, platform-neutral model.
+The state-owner binding must provide the gate's required capabilities and
+produce its required artifacts.
 
-It should include:
+## Artifact contract
 
-- resolved agents
-- resolved capabilities
-- resolved skills
-- resolved gates
-- resolved workflows
-- resolved permission profiles
-- target compatibility warnings
-- runtime context paths
-- generated output plan
+An artifact contract defines reproducible workflow evidence.
 
-## 17. Open Questions
+It includes:
 
-1. Should IR be saved to `.agentic/generated/ir.json`?
-2. Should runtime context be generated during compile or generate?
-3. Should gates be represented as JSON, YAML, or both?
-4. Should artifact schemas be part of registry or project config?
-5. Should each target adapter generate validation warnings?
+~~~text
+type
+version
+description
+path pattern
+status contract
+allowed statuses
+required headings
+schema
+~~~
+
+Artifact production belongs to role bindings. Agent profiles do not own produced
+artifacts.
+
+## Permission profile
+
+A permission profile is a platform-neutral effective permission definition.
+
+Each concrete agent instance explicitly selects one permission profile.
+
+Every enabled target adapter must provide a valid mapping for each effective
+permission profile used by the compiled composition.
+
+Permission mappings must never silently broaden permissions.
+
+## Target adapter
+
+A target adapter registry entry owns only:
+
+~~~text
+name
+version
+description
+output paths
+owned paths
+permission mapping
+~~~
+
+Target-specific file formats, handoff rendering and validation behavior belong
+to renderer code and contract tests.
+
+Target adapters do not define:
+
+~~~text
+generic feature flags
+templates
+plugin discovery
+runtime-context generation
+fallback behavior
+degraded-output policies
+target-independent domain rules
+~~~
+
+## Compiler boundary
+
+Validated registry data is compiled into one immutable
+`CompiledComposition`.
+
+The compiled composition resolves:
+
+~~~text
+project metadata
+bundle and version
+profile
+workflow
+enabled targets
+agent instances
+role bindings
+state ownership
+controller binding
+effective permission profiles
+selected skills
+artifact contracts
+workflow gates
+artifact production
+separation constraints
+~~~
+
+`CompiledComposition` is the compiler's only internal intermediate
+representation.
+
+The active `.agentic/agentic.json` is its persistent serialization.
+
+There is no separate persisted resolution model.
+
+Target generation must consume the typed active configuration or the in-memory
+compiled composition. It must not reinterpret raw registry files.
+
+## Compiler outputs
+
+The lockfile records compiler-input provenance and integrity.
+
+The output manifest records generated-file ownership and integrity:
+
+~~~text
+enabled targets
+owned paths
+generated file paths
+byte sizes
+content hashes
+~~~
+
+Neither file is a second representation of the domain composition.
+
+## Required invariants
+
+Validation and compilation must fail when any of these invariants are broken:
+
+~~~text
+all registry references resolve exactly
+every non-terminal state has one state-owner binding
+every workflow has one controller binding
+controller bindings own no state or gate
+selected skills belong to the bundle
+selected skills cover binding-required capabilities
+produced artifacts belong to the bundle
+gate-required artifacts are produced by the state owner
+each agent instance has one effective permission profile
+every effective permission maps through every enabled target
+separation policies reference valid bindings
+required distinct bindings use distinct instances
+target output remains inside declared owned paths
+target-owned paths do not overlap
+~~~
+
+There is no fallback, compatibility projection or silent degradation.
+
+## Current non-goals
+
+The current breaking migration does not introduce:
+
+~~~text
+additional target platforms
+runtime-context generation
+autonomous workflow execution
+dynamic plugins
+template engines
+target feature negotiation
+generic target DSLs
+model hosting
+~~~

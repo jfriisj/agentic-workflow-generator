@@ -1,0 +1,123 @@
+@startchen
+
+' Agentic Workflow Generator
+
+' Workflow control context
+
+'
+
+' Full entities belong to this bounded context.
+
+' Reference entities are defined authoritatively elsewhere.
+
+entity "Workflow" as WORKFLOW {
+  name : STRING <<key>>
+  version : STRING
+  failClosed : BOOLEAN
+}
+
+entity "Workflow state" as WORKFLOW_STATE <<weak>> {
+  name : STRING <<key>>
+  terminal : BOOLEAN
+}
+
+entity "Transition" as TRANSITION <<weak>> {
+  id : STRING <<key>>
+  event : STRING
+}
+
+entity "Gate" as GATE <<weak>> {
+  name : STRING <<key>>
+  blocking : BOOLEAN
+}
+
+entity "Role binding" as ROLE_BINDING <<reference>> {
+  roleName : STRING <<key>>
+}
+
+entity "Capability" as CAPABILITY <<reference>> {
+  name : STRING <<key>>
+}
+
+entity "Artifact contract" as ARTIFACT_CONTRACT <<reference>> {
+  type : STRING <<key>>
+}
+
+relationship "starts at" as STARTS_AT {
+}
+
+relationship "defaults failure to" as DEFAULTS_FAILURE_TO {
+}
+
+relationship "contains state" as CONTAINS_STATE <<identifying>> {
+}
+
+relationship "contains transition" as CONTAINS_TRANSITION <<identifying>> {
+}
+
+relationship "starts from" as FROM_STATE {
+}
+
+relationship "routes to" as TO_STATE {
+}
+
+relationship "has gate" as HAS_GATE <<identifying>> {
+}
+
+relationship "binds workflow state" as BINDS_STATE {
+}
+
+relationship "controls workflow" as CONTROLS_WORKFLOW {
+}
+
+relationship "owns gate" as OWNS_GATE {
+}
+
+relationship "requires capability" as GATE_REQUIRES_CAPABILITY {
+}
+
+relationship "requires artifact" as GATE_REQUIRES_ARTIFACT {
+}
+
+STARTS_AT -(1,1)- WORKFLOW
+STARTS_AT -(0,1)- WORKFLOW_STATE
+DEFAULTS_FAILURE_TO -(1,1)- WORKFLOW
+DEFAULTS_FAILURE_TO -(0,1)- WORKFLOW_STATE
+CONTAINS_STATE =1= WORKFLOW
+CONTAINS_STATE =N= WORKFLOW_STATE
+CONTAINS_TRANSITION =1= WORKFLOW
+CONTAINS_TRANSITION =N= TRANSITION
+FROM_STATE -(1,1)- TRANSITION
+FROM_STATE -(0,N)- WORKFLOW_STATE
+TO_STATE -(1,1)- TRANSITION
+TO_STATE -(0,N)- WORKFLOW_STATE
+HAS_GATE -1- WORKFLOW_STATE
+HAS_GATE =1= GATE
+BINDS_STATE -(0,1)- ROLE_BINDING
+BINDS_STATE -(0,1)- WORKFLOW_STATE
+CONTROLS_WORKFLOW -(0,1)- ROLE_BINDING
+CONTROLS_WORKFLOW -(1,1)- WORKFLOW
+OWNS_GATE -(0,1)- ROLE_BINDING
+OWNS_GATE -(1,1)- GATE
+GATE_REQUIRES_CAPABILITY -(1,N)- GATE
+GATE_REQUIRES_CAPABILITY -(0,N)- CAPABILITY
+GATE_REQUIRES_ARTIFACT -(1,N)- GATE
+GATE_REQUIRES_ARTIFACT -(0,N)- ARTIFACT_CONTRACT
+
+' Invariants not expressible by cardinality alone:
+
+' - Every non-terminal state has exactly one gate.
+
+' - Terminal states have no gate or state-owner binding.
+
+' - Every non-terminal state has one state-owner binding.
+
+' - Every workflow has exactly one controller binding.
+
+' - A role binding is never both state owner and controller.
+
+' - Start and default failure states belong to the workflow.
+
+' - Routing belongs to transitions and default failure state.
+
+@endchen
