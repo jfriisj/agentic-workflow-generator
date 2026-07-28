@@ -13,7 +13,6 @@ MANIFEST_PATH = ROOT / ".agentic" / "generated" / "output-manifest.json"
 
 BASELINE_FILES = [
     ".agentic/agentic-lock.json",
-    ".agentic/generated/resolution.json",
     ".agentic/generated/output-manifest.json",
 ]
 

@@ -30,9 +30,9 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups, materialiserede setup-profiler og target adapters er migreret. Den typed initialization pipeline er integreret med alle virkelige registryfiler og compiler targetvalg til typed `CompiledTarget`-objekter. Det separate resolutionlag, targetrendererne og flere downstream-consumers anvender fortsat pre-migration-antagelser.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups, materialiserede setup-profiler og target adapters er migreret. Den typed initialization pipeline kompilerer de virkelige registryfiler til én autoritativ `CompiledComposition`, som serialiseres i `.agentic/agentic.json`. Targetrendering, transaktionel materialisering, outputmanifest og outputvalidering anvender nu samme typed composition uden et separat resolutionlag.
 
-Repositoryet er derfor fortsat bevidst ikke globalt green. Den dokumenterede compilerarkitektur og den nye testarkitektur anvendes nu til kontrollerede vertikale migrations-slices uden compatibility projection eller fallback.
+Target-materialiseringsslicen, den samlede `agentic-gen.sh all`-pipeline og alle 109 negative gates er grønne. Repositoryet erklæres først endeligt green, når de resterende quality gates er genkørt efter dokumentationsændringerne, ændringerne er reviewet og committed, og `doctor-strict` består på et rent working tree. Migrationen gennemføres fortsat uden compatibility projection eller fallback.
 
 Målflowet er:
 
@@ -52,7 +52,7 @@ registry
 
 * `CompiledComposition` er compilerens eneste interne mellemrepræsentation.
 * `.agentic/agentic.json` er den persistente aktive serialisering af kompositionen.
-* Det separate resolutionlag fjernes, når typed target-generation overtager dets sidste consumers.
+* Det separate resolutionlag er fjernet. `.agentic/agentic.json` er den eneste persistente serialisering af den kompilerede komposition.
 * Lockfile og output manifest bevares med adskilte ansvar: inputprovenance henholdsvis outputejerskab og outputintegritet.
 * Runtime-context-generation er ikke del af den aktuelle compiler og må ikke materialiseres som deaktiveret konfiguration.
 * Fail-closed-, artifact- og evidencekrav er compilerinvarianter, ikke konfigurerbare validation policies.
@@ -78,6 +78,15 @@ registry
 * 8 agentprofiler og 10 skills har typed immutable domænemodeller, strikte schemaer og strukturerede semantiske validators.
 * Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller og stabile diagnostics. `agentic-gen.sh` kalder deres CLI-moduler direkte; de midlertidige script-launchers er fjernet.
 * Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og en pre-schema rejection pipeline uden fallback eller parallel autoritet.
+
+* Typed targetrendering er implementeret eksplicit for OpenCode og VS Code Copilot og anvender agent-instance-id som runtimeidentitet.
+* Targetmaterialisering bygger først en komplet kanonisk plan og skriver targetfiler og outputmanifest i én transaktion.
+* Stale targetejede filer og det obsolete `resolution.json` fjernes i samme rollback-sikrede transaktion.
+* Outputmanifest version `0.3.0` indeholder composition-hash, targetidentitet, ejede paths samt hashes og byte-størrelser for genererede filer.
+* Typed outputvalidering kræver byte-identitet med den kanoniske renderingsplan og afviser manglende, ændrede, unmanaged og obsolete outputs.
+* OpenCode-runtimevalidering kontrollerer den effektive default-agent, alle kompilerede agent-instances, modes og skills mod den typed composition.
+* Ti obsolete resolution-, generator-, manifest-, cleanup- og compatibility-scripts er fjernet.
+
 * CLI-laget anvender fælles diagnostic-rendering og et typed setup-validation context.
 * Pylint duplicate-code er konfigureret som dev-gate for `src/agentic_workflow_generator` og består med rating 10,00/10.
 * Setup registry og setup profiles er migreret til version `0.2.0`.
@@ -111,18 +120,13 @@ registry
 * Den konceptuelle domænemodel er opdelt i ét navigationsdiagram og fire autoritative bounded-context Chen-diagrammer med synkroniserede SVG-filer.
 * `README.md`, registrydokumentationen og de autoritative dokumenter under `docs/` er synkroniseret med den reducerede compilerarkitektur uden et separat resolutionlag, runtime-context-policy eller konfigurerbar validation policy.
 
-### Endnu ikke migreret eller afsluttet
+### Resterende migrations- og afslutningsarbejde
 
-* `validate-registry-references.py`
-* fjernelse af det separate resolution-format, resolver og resolution-validator sammen med deres sidste consumers
-* lockfile-inputmodellen efter den endelige compilerstruktur
-* OpenCode- og Copilot-generatorerne
-* output manifest og target compatibility-validering
-* generated-output-validering
-* negative-gate-arkitekturen
-* isolerede end-to-end- og target runtime-tests
-* regenerering af alle `.agentic`- og targetfiler
-* opdatering af arkitektur-, registry- og brugerdokumentation
+* `validate-registry-references.py`, lockfile-generatoren, lockfile-validatoren og shell-orchestreringen ligger fortsat midlertidigt under `scripts/agentic`.
+* Den monolitiske negative-gate-runner er reduceret, men skal senere opdeles efter de samme domæne- og application boundaries som pytest-suiterne.
+* Den fulde pytest-, Ruff-, mypy- og Pylint-pipeline skal genkøres efter de sidste dokumentations- og lockfileændringer.
+* Den aktuelle slice skal afsluttes med diff-review, commit, `doctor-strict` på rent working tree og push.
+
 
 Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
 
@@ -218,183 +222,75 @@ OpenCode 1.17.10 parsede config, agents og skills for alle fire isolerede setups
 
 ### Aktuel migrationsstatus
 
-Følgende validering er observeret grøn isoleret på den aktuelle migrationsbranch:
+Følgende er observeret grønt på den aktuelle migrationsbranch:
 
 ~~~text
-validate-registry-schemas
-  PASS: 46 registryfiler
-
-validate-agents
-  PASS: 8 agentprofiler
-  PASS: 21 capability-referencer
-  PASS: 3 permission-profiler
-
-validate-skills
-  PASS: 10 skill directories
-  PASS: 21 capability providers
-  PASS: 8 agent profiles
-
-validate-artifacts
-  PASS: 7 artifact contracts
-
-dedikeret artifact-testpakke
-  PASS: 35 tests
-  PASS: 237 statements
-  PASS: 66 branches
-  PASS: 100 procent coverage
-
-validate-workflows
-  PASS: 4 workflows
-  PASS: 23 gates
-
-validate-profiles
+agentic-gen.sh all
+  PASS: script- og JSON-syntax
+  PASS: active configuration
+  PASS: 46 registry-schemafiler
+  PASS: 8 agents
+  PASS: 10 skills og 21 capabilities
+  PASS: 4 workflows og 23 gates
   PASS: 4 profiles
-  PASS: 27 recommended agent references
-  PASS: 60 recommended capability references
+  PASS: 4 bundles, 27 agent instances og 27 role bindings
+  PASS: 4 setups og 12 questions
+  PASS: setup profile
+  PASS: 3 permission profiles
+  PASS: registry references
+  PASS: komplet capability coverage
+  PASS: 7 artifact contracts
+  PASS: lockfile med 146 compilerinput
+  PASS: 2 targets og 53 kanoniske outputfiler
 
-dedikeret profile-testpakke
-  PASS: 45 tests
-  PASS: 229 statements
-  PASS: 84 branches
-  PASS: 100 procent coverage
+agentic-gen.sh test-negative
+  PASS: All 109 negative gate tests passed
 
-validate-bundles
-  PASS: 4 bundles
-  PASS: 27 agent instances
-  PASS: 27 role bindings
-  PASS: 4 separation policies
+samlet Python-suite
+  PASS: 744 tests
 
-dedikeret bundle-testpakke
-  PASS: 86 tests
-  PASS: 513 statements
-  PASS: 174 branches
-  PASS: 100 procent coverage
+Ruff
+  PASS
 
-samlet migreret Python-pakke
-  PASS: Ruff
-  PASS: strict mypy for 145 source files
-  PASS: 678 tests
-  PASS: Pylint duplicate-code for src/agentic_workflow_generator, rating 10.00/10
-  Aktuel samlet coverage-baseline:
-    PASS: 3.574 statements
-    PASS: 982 branches
-    PASS: 100 procent coverage
+strict mypy
+  PASS: 169 source files
 
-validate-setups
-  PASS: 4 setup files
-  PASS: 12 questions
-
-setup-registry testpakke
-  PASS: 37 tests
-  PASS: 276 statements
-  PASS: 84 branches
-  PASS: 100 procent coverage
-
-validate-setup-profile
-  PASS: .agentic/setup-profile.json
-  PASS: schema version 0.2.0
-
-setup-profile testpakke
-  PASS: 25 tests
-  PASS: 227 statements
-  PASS: 62 branches
-  PASS: 100 procent coverage
-
-validate-permission-profiles
-  PASS: 3 permission-profiler
-
-coverage
-  PASS: 21 required runtime capabilities
-  PASS: 21 skill capabilities
-
-
-skill obsolete-field regression gates
-  PASS: 16 tests
-
-artifact obsolete-field regression gates
-  17 artifact-ejede gates er fjernet fra monolitten
-  De dækkes nu af den isolerede artifact-testpakke
-
-workflow obsolete-field regression gates
-  30 workflow-ejede tests og 31 helpers er fjernet fra monolitten
-  De dækkes nu af den isolerede workflow-testpakke
-
-Den fulde pre-migration-runner er ikke en migrationsgate
+Pylint
+  PASS: rating 10.00/10
+  PASS: ingen duplicate-code diagnostics
 ~~~
 
-Den fulde `all`-, negative-gate-, idempotency- og end-to-end-pipeline betragtes ikke som grøn efter migrationen.
+Targetrendering, materialisering, outputvalidering og OpenCode-runtimevalidering anvender nu den autoritative typed `CompiledComposition`. Det separate resolutionformat og dets consumers er fjernet.
 
-Den eksisterende negative-gate-runner er en monolit og flere tests starter hele `all`-pipelinen som fixture. Derfor kan en isoleret validator-test fejle på en senere stale compilerkomponent. Denne testarkitektur skal ændres, før den bruges som migrationsstyring.
+Den historiske før-migrationsbaseline nedenfor bevares kun som reference og må ikke bruges som evidens for den aktuelle model.
 
-Den tidligere green baseline dokumenterer kun den gamle model og må ikke bruges som evidens for den nye model.
 
 ## Aktuel repositorytilstand
 
-Seneste green commit på `main` før migrationen:
+Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
-~~~text
-79bfe7c Harden registry skills and document agent instance model
-~~~
+Working tree indeholder den endnu ikke committed target-materialiseringsslice. Slicen omfatter typed rendering for OpenCode og VS Code Copilot, transaktionel materialisering, outputmanifest version `0.3.0`, kanonisk outputvalidering, OpenCode-runtimevalidering og fjernelse af resolutionlaget samt obsolete generator-, manifest-, cleanup- og compatibility-scripts.
 
-Det aktuelle working tree indeholder en stor, ikke-committed breaking migration.
+De genererede outputs er regenereret fra `.agentic/agentic.json`; materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 146 compilerinput.
 
-Auditten den 24. juli 2026 viste:
-
-~~~text
-45 ændrede eller nye filer
-7.462 tilføjede linjer
-3.000 fjernede linjer
-24 validator-scripts
-9.314 linjer i test-negative-gates.py
-509 funktioner i test-negative-gates.py
-ingen pytest-, ruff-, mypy- eller coverage-konfiguration
-~~~
-
-Auditten identificerede før de afsluttede validator-slices flere store pre-migration-komponenter. Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er siden erstattet af pakkebaserede implementationer med tynde midlertidige launchers. Setupmaterialisering, guided init og bundle-init er flyttet til typed application services. Resolution, targetgenerering og pipeline-orchestrering forbliver endnu i pre-migration-strukturen.
-
-Der findes omfattende duplikation af blandt andet:
-
-* JSON-loading
-* string- og list-validering
-* registry-filopdagelse
-* repository-relative path-sikkerhed
-* hashing
-* subprocess execution
-* targetgenerering
-* test-fixtures
-
-Migrationen udføres på den pushede branch `refactor/validation-deduplication`. Branchen er sikret på origin, men er ikke klar til merge til `main`, før:
-
-* compilerarkitekturen er dokumenteret
-* refaktoreringen er opdelt i kontrollerede slices
-* stale downstream-consumers er migreret
-* obsolete kode er fjernet
-* generated output er regenereret
-* den fulde pipeline igen er grøn
-* `project-status.md` og dokumentationen matcher implementationen
 
 ## Registry-audit — vigtigste fund
 
 ### Compiler- og testarkitektur
 
-Registryets konceptuelle model er blevet stærkere, men kodebasen er ikke struktureret som en compiler.
+Kodebasen er nu struktureret som en typed compiler med eksplicit dependency direction mellem domain, registry, compiler, application, validation, targets og CLI.
 
-Aktuelle problemer:
+Resterende arkitekturarbejde:
 
-* næsten al Python-kode ligger fladt i `scripts/agentic/`
-* `agentic-gen.sh` fungerer både som CLI-router og pipeline-orchestrator
-* validators fortolker rå JSON uafhængigt af hinanden
-* resolver og targetgeneratorer har egne modelantagelser
-* validatorernes fælles schema-, identity- og pipeline-helpers er samlet under `validation/` og består duplicate-code-gaten
-* negative gates er samlet i én fil på mere end 9.000 linjer
-* komponenttests starter ofte hele pipelinen
-* tests er primært koblet til fejltekst frem for stabile diagnostics
-* der findes ingen tydelig dependency direction mellem CLI, application, domain, registry, compiler og targets
-* `pytest`, Ruff, strict mypy, coverage og Pylint duplicate-code er konfigureret; pre-migration negative- og E2E-gates mangler fortsat migration
+* `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator
+* lockfile-generatoren, lockfile-validatoren og registry-reference-validatoren ligger fortsat under `scripts/agentic`
+* negative gates er fortsat samlet i én monolitisk runner, selv om domæneejede gates er flyttet til fokuserede pytest-suiter
+* enkelte negative gates matcher fortsat tekst i stedet for stabile diagnostic-koder
+* den offentlige Python-entrypoint skal senere overtage den resterende shell-orchestrering
 
 `registry/core` er tomt og skal ikke bruges som placering for Python-kode. Registryet forbliver deklarativt compiler-input.
 
-Målkoden placeres under en rigtig Python-pakke. `scripts/agentic/agentic-gen.sh` må kun fungere som en midlertidig tynd launcher under migrationen og skal erstattes af pakkens offentlige Python-entrypoint.
+Ny produktionskode placeres under `src/agentic_workflow_generator`. `scripts/agentic` må kun indeholde midlertidig aktiv orkestrering eller endnu ikke migrerede grænser og skal fjernes helt, når migrationen er afsluttet.
 
 Compiler- og validatorinfrastrukturen er stærk, men registry-indholdet er fortsat et MVP.
 
@@ -407,6 +303,28 @@ Compiler- og validatorinfrastrukturen er stærk, men registry-indholdet er forts
 * Skill-afhængigheder udtrykkes med `requiresCapabilities` og valideres mod registrerede capability-providers.
 * Skill-validatoren afviser ugyldige typer, tomme værdier, dubletter, manglende agent- og capability-referencer samt selvafhængighed.
 * CodeReviewer må ikke eje routing, og Orchestratorens routing er fail-closed.
+
+### Typed targetmaterialisering
+
+Følgende er observeret grøn isoleret i den aktuelle slice:
+
+~~~text
+target materialization, planning and output validation
+  PASS: 18 tests
+
+OpenCode runtime validation
+  PASS: 5 tests
+
+typed target-output negative gates
+  PASS: 5 tests
+
+generation idempotency
+  PASS: 55 tracked output files
+~~~
+
+Lockfilens compilerinput omfatter nu `pyproject.toml`, `uv.lock` og hele
+`src/agentic_workflow_generator/**/*.py`, så ændringer i compiler,
+renderer eller materialisering ændrer inputprovenancen.
 
 ### Artifacts
 
@@ -430,16 +348,22 @@ De tidligere statiske låse er fjernet fra agent-, workflow- og bundle-registrye
 * konkrete permissions er flyttet til agent-instances
 * konkrete capabilities, skills, artifacts, responsibilities og guardrails er flyttet til role bindings
 
-Stale pre-migration-antagelser findes fortsat i downstream-koden og skal fjernes helt fra:
+Den downstream target-slice er nu migreret:
 
-* `resolve-agentic-config.py`
-* resolution-schemaet og resolution-validatoren
-* output-manifestet
-* targetgeneratorerne
-* generated-output validators
-* negative gates
-* end-to-end-tests
-* genererede snapshots
+* resolveren, resolution-outputtet og resolution-validatoren er fjernet
+* targetrendererne bruger direkte `CompiledComposition`
+* outputmanifestet er reduceret til outputejerskab og integritet
+* generation er transaktionel og fjerner stale targetoutput
+* generated-output- og runtimevalidering er typed
+* obsolete resolution-, manifest- og cleanup-gates er fjernet
+
+Før slicen kan afsluttes, mangler:
+
+* review af resterende aktive dokumentationsreferencer
+* genkørsel af fuld pytest-, Ruff-, strict-mypy- og Pylint-pipeline efter de sidste ændringer
+* regenerering og validering af lockfilen efter dokumentationsændringerne
+* samlet diff-review og `git diff --check`
+* commit, `doctor-strict` på rent working tree og push
 
 Der må ikke tilføjes fallback til agentprofilernes anbefalinger. Profile defaults må kun anvendes, når bundleforfatteren eksplicit vælger og materialiserer dem som konkrete instance- eller bindingværdier.
 
@@ -610,7 +534,7 @@ Planlagt rækkefølge:
 10. real-registry- og setup-profile-integration — afsluttet
 11. guided init application service — afsluttet
 12. resterende setup-relaterede init-consumers — afsluttet
-13. targets — næste
+13. targets — afsluttet
 
 Permission-profile-slicen omfatter nu:
 
@@ -1084,18 +1008,17 @@ For hver resterende slice:
 * brug diagnostics-koder som stabile assertions
 * begræns E2E til få komplette consumer-scenarier
 
-#### 0.5 Migrér compilerens downstream-lag
+#### 0.5 Migrér compilerens downstream-lag — afsluttet
 
-* definer canonical compiled composition
-* migrér active-config-schemaet og typed deserialisering af `.agentic/agentic.json`
-* migrér init og materialisering
-* migrér registry-reference-validation
-* fjern resolver og resolution-format sammen med deres sidste consumers
-* migrér lockfile
-* migrér targetgeneratorer
-* migrér manifest
-* migrér generated-output- og compatibility-validation
-* regenerér alle outputs
+* `CompiledComposition` er den eneste canonical compilerrepræsentation
+* active-config-schemaet og typed deserialisering af `.agentic/agentic.json` er migreret
+* init og setupmaterialisering anvender typed application services
+* resolveren, resolution-formatet og deres sidste consumers er fjernet
+* lockfilen følger den aktuelle compilerinputmodel
+* OpenCode- og VS Code Copilot-rendererne bruger direkte `CompiledComposition`
+* outputmanifest version `0.3.0` ejer kun outputprovenance og integritet
+* generated-output- og runtimevalidering er typed
+* alle targetoutputs er regenereret og valideret kanonisk
 
 ### Fase 1 — Artifact contracts
 
@@ -1119,47 +1042,50 @@ For hver resterende slice:
 * fjern stale og placebo-baserede setupvalg
 * dokumentér generalist- og specialistkompositioner
 
-### Fase 4 — Targetmaterialisering
+### Fase 4 — Targetmaterialisering — afsluttet
 
-* bevar role-binding responsibilities og guardrails
-* generér artifact-specifikke outputkrav
-* materialisér fuld routing og `BLOCKED`
-* harmonisér permissions på tværs af targets
-* ret profile- og workflowidentitet
+* role-binding responsibilities, guardrails og permissions bevares direkte fra `CompiledComposition`
+* artifact-specifikke outputkrav materialiseres
+* fuld workflow-routing inklusive `BLOCKED` materialiseres
+* OpenCode og VS Code Copilot anvender samme compilerautoritet
+* agent-instance-id, profile- og workflowidentitet bevares uden afledning eller fallback
+* outputplanen valideres komplet før transaktionelle writes
+* stale targetoutput og obsolete resolution-output fjernes transaktionelt
 
-### Fase 5 — Dokumentation og afslutning
+### Fase 5 — Dokumentation og afslutning — igangværende
 
-* opdatér `registry/README.md`
-* opdatér hoved-README
-* opdatér relevante udviklerguides
-* regenerér lockfile, targets og manifest
-* kør fuld validering
-* commit og push
+* hoved-README og relevante udviklerguides er opdateret
+* lockfile, targets og manifest er regenereret
+* `agentic-gen.sh all` består
+* alle 109 negative gates består
+* resterende aktive dokumentationsreferencer skal reviewes
+* fuld pytest-, Ruff-, mypy- og Pylint-validering skal genkøres
+* ændringerne skal reviewes, committed, valideres med `doctor-strict` og pushes
 
 ## Næste konkrete opgave
 
-Migrér targetmaterialiseringen til den typed compilergrænse og fjern resolutionlaget sammen med dets sidste consumers.
+Afslut den typed target-materialiseringsslice.
 
-Target-registry-slicen er afsluttet isoleret: adapterne er immutable typed domæneobjekter, targetvalideringen har én autoritativ CLI-grænse, og `CompiledTarget` ejer den validerede adapter direkte.
+De afsluttende quality gates er grønne:
+
+* 744 pytest-tests
+* Ruff
+* strict mypy for 169 sourcefiler
+* Pylint med rating 10,00/10 uden duplicate-code diagnostics
+* `agentic-gen.sh all`
+* alle 109 negative gates
+* lockfile med 146 compilerinput
+* 53 kanoniske outputfiler for 2 targets
 
 Arbejdet skal nu:
 
-1. lade targetgeneratorerne modtage `CompiledComposition` og `CompiledTarget` frem for raw registry, resolution-output eller stale active-config projections
-2. bevare role-binding responsibilities, guardrails, permissions, artifact contracts og fuld workflow-routing inklusive `BLOCKED`
-3. harmonisere OpenCode- og VS Code Copilot-materialisering uden target-specifik semantisk drift
-4. producere og validere komplette deterministiske outputplaner før transaktionelle writes
-5. migrere target compatibility-, generated-output- og runtime-validering til de nye compileroutputs
-6. fjerne resolver, resolution-format, resolution-validator og tilsvarende obsolete scripts og projections i samme vertikale slices
+1. køre `git diff --check` og reviewe den samlede ændring
+2. committe slicen
+3. køre `doctor-strict` på det rene working tree
+4. pushe branch `refactor/typed-init-consumers`
 
-Arbejdet må ikke:
+Der må ikke genindføres resolution-output, compatibility projections, fallback eller parallel runtimeautoritet under afslutningen.
 
-* genindføre fjernede felter eller compatibility projections
-* lade targetgeneratorer læse rå registrydata
-* udlede agentidentitet fra workflow state-navne eller agentprofilmapper
-* miste bundle-ejet runtimeautoritet mellem compiler og targetoutput
-* bruge `test-negative-gates.py` eller hele pre-migration-pipelinen som komponentgate
-
-Næste vertikale slice er typed targetmaterialisering og fjernelse af resolutionlaget.
 
 ## Autoritativ domænemodel
 

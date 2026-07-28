@@ -196,13 +196,16 @@ Selecting a smaller agent subset while reusing a larger workflow creates invalid
 
 Create a smaller workflow instead.
 
-### Important: one active bundle per workflow
+### Important: one selected bundle per setup
 
-Generated output resolution identifies the active bundle through the selected workflow.
+A setup selects exactly one bundle, and the compiled composition preserves that
+bundle identity directly.
 
-More than one bundle using the same active workflow is ambiguous and fails.
+Bundle identity is not inferred from the selected workflow. Multiple bundles may
+reuse the same workflow when their concrete agent instances, role bindings,
+permissions, skills or artifact responsibilities differ.
 
-When a new setup represents a distinct composition, give it a distinct workflow.
+Create a distinct workflow only when the workflow contract itself differs.
 
 ## 6. Profile design rules
 

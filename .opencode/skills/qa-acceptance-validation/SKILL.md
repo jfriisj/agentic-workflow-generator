@@ -7,7 +7,8 @@ description: "Use when verifying acceptance criteria against independent test, r
 
 ## Purpose
 
-Determine whether every required acceptance criterion is supported by complete, current, and internally consistent evidence.
+Determine whether every required acceptance criterion is supported by complete, current, and internally consistent
+evidence.
 
 ## Required Inputs
 
@@ -69,11 +70,13 @@ QA must not:
 
 ## Fail-Closed Rules
 
-Return `PASS` only when every required acceptance criterion is satisfied by valid evidence and all required upstream gates pass.
+Return `PASS` only when every required acceptance criterion is satisfied by valid evidence and all required upstream
+gates pass.
 
 Return `FAIL` when evidence demonstrates that one or more required acceptance criteria are not satisfied.
 
-Return `BLOCKED` when required evidence, artifacts, revisions, environments, or decisions are missing or cannot be validated.
+Return `BLOCKED` when required evidence, artifacts, revisions, environments, or decisions are missing or cannot be
+validated.
 
 ## Output Requirements
 

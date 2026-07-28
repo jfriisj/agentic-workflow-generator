@@ -7,7 +7,8 @@ description: "Use when reviewing changed code and configuration for concrete sec
 
 ## Purpose
 
-Review the changed code and configuration for security-relevant defects using the declared scope, trust boundaries, and available evidence.
+Review the changed code and configuration for security-relevant defects using the declared scope, trust boundaries, and
+available evidence.
 
 ## Required Inputs
 
@@ -69,11 +70,13 @@ The reviewer produces a disposition. The workflow controller performs routing.
 
 ## Fail-Closed Rules
 
-Return `PASS` only when no unresolved blocking security finding exists within the reviewed scope and required evidence is available.
+Return `PASS` only when no unresolved blocking security finding exists within the reviewed scope and required evidence
+is available.
 
 Return `FAIL` when a concrete security defect violates an approved requirement, trust boundary, or required control.
 
-Return `BLOCKED` when the changed scope, required configuration, dependency information, threat context, or validation evidence is unavailable.
+Return `BLOCKED` when the changed scope, required configuration, dependency information, threat context, or validation
+evidence is unavailable.
 
 ## Output Requirements
 

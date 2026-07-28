@@ -8,45 +8,46 @@ This repository uses generated agentic workflow infrastructure.
 - type: agentic-generator
 - architecture profile: platform-neutral-workflow-compiler
 
+## Selection
+
+- bundle: orchestrated-delivery
+- profile: microservice-platform
+- workflow: orchestrated-delivery
+
 ## Workflow
 
-- profile: orchestrated-delivery
 - start state: Requirements
 - terminal states: Done, Blocked
-- fail closed: True
+- default failure state: Blocked
+- fail closed: true
+- controller: workflow-controller
 
-## Agents
+## Agent Instances
 
-- Architect
-- CodeReviewer
-- Implementer
-- Orchestrator
-- QA
-- Requirements
-- TestRunner
+- `requirements-worker` (Requirements)
+- `architecture-worker` (Architect)
+- `implementation-worker` (Implementer)
+- `test-runner` (TestRunner)
+- `code-review-worker` (CodeReviewer)
+- `qa-worker` (QA)
+- `workflow-controller` (Orchestrator)
 
-## Gates
+## Workflow Gates
 
-- requirements-review
-- architecture-review
-- implementation-complete
-- test-review
-- code-review
-- qa-review
+- `requirements-review` owned by `requirements-worker`
+- `architecture-review` owned by `architecture-worker`
+- `implementation-complete` owned by `implementation-worker`
+- `test-review` owned by `test-runner`
+- `code-review` owned by `code-review-worker`
+- `qa-review` owned by `qa-worker`
 
 ## Core Rules
 
-1. The workflow is fail-closed.
-2. Artifacts are workflow memory.
-3. The orchestrator owns routing and state transitions.
-4. Agents must stay within their role.
-5. Missing evidence must result in BLOCKED, not PASS.
-6. Generated files should not be manually edited unless the project explicitly allows overrides.
-
-## Generated Metadata
-
-Resolution metadata is generated under:
-
-~~~text
-.agentic/generated/
-~~~
+1. `.agentic/agentic.json` is the canonical active composition.
+2. Workflow gates are fail-closed.
+3. Artifact contracts are workflow memory.
+4. Runtime routing follows compiled state ownership.
+5. Agents must stay inside their role bindings.
+6. Missing evidence must result in `BLOCKED`, not `PASS`.
+7. Separation-of-duties constraints must be preserved.
+8. Generated target files must not be edited manually.

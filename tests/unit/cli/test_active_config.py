@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
+
 from agentic_workflow_generator.cli.active_config import (
     main,
 )
@@ -21,7 +23,7 @@ SCHEMA_SOURCE = (
 
 
 def test_active_config_cli_accepts_valid_config(
-    capsys,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     result = main(
         (
@@ -39,7 +41,7 @@ def test_active_config_cli_accepts_valid_config(
 
 def test_active_config_cli_rejects_duplicate_target(
     tmp_path: Path,
-    capsys,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     config = _read_json(CONFIG_SOURCE)
     targets = cast(list[Any], config["targets"])
@@ -62,7 +64,7 @@ def test_active_config_cli_rejects_duplicate_target(
 
 def test_active_config_cli_rejects_invalid_target_enabled(
     tmp_path: Path,
-    capsys,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     config = _read_json(CONFIG_SOURCE)
     targets = cast(list[Any], config["targets"])
@@ -86,7 +88,7 @@ def test_active_config_cli_rejects_invalid_target_enabled(
 
 def test_active_config_cli_reports_missing_config(
     tmp_path: Path,
-    capsys,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     missing = tmp_path / "missing.json"
 

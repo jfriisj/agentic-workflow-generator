@@ -454,3 +454,124 @@ def test_transactional_write_wraps_snapshot_failure(
                 target: b"new",
             }
         )
+
+
+def test_transactional_update_writes_and_removes_files(
+    tmp_path: Path,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        transactional_update_files,
+    )
+
+    existing = tmp_path / "existing.txt"
+    stale = tmp_path / "stale.txt"
+    created = tmp_path / "nested" / "created.txt"
+
+    existing.write_bytes(b"old")
+    stale.write_bytes(b"stale")
+
+    transactional_update_files(
+        {
+            existing: b"new",
+            created: b"created",
+        },
+        (stale,),
+    )
+
+    assert existing.read_bytes() == b"new"
+    assert created.read_bytes() == b"created"
+    assert not stale.exists()
+
+
+def test_transactional_update_rolls_back_all_operations(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_update_files,
+    )
+
+    existing = tmp_path / "existing.txt"
+    stale = tmp_path / "stale.txt"
+    created = tmp_path / "nested" / "created.txt"
+
+    existing.write_bytes(b"old")
+    stale.write_bytes(b"stale")
+
+    original_unlink = Path.unlink
+
+    def fail_stale_removal(
+        self: Path,
+        missing_ok: bool = False,
+    ) -> None:
+        if self == stale:
+            raise OSError("injected removal failure")
+
+        original_unlink(
+            self,
+            missing_ok=missing_ok,
+        )
+
+    monkeypatch.setattr(
+        Path,
+        "unlink",
+        fail_stale_removal,
+    )
+
+    with pytest.raises(
+        AtomicWriteError,
+        match="could not remove file",
+    ):
+        transactional_update_files(
+            {
+                existing: b"new",
+                created: b"created",
+            },
+            (stale,),
+        )
+
+    assert existing.read_bytes() == b"old"
+    assert stale.read_bytes() == b"stale"
+    assert not created.exists()
+    assert not created.parent.exists()
+
+
+def test_transactional_update_rejects_duplicate_paths(
+    tmp_path: Path,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        transactional_update_files,
+    )
+
+    target = tmp_path / "target.txt"
+
+    with pytest.raises(
+        ValueError,
+        match="paths must be unique",
+    ):
+        transactional_update_files(
+            {target: b"content"},
+            (target,),
+        )
+
+
+def test_transactional_update_rejects_directory_removal(
+    tmp_path: Path,
+) -> None:
+    from agentic_workflow_generator.infrastructure import (
+        AtomicWriteError,
+        transactional_update_files,
+    )
+
+    directory = tmp_path / "owned-directory"
+    directory.mkdir()
+
+    with pytest.raises(
+        AtomicWriteError,
+        match="transaction path must be a file",
+    ):
+        transactional_update_files(
+            {},
+            (directory,),
+        )

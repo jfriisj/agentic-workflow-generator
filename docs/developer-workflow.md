@@ -181,14 +181,14 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-lockfile
 
 Run this when tracked generator inputs change.
 
-### Generate and validate output manifest
+### Materialize and validate target output
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh manifest
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-manifest
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh generate
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
 ```
 
-The manifest records generated files, hashes, byte sizes, target ownership, and active bundle metadata.
+Materialization writes all enabled target files and the manifest transactionally. The manifest records the canonical composition hash, target ownership, file hashes, and byte sizes.
 
 ### Run negative gates
 
@@ -320,13 +320,13 @@ Commit `.agentic/agentic-lock.json` with the source change that caused it.
 
 Do not commit unexplained lockfile drift.
 
-## Handling manifest drift
+## Handling target-output drift
 
 If manifest validation fails, regenerate and validate it:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh manifest
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-manifest
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh generate
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
 ```
 
 If it still fails, inspect the specific error.
@@ -338,7 +338,7 @@ generated file hash changed
 generated file byte size changed
 generated file missing
 target owned path contains unmanaged file
-manifest bundle metadata no longer matches registry bundle
+committed manifest differs from the canonical materialization plan
 ```
 
 ## Handling config schema validation failures
@@ -421,7 +421,7 @@ After changing a target adapter:
 ```bash
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-targets
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-manifest
+PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
 ```
 
 Target adapters define generated output ownership.
@@ -437,7 +437,7 @@ all passes
 negative gates pass
 doctor-strict passes
 lockfile is valid
-manifest is valid
+generated target output is canonical
 working tree is clean after commit
 ```
 

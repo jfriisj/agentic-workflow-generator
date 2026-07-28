@@ -145,31 +145,45 @@ scripts/agentic/agentic-gen.sh doctor-strict
 A clean result should end with:
 
 ```text
-PASS: Isolated consumer fixture initialized from a clean state.
-PASS: All 364 negative gate tests passed.
+PASS: verify-quiet completed successfully.
+PASS: All negative gate tests passed.
 PASS: Working tree is clean.
 ```
 
 ## Main commands
 
 ```bash
+scripts/agentic/agentic-gen.sh validate-environment
+scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
+scripts/agentic/agentic-gen.sh init --guided
+scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
+scripts/agentic/agentic-gen.sh init --guided --setup <setup-name> --dry-run
 scripts/agentic/agentic-gen.sh validate
+scripts/agentic/agentic-gen.sh lock
+scripts/agentic/agentic-gen.sh validate-lockfile
+scripts/agentic/agentic-gen.sh validate-artifacts
+scripts/agentic/agentic-gen.sh validate-permission-profiles
+scripts/agentic/agentic-gen.sh validate-agents
+scripts/agentic/agentic-gen.sh validate-targets
+scripts/agentic/agentic-gen.sh validate-skills
+scripts/agentic/agentic-gen.sh validate-workflows
+scripts/agentic/agentic-gen.sh validate-profiles
 scripts/agentic/agentic-gen.sh validate-bundles
+scripts/agentic/agentic-gen.sh validate-setups
+scripts/agentic/agentic-gen.sh validate-setup-profile
+scripts/agentic/agentic-gen.sh validate-references
 scripts/agentic/agentic-gen.sh validate-registry-schemas
 scripts/agentic/agentic-gen.sh coverage
-scripts/agentic/agentic-gen.sh resolve
-scripts/agentic/agentic-gen.sh lock
-scripts/agentic/agentic-gen.sh manifest
-scripts/agentic/agentic-gen.sh generate all
+scripts/agentic/agentic-gen.sh generate
 scripts/agentic/agentic-gen.sh validate-generated
-scripts/agentic/agentic-gen.sh validate-idempotency
-scripts/agentic/agentic-gen.sh init --guided
-scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield
-scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --dry-run
-scripts/agentic/agentic-gen.sh init --guided --setup orchestrated-delivery-greenfield --answer target-platforms=opencode-only
-scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
-scripts/agentic/agentic-gen.sh validate-init-idempotency --guided --setup orchestrated-delivery-greenfield
+scripts/agentic/agentic-gen.sh validate-target-runtime
 scripts/agentic/agentic-gen.sh test-negative
+scripts/agentic/agentic-gen.sh check
+scripts/agentic/agentic-gen.sh all
+scripts/agentic/agentic-gen.sh verify
+scripts/agentic/agentic-gen.sh verify-quiet
+scripts/agentic/agentic-gen.sh status
+scripts/agentic/agentic-gen.sh doctor
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
 

@@ -21,6 +21,7 @@ from agentic_workflow_generator.validation.targets import (
     UNKNOWN_PERMISSION_PROFILE_DIAGNOSTIC,
     UNSAFE_OUTPUT_PATH_DIAGNOSTIC,
     TargetReferenceData,
+    TargetValidationResult,
     validate_target_registry,
 )
 
@@ -113,6 +114,15 @@ def source(
     permission_mapping: JsonObject | None = None,
     extra: JsonObject | None = None,
 ) -> RegistrySource:
+    owned_path_values: list[JsonValue] = (
+        list(owned_paths)
+        if owned_paths is not None
+        else [
+            ".opencode/agents",
+            "AGENTS.md",
+        ]
+    )
+
     data: JsonObject = {
         "name": name,
         "version": "0.1.0",
@@ -125,14 +135,7 @@ def source(
                 "instructions": "AGENTS.md",
             }
         ),
-        "ownedPaths": (
-            owned_paths
-            if owned_paths is not None
-            else [
-                ".opencode/agents",
-                "AGENTS.md",
-            ]
-        ),
+        "ownedPaths": owned_path_values,
         "permissionMapping": (
             permission_mapping
             if permission_mapping is not None
@@ -164,7 +167,7 @@ def source(
 
 def result(
     *sources: RegistrySource,
-):
+) -> TargetValidationResult:
     return validate_target_registry(
         sources,
         SCHEMA,

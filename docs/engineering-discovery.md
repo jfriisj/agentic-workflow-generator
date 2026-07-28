@@ -1,5 +1,11 @@
 # Agentic Workflow Generator — Engineering Discovery
 
+> **Status: Historisk discovery-dokument.**
+> Dette dokument bevarer de oprindelige designhypoteser og MVP-forslag.
+> Det er ikke autoritativt for den aktuelle arkitektur. Ved konflikt gælder
+> `docs/architecture.md`, `docs/core-domain-model.md` og `project-status.md`.
+
+
 ## 1. Problem Statement
 
 Modern AI coding agents are becoming useful, but each platform defines agents, skills, instructions, permissions, handoffs, and project context differently.

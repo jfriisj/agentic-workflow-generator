@@ -1,5 +1,4 @@
 {
-  "$schema": "./schemas/setup-profile.schema.json",
   "schemaVersion": "0.2.0",
   "mode": "greenfield",
   "setup": "orchestrated-delivery-greenfield",
@@ -33,5 +32,6 @@
   "policy": {
     "failFast": true,
     "fallbackAllowed": false
-  }
+  },
+  "$schema": "./schemas/setup-profile.schema.json"
 }

@@ -7,7 +7,8 @@ description: "Use when implementing or refactoring approved behavior and updatin
 
 ## Purpose
 
-Implement the smallest complete change that satisfies approved requirements and architecture decisions, including the tests needed to validate the change.
+Implement the smallest complete change that satisfies approved requirements and architecture decisions, including the
+tests needed to validate the change.
 
 ## Required Inputs
 
@@ -63,7 +64,8 @@ The Implementer must not:
 - hide failed commands or known risks
 - reinterpret approved requirements without escalation
 
-A `PASS` ImplementationReport means implementation work is complete enough for independent validation. It is not release approval.
+A `PASS` ImplementationReport means implementation work is complete enough for independent validation. It is not release
+approval.
 
 ## Fail-Closed Rules
 
@@ -74,9 +76,11 @@ Return `PASS` only when:
 - available implementation validation was run
 - known risks and unexecuted validation are disclosed
 
-Return `FAIL` when implementation or implementation-level validation demonstrates that the approved behavior is not satisfied.
+Return `FAIL` when implementation or implementation-level validation demonstrates that the approved behavior is not
+satisfied.
 
-Return `BLOCKED` when approved inputs, dependencies, tools, credentials, environments, or required decisions are unavailable.
+Return `BLOCKED` when approved inputs, dependencies, tools, credentials, environments, or required decisions are
+unavailable.
 
 ## Output Requirements
 

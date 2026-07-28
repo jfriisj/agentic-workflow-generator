@@ -2,7 +2,56 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from pathlib import Path
+
+from jsonschema.exceptions import SchemaError
+
 from agentic_workflow_generator.domain import Diagnostic
+from agentic_workflow_generator.infrastructure.errors import (
+    InfrastructureError,
+)
+from agentic_workflow_generator.registry import ProjectPaths
+
+ValidationCommand = Callable[
+    [ProjectPaths],
+    tuple[Diagnostic, ...],
+]
+
+
+def run_validation_command(
+    *,
+    label: str,
+    failure_code: str,
+    validate: ValidationCommand,
+    success_message: str,
+) -> int:
+    """Run one validation command through the shared CLI boundary."""
+
+    try:
+        diagnostics = validate(
+            ProjectPaths(Path.cwd().resolve())
+        )
+    except (
+        InfrastructureError,
+        SchemaError,
+        ValueError,
+    ) as exc:
+        diagnostics = (
+            Diagnostic(
+                code=failure_code,
+                message=str(exc),
+            ),
+        )
+
+    if diagnostics:
+        return render_failure(
+            label,
+            diagnostics,
+        )
+
+    print(success_message)
+    return 0
 
 
 def render_failure(

@@ -59,7 +59,7 @@ def create_repository(
         encoding="utf-8",
     )
 
-    for name, values in {
+    permission_profiles: dict[str, JsonObject] = {
         "read-only": {
             "read": True,
             "write": False,
@@ -78,7 +78,9 @@ def create_repository(
             "edit": False,
             "bash": "limited",
         },
-    }.items():
+    }
+
+    for name, values in permission_profiles.items():
         profile: JsonObject = {
             "name": name,
             "version": "0.1.0",

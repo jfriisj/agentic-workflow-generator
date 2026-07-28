@@ -1,5 +1,12 @@
 # Spec Kit Analysis for Agentic Workflow Generator
 
+> **Status: Historisk research-dokument.**
+> Dette dokument bevarer tidlige forslag inspireret af Spec Kit.
+> Foreslåede CLI-kommandoer, runtime-context, resolution-layouts og registry-
+> strukturer er ikke nødvendigvis implementeret. Ved konflikt gælder
+> `docs/architecture.md`, `docs/core-domain-model.md` og `project-status.md`.
+
+
 ## 1. Purpose
 
 This document defines how GitHub Spec Kit should be used as a reference architecture for the Agentic Workflow Generator.
@@ -378,22 +385,23 @@ Each gate should require one or more artifacts.
 
 ~~~text
 agentic-gen init
-  creates base config, target config, starter registry references
+  selects a bundle or guided setup
+  compiles one canonical composition
+  writes .agentic/agentic.json
 
 agentic-gen validate
-  validates config, registry references, target compatibility
-
-agentic-gen resolve
-  resolves agents -> capabilities -> skills
-
-agentic-gen compile
-  builds intermediate representation and runtime context
+  validates the active composition and registry contracts
 
 agentic-gen generate
-  writes target-specific files
+  generates and validates the lockfile
+  renders all enabled targets from CompiledComposition
+  writes target files and output manifest transactionally
 
-agentic-gen explain
-  explains why agents, skills, gates, and files were generated
+agentic-gen validate-generated
+  verifies byte-identical canonical target output
+
+agentic-gen validate-target-runtime
+  verifies supported target runtime parsing
 ~~~
 
 ## 15. Open Questions

@@ -266,7 +266,7 @@ fallbackAllowed: false
 
 `.agentic/agentic.json` is materialized from the selected bundle and target recommendation.
 
-It becomes the input to resolution, lockfile generation, target generation, manifest generation, and validation.
+It is the canonical serialized compiled composition and becomes an input to lockfile generation, transactional target materialization, output-manifest generation, and validation.
 
 ## Confirmation and cancellation
 
@@ -333,7 +333,7 @@ The isolated consumer end-to-end fixture verifies:
 ~~~text
 clean consumer project with no generated configuration
 deterministic guided setup materialization
-complete resolve, lock, generation, and validation pipeline
+complete compilation, lockfile, target materialization, and validation pipeline
 valid VS Code Copilot and OpenCode output
 byte-identical repeated init and generation
 unchanged compiler source payload

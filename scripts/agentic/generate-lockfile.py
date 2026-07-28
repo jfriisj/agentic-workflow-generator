@@ -12,10 +12,13 @@ LOCKFILE_PATH = ROOT / ".agentic" / "agentic-lock.json"
 LOCK_PATTERNS = [
     ".agentic/agentic.json",
     ".agentic/schemas/*.json",
+    "pyproject.toml",
     "registry/**/*.json",
     "registry/**/SKILL.md",
     "scripts/agentic/*.py",
     "scripts/agentic/*.sh",
+    "src/agentic_workflow_generator/**/*.py",
+    "uv.lock",
 ]
 
 EXCLUDED_PARTS = {

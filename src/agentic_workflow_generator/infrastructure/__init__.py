@@ -13,6 +13,7 @@ from .errors import (
 from .filesystem import (
     atomic_write_bytes,
     atomic_write_text,
+    transactional_update_files,
     transactional_write_bytes,
 )
 from .hashing import sha256_bytes, sha256_file
@@ -43,6 +44,7 @@ __all__ = [
     "serialize_json",
     "sha256_bytes",
     "sha256_file",
+    "transactional_update_files",
     "transactional_write_bytes",
     "write_json",
 ]

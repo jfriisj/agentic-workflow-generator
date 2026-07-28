@@ -7,7 +7,8 @@ description: "Use when executing authoritative tests, preserving raw results, di
 
 ## Purpose
 
-Execute the relevant validation commands against the declared revision and produce complete, reproducible evidence without hiding or repairing failures.
+Execute the relevant validation commands against the declared revision and produce complete, reproducible evidence
+without hiding or repairing failures.
 
 ## Required Inputs
 
@@ -65,7 +66,8 @@ The TestRunner must not:
 
 Return `PASS` only when all required executed validation passes and no required test is missing.
 
-Return `FAIL` when a required test or validation command executes and fails because the product does not satisfy the tested contract.
+Return `FAIL` when a required test or validation command executes and fails because the product does not satisfy the
+tested contract.
 
 Return `BLOCKED` when required tools, dependencies, environments, credentials, fixtures, or test inputs are unavailable.
 
