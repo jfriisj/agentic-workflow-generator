@@ -82,3 +82,6 @@ def _render_failure(
     diagnostics: tuple[Diagnostic, ...],
 ) -> int:
     return render_failure('Artifact contract', diagnostics)
+
+if __name__ == "__main__":
+    raise SystemExit(main())

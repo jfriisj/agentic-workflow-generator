@@ -995,23 +995,6 @@ def no_mutation(worktree: Path) -> None:
     _ = worktree
 
 
-def break_init_idempotency_by_changing_init_script(worktree: Path) -> None:
-    path = worktree / "scripts" / "agentic" / "init-from-bundle.py"
-    text = path.read_text(encoding="utf-8")
-
-    marker = "    return generated\n"
-    if marker not in text:
-        raise RuntimeError("Could not find init generated return marker")
-
-    injection = (
-        '    generated["project"]["description"] = '
-        'str(generated["project"].get("description", "")) + '
-        '" negative init idempotency drift marker"\n'
-    )
-
-    path.write_text(text.replace(marker, injection + marker, 1), encoding="utf-8")
-
-
 def break_environment_validation_node_command(worktree: Path) -> None:
     fake_bin = worktree / ".tmp-negative-node-bin"
     fake_bin.mkdir(parents=True, exist_ok=True)
@@ -5011,18 +4994,6 @@ def main() -> int:
         ),
         (
             "failure",
-            "init idempotency validation fails when second init changes config",
-            [
-                "scripts/agentic/agentic-gen.sh",
-                "validate-init-idempotency",
-                "--bundle",
-                "orchestrated-delivery",
-            ],
-            break_init_idempotency_by_changing_init_script,
-            "Init from bundle is not idempotent",
-        ),
-        (
-            "failure",
             "init idempotency validation fails when guided setup argument is missing",
             ["scripts/agentic/agentic-gen.sh", "validate-init-idempotency", "--guided"],
             no_mutation,
@@ -7198,14 +7169,14 @@ def main() -> int:
             "active config validation fails when target entry is duplicated",
             ["scripts/agentic/agentic-gen.sh", "validate"],
             break_agentic_config_duplicate_target_name,
-            "must NOT have duplicate items",
+            "AWG-ACTIVE-CONFIG-001",
         ),
         (
             "failure",
             "active config validation fails when target enabled is not true",
             ["scripts/agentic/agentic-gen.sh", "validate"],
             break_agentic_config_target_enabled_invalid_type,
-            "must be equal to constant",
+            "AWG-ACTIVE-CONFIG-001",
         ),
         (
             "failure",

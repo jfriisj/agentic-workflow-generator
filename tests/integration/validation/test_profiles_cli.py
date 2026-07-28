@@ -9,7 +9,6 @@ from agentic_workflow_generator.infrastructure import (
 )
 
 REPOSITORY_ROOT = Path(__file__).parents[3]
-LAUNCHER = REPOSITORY_ROOT / "scripts" / "agentic" / "validate-profile-registry.py"
 SCHEMA_SOURCE = (
     REPOSITORY_ROOT / ".agentic" / "schemas" / "registry" / "profile.schema.json"
 )
@@ -100,7 +99,8 @@ def run_launcher(
     return subprocess.run(
         [
             sys.executable,
-            str(LAUNCHER),
+            "-m",
+            "agentic_workflow_generator.cli.profiles",
         ],
         cwd=root,
         env=environment,

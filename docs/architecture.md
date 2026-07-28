@@ -291,9 +291,11 @@ loads a fully validated typed registry snapshot, compiles the selected bundle in
 
 The active configuration preserves existing project metadata and contains the bundle-owned profile, workflow, targets, agent instances, role bindings, permissions, skills, artifact contracts, state ownership, controller binding, workflow gates, artifact production and separation constraints.
 
+The `validate` command invokes `agentic_workflow_generator.cli.active_config` directly. It validates the serialized active configuration with Draft 2020-12 and structured `AWG-ACTIVE-CONFIG-*` diagnostics. The obsolete shell, Node and AJV validation boundary has been removed.
+
 Guided initialization selects only a bundle and enabled targets. It validates the setup profile and active configuration before side effects, then writes `.agentic/setup-profile.json` and `.agentic/agentic.json` as one transactional operation. Cancellation, dry-run and validation failure write no partial files.
 
-`scripts/agentic/init-from-bundle.py` is only a thin launcher. CLI code owns argument parsing, terminal interaction and rendering, while application and compiler layers own all composition and write semantics.
+`scripts/agentic/agentic-gen.sh` invokes the typed initialization CLI directly through `uv run python -m agentic_workflow_generator.cli.init`. The obsolete script launcher has been removed. CLI code owns argument parsing, terminal interaction and rendering, while application and compiler layers own all composition and write semantics.
 
 The init step is validated for idempotency:
 

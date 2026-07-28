@@ -13,23 +13,23 @@
       "scripts/agentic/*.py",
       "scripts/agentic/*.sh"
     ],
-    "fileCount": 107,
-    "contentHash": "sha256:9cef86c768d2ebe9743b69a38b36b512dcc756342a1ea731ac4ea4c8eb2e5949",
+    "fileCount": 85,
+    "contentHash": "sha256:177a4082bdad8775fb405e6af36b43cc48c9b31ed36db7df4f646876ed7d23b7",
     "files": [
       {
         "path": ".agentic/agentic.json",
-        "sha256": "sha256:f78d4e7c14396a53cb9117e03d01c7baccae29407dc892bbef2c5a8f2d36f7aa",
-        "sizeBytes": 7944
+        "sha256": "sha256:4473d60f38eea03e4d2f3e609dab2c37333952b3e6799eb41c15b8173e78f859",
+        "sizeBytes": 31617
       },
       {
         "path": ".agentic/schemas/agentic.schema.json",
-        "sha256": "sha256:d681991d78ea5de99cb626ffdc98b10f443257ed915f38a1a2357f53692e6579",
-        "sizeBytes": 7146
+        "sha256": "sha256:3fc638c98b61fd44bfc0253624dea5a3a04f6253b3a5410e40b8276046d27301",
+        "sizeBytes": 20862
       },
       {
         "path": ".agentic/schemas/setup-profile.schema.json",
-        "sha256": "sha256:25e499e623f4f05cae2e9ffc99649f0d5a92b9d74b4ee7beff1c1f43f40ee8cf",
-        "sizeBytes": 2480
+        "sha256": "sha256:858d8f33c180e211569bccb6487cb2d5b398a5fa8ee5c5347d05f1368180bd73",
+        "sizeBytes": 2270
       },
       {
         "path": "registry/agents/AIEvaluator/agent.json",
@@ -178,43 +178,43 @@
       },
       {
         "path": "registry/profiles/ai-application.profile.json",
-        "sha256": "sha256:48ffe18d759d097868a04c2ad0efc41f1f7099f6e4d09bfd028cc3862ca3e12d",
-        "sizeBytes": 1235
+        "sha256": "sha256:fa8780baa5ac8bb8a194b702b1dcb4cd0d22b00d0a9a3d2f13d50d6d9fdfd232",
+        "sizeBytes": 1246
       },
       {
         "path": "registry/profiles/lean-delivery.profile.json",
-        "sha256": "sha256:0b85a7f836745075e7434ecc66e149a887cea51615c03cd5e8006261dcc5331b",
-        "sizeBytes": 919
+        "sha256": "sha256:3c1a3025cdd3079eaea9ce9b16fe0f168dfbf27261e5ca363a6c2b1df392b453",
+        "sizeBytes": 930
       },
       {
         "path": "registry/profiles/microservice-platform.profile.json",
-        "sha256": "sha256:5faa96b964a0fc716faf1fd1ec308e21c86831cd172668f70b7a3cc602b22d05",
-        "sizeBytes": 686
+        "sha256": "sha256:200e180f583491c8a9247369697b73dd282b169ba3973497246ec4ddb54023f1",
+        "sizeBytes": 697
       },
       {
         "path": "registry/profiles/review-heavy-delivery.profile.json",
-        "sha256": "sha256:4f988b058d97ab7735a61f02c93d881cee7a8be66af66c0c56093e10de3e539a",
-        "sizeBytes": 1059
+        "sha256": "sha256:d330d7fbf738de8a89e2330d0701c1513ce4cfdc693af5ef5cdedc27cf4b9abb",
+        "sizeBytes": 1070
       },
       {
         "path": "registry/setups/ai-application-greenfield.setup.json",
-        "sha256": "sha256:f796e9ab176219221fff8726aced55a73f1d0acc9f2716825683755095d24e3b",
-        "sizeBytes": 5040
+        "sha256": "sha256:9e4cb663916b1a80cc289c80f9ef2c26247a77bd96e25b1bab686f09c1b969c3",
+        "sizeBytes": 4785
       },
       {
         "path": "registry/setups/lean-delivery-greenfield.setup.json",
-        "sha256": "sha256:752dbbfcf4071d9edb16e16b241642a4be327e9d47e906c7865b09ec119ef81f",
-        "sizeBytes": 4802
+        "sha256": "sha256:515886207bea5ef5f49ceb501e4d7f14b13e3ceee74fc63a301350290a598a5c",
+        "sizeBytes": 4367
       },
       {
         "path": "registry/setups/orchestrated-delivery-greenfield.setup.json",
-        "sha256": "sha256:5c028a114d8b2ce28fea196eee618b4ac41e44e9da08fecc62bba4e847987b4c",
-        "sizeBytes": 5764
+        "sha256": "sha256:55c6162a7efd9d486bfc8ac3fe692878cfc1e91c92ab06cdd39a8e4ffa67ca05",
+        "sizeBytes": 4989
       },
       {
         "path": "registry/setups/review-heavy-delivery-greenfield.setup.json",
-        "sha256": "sha256:36050012ecce317ab35b63b5ef1ca4fe616bd3af2452fc69456d5ea2b4f6d3d5",
-        "sizeBytes": 4817
+        "sha256": "sha256:8904914fd0ae9ae1f7097f3a138954c3405abe48a81107283d229921c0b0d793",
+        "sizeBytes": 4405
       },
       {
         "path": "registry/skills/ai-evaluation/SKILL.md",
@@ -318,13 +318,13 @@
       },
       {
         "path": "registry/targets/opencode/adapter.json",
-        "sha256": "sha256:1165e1a1d6b6701903918a7a5d57c8e5d0973ecb2cff9fe08e436bac429cc5b5",
-        "sizeBytes": 854
+        "sha256": "sha256:384b8c2d5f659fd5736b45d46f95dbb2aa4fa304c88f6c5144badbb2301b19f4",
+        "sizeBytes": 658
       },
       {
         "path": "registry/targets/vscode-copilot/adapter.json",
-        "sha256": "sha256:d588517daad0c92ced94ea89a6bd39ba086759ccad77c447b5cbf52700aa517d",
-        "sizeBytes": 1357
+        "sha256": "sha256:57bf7bb4cc620ccb2389bdb1c8c770fb16099a143ca2b5b624f2d2ea0585c5a2",
+        "sizeBytes": 1165
       },
       {
         "path": "registry/workflows/ai-application-delivery.workflow.json",
@@ -348,8 +348,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:7e1af75527f9e36d4b47e72117288ab8c3d44a366a7d3c13ec5542ae595444d0",
-        "sizeBytes": 19314
+        "sha256": "sha256:c21577a17be504f035e77f2da970f0d463a65b2e11b1e5da45e8151f32269ea1",
+        "sizeBytes": 15473
       },
       {
         "path": "scripts/agentic/cleanup-generated-output.py",
@@ -363,8 +363,8 @@
       },
       {
         "path": "scripts/agentic/generate-opencode.py",
-        "sha256": "sha256:10802cf71e8574d421ce520d4234a11593faabc03e68704b7475787a25a70505",
-        "sizeBytes": 10581
+        "sha256": "sha256:552c66c2f9d2c4b27b498970ea2b2929e9e03c41a32988952f0b54af41563d4a",
+        "sizeBytes": 9926
       },
       {
         "path": "scripts/agentic/generate-output-manifest.py",
@@ -373,28 +373,8 @@
       },
       {
         "path": "scripts/agentic/generate-vscode-copilot.py",
-        "sha256": "sha256:4b12ccd3bbc5373798dd1aadca077f393afb631ba57409bf9b194644b6f06b78",
-        "sizeBytes": 10236
-      },
-      {
-        "path": "scripts/agentic/guided_init.py",
-        "sha256": "sha256:565faf16fa964f40aeac2d794e198da30a5ef4c82c39b603fcaa79592afba1c7",
-        "sizeBytes": 12549
-      },
-      {
-        "path": "scripts/agentic/init-from-bundle.py",
-        "sha256": "sha256:36b5dc7c3eaacab74d534d63f0da0e6b5ccabb52ef5a430227a0cf973b9bb7b0",
-        "sizeBytes": 19738
-      },
-      {
-        "path": "scripts/agentic/init_support.py",
-        "sha256": "sha256:87e11142d301aa70582af88a1120a43d21f15ed9c4ce05d6ed0bdd8c227aeed2",
-        "sizeBytes": 2265
-      },
-      {
-        "path": "scripts/agentic/install-git-hooks.sh",
-        "sha256": "sha256:c9a3e0949938c159846b1570b77f9694852f5447f02c7be352efdb78984cd576",
-        "sizeBytes": 559
+        "sha256": "sha256:bc6397b2024542191c8744221cbfa3d5137393a3d49fa79704025bebf2b0faf1",
+        "sizeBytes": 9581
       },
       {
         "path": "scripts/agentic/report-capability-coverage.py",
@@ -407,59 +387,14 @@
         "sizeBytes": 9482
       },
       {
-        "path": "scripts/agentic/setup_materializer.py",
-        "sha256": "sha256:8114d33d2be9caa464414288c58010cef4113cede5057dedf7cb078247a2a1a9",
-        "sizeBytes": 13202
-      },
-      {
         "path": "scripts/agentic/target_generation_support.py",
         "sha256": "sha256:3fd4fc32747de36759183c1c63bc9a24e14b337850b3d7bdd34ca0c7a7aa4d2f",
         "sizeBytes": 9911
       },
       {
-        "path": "scripts/agentic/test-isolated-e2e.py",
-        "sha256": "sha256:7ecd6481701c5dabf949d6acdc558ff0a1a42d74ec754349cd3adea6f7772def",
-        "sizeBytes": 19309
-      },
-      {
         "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:b1c329a7ab2df243c29bca032c29e00cafe703d1457197fb9402a8f8c337d15e",
-        "sizeBytes": 328655
-      },
-      {
-        "path": "scripts/agentic/test-output-manifest-negative.py",
-        "sha256": "sha256:dbf7270e4323c127281d2b99285b446f7f36460e1eb8ad282f3cb9ef3934ae5d",
-        "sizeBytes": 1773
-      },
-      {
-        "path": "scripts/agentic/validate-agent-registry.py",
-        "sha256": "sha256:2eaa053cc5e78ffe1aaf7382336364309b5da0961f5fd9509579cf58658c8146",
-        "sizeBytes": 136
-      },
-      {
-        "path": "scripts/agentic/validate-agentic-config.sh",
-        "sha256": "sha256:5a182908c4707299e3d31fd5b7755ff1eef8121417ddc04a8fa37c4fdd4ec8b3",
-        "sizeBytes": 1445
-      },
-      {
-        "path": "scripts/agentic/validate-agentic-semantics.py",
-        "sha256": "sha256:8fc0da818f59217efac62416d35944ceb47ec2d83bce4d681ce38d2b3bc7f1ce",
-        "sizeBytes": 1905
-      },
-      {
-        "path": "scripts/agentic/validate-artifact-production.py",
-        "sha256": "sha256:ae6a0f9d476eede558defd75c4dae60cfa99e6634e8ecb1d73c0cb04ee30e402",
-        "sizeBytes": 8843
-      },
-      {
-        "path": "scripts/agentic/validate-artifacts.py",
-        "sha256": "sha256:2ad2a99b821b5b57c098a3e3534dcce78d59bda029fbedb0399d62b80516b7c2",
-        "sizeBytes": 202
-      },
-      {
-        "path": "scripts/agentic/validate-bundle-registry.py",
-        "sha256": "sha256:3d24db03eced3f32e52ed6af003d4106b5e342dcbd46558e7e6260c3133c3eb9",
-        "sizeBytes": 30335
+        "sha256": "sha256:23abb7c8c6d510e8ba4e8a63ecf31ee2583f7641438cdf9eea03d4f7c1b2d756",
+        "sizeBytes": 262577
       },
       {
         "path": "scripts/agentic/validate-environment.py",
@@ -477,11 +412,6 @@
         "sizeBytes": 4340
       },
       {
-        "path": "scripts/agentic/validate-init-idempotency.py",
-        "sha256": "sha256:b9567034c90dfd61f29dea26273f0e178bd0c7df87d47b48a3d8de024359c425",
-        "sizeBytes": 4510
-      },
-      {
         "path": "scripts/agentic/validate-lockfile.py",
         "sha256": "sha256:5066962e60dd8bbb97232572512cbe92ded1c0322dd0b168cd2f41c70ec13264",
         "sizeBytes": 7938
@@ -490,16 +420,6 @@
         "path": "scripts/agentic/validate-output-manifest.py",
         "sha256": "sha256:7eb32f5df74fece86363dbf953ca51f154b3f061a2ec019afc693874420069fb",
         "sizeBytes": 15796
-      },
-      {
-        "path": "scripts/agentic/validate-permission-profile-registry.py",
-        "sha256": "sha256:d21d19019e5070561c411aef8c4cf2d4624087752346911a6de8253457c2dd27",
-        "sizeBytes": 149
-      },
-      {
-        "path": "scripts/agentic/validate-profile-registry.py",
-        "sha256": "sha256:bbb73bb70908e008826e879f52c53cf0da2a3fd39115fb88a077eb8701ef86a3",
-        "sizeBytes": 10781
       },
       {
         "path": "scripts/agentic/validate-registry-references.py",
@@ -517,39 +437,9 @@
         "sizeBytes": 30745
       },
       {
-        "path": "scripts/agentic/validate-setup-profile.py",
-        "sha256": "sha256:37b1549db3758a9c3d66dc29c20e9bb672e4a566b04c1af0b1af9af88ee9d668",
-        "sizeBytes": 24798
-      },
-      {
-        "path": "scripts/agentic/validate-setup-registry.py",
-        "sha256": "sha256:d990bafded0d812557df10d69b60da059ce0e5507de6cbca1aded71a13a9198f",
-        "sizeBytes": 17062
-      },
-      {
-        "path": "scripts/agentic/validate-skill-registry.py",
-        "sha256": "sha256:4e16f6f78415b90c144748022947e67c72b00b1d6389bb24168b4ca1b1be1bd2",
-        "sizeBytes": 190
-      },
-      {
-        "path": "scripts/agentic/validate-target-adapter-semantics.py",
-        "sha256": "sha256:dbc78fab94159c19495193cd0e5ac6893c638ed7d4e5c012588f17a811994517",
-        "sizeBytes": 3798
-      },
-      {
-        "path": "scripts/agentic/validate-target-adapters.py",
-        "sha256": "sha256:e65fa0e0aecb693c3fa762281d8bccd8cab490a69487850031980ee2c2e62005",
-        "sizeBytes": 6090
-      },
-      {
         "path": "scripts/agentic/validate-target-compatibility.py",
-        "sha256": "sha256:f0a5055e3b6dd1506ded3f8a345096aabdd4d68d3c50f42ae9de6585c9b0005f",
-        "sizeBytes": 24951
-      },
-      {
-        "path": "scripts/agentic/validate-workflow-registry.py",
-        "sha256": "sha256:aae5ef4b713e1dea3c55ba0b16341cbf928ef7b194654c7c1418851e46350af7",
-        "sizeBytes": 21482
+        "sha256": "sha256:330f7e61c1a61ee09be4a63defa8fb46a546e8063734b7adc884d2c07dfb3271",
+        "sizeBytes": 23996
       }
     ]
   }

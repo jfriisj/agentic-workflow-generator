@@ -76,7 +76,7 @@ registry
 * De nuværende bundles kræver forskellige instanser for alle role bindings gennem en eksplicit separation policy.
 * 3 permission-profiler og tilhørende schema og semantisk validator er implementeret.
 * 8 agentprofiler og 10 skills har typed immutable domænemodeller, strikte schemaer og strukturerede semantiske validators.
-* Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller, stabile diagnostics og midlertidige tynde launchers.
+* Permission-, agent-, skill-, artifact-, workflow-, bundle-, profile-, setup- og setup-profile-validatorerne er migreret til den nye Python-pakkearkitektur med typed immutable domænemodeller og stabile diagnostics. `agentic-gen.sh` kalder deres CLI-moduler direkte; de midlertidige script-launchers er fjernet.
 * Validation-laget anvender fælles fail-fast support for schema diagnostics, registry-identiteter og en pre-schema rejection pipeline uden fallback eller parallel autoritet.
 * CLI-laget anvender fælles diagnostic-rendering og et typed setup-validation context.
 * Pylint duplicate-code er konfigureret som dev-gate for `src/agentic_workflow_generator` og består med rating 10,00/10.
@@ -91,12 +91,15 @@ registry
 * De 2 registrerede target adapters er migreret til immutable typed `TargetAdapter`-, output-path- og permission-mapping-værdier med et stramt Draft 2020-12-schema.
 * Target-valideringen afviser usikre eller overlappende ejerskaber, output uden for ejede paths, duplicate identities og manglende eller ukendte permission mappings med stabile `AWG-TARGET-*` diagnostics.
 * Hver target adapter skal mappe præcis alle 3 registrerede permission-profiler. `ValidatedRegistrySnapshot` ejer de validerede adapterobjekter, og `CompiledTarget` refererer direkte til den validerede adapter uden en parallel target-projection.
-* `validate-targets` er den eneste autoritative target-registry-kommando. Den separate `validate-target-adapter-semantics.py` er fjernet, og `validate-target-adapters.py` er reduceret til en tynd launcher.
+* `validate-targets` er den eneste autoritative target-registry-kommando. `agentic-gen.sh` kalder nu CLI-modulet `agentic_workflow_generator.cli.targets` direkte. Både den separate semantikvalidator og den midlertidige script-launcher er fjernet.
 * Active-config-schemaet kræver unikke target entries og `enabled: true`; disse kontrakter valideres af active-config-grænsen og ikke af target-registry-validatoren.
+* Runtimevalidering af `.agentic/agentic.json` anvender nu den typed Python-CLI `agentic_workflow_generator.cli.active_config` med Draft 2020-12 og stabile `AWG-ACTIVE-CONFIG-*` diagnostics. Den separate shell-, Node- og AJV-baserede validator er fjernet.
 * Den fokuserede target-slice består med 43 domain-, validation-, CLI-, contract- og integrationstests samt 17 target-gates og 2 active-config-target-gates. Hele Python-suiten består med 703 tests; Ruff, mypy og Pylint består, og Pylint vurderer pakken til 10,00/10.
 * Initialization commit-grænsen schema-validerer alle outputs før side effects, springer byte-identiske filer over og skriver guided setup-profil samt aktiv konfiguration som én flerfilstransaktion med fail-fast rollback.
 * Den offentlige init-CLI anvender kun typed application services. Direct bundle init, non-interactive guided init, answer overrides, dry-run, interaktivt setupvalg, back-navigation, cancellation og confirmation er bevaret uden raw registry- eller kompositionslogik i CLI-laget.
-* `scripts/agentic/init-from-bundle.py` er reduceret til en tynd launcher. De obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
+* `agentic-gen.sh` kalder nu det typed init-CLI-modul direkte. Den midlertidige `init-from-bundle.py`-launcher og de obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
+* `scripts/agentic` er reduceret fra 34 til 19 resterende filer. 12 tynde Python-launchers, de urefererede `install-git-hooks.sh` og `test-output-manifest-negative.py` samt den obsolete `validate-agentic-config.sh` er fjernet. De resterende scripts indeholder aktiv orkestrering eller endnu ikke migreret compiler-, target-, lockfile- og valideringslogik.
+* Den fokuserede launcher- og active-config-oprydning består med 24 init/CLI/integration/E2E-tests, 10 active-config CLI- og contract-tests samt 2 active-config-negative gates. Hele Python-suiten består med 707 tests; Ruff, mypy og Pylint består, og Pylint vurderer pakken til 10,00/10. `agentic-gen.sh check` består også. Lockfilen er regenereret med 85 aktuelle inputfiler og består lockfile-valideringen. Lockfilen er regenereret med 85 aktuelle inputfiler og består lockfile-valideringen.
 * Den fokuserede init-migrationsgate består med 39 tests samt script- og JSON-syntaxkontrol.
 * Alle fire setups materialiserer gyldige profiler med defaults, OpenCode-only og VS Code Copilot-only.
 * `target-platforms` er nu den eneste spørgsmålsdimension, der ejer targetvalget; dobbelt target-autoritet er fjernet fra `project-domain` og `project-type`.

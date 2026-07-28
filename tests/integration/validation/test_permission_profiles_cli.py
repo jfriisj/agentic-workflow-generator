@@ -9,9 +9,6 @@ from agentic_workflow_generator.infrastructure import (
 )
 
 REPOSITORY_ROOT = Path(__file__).parents[3]
-LAUNCHER = (
-    REPOSITORY_ROOT / "scripts" / "agentic" / "validate-permission-profile-registry.py"
-)
 SCHEMA_SOURCE = (
     REPOSITORY_ROOT
     / ".agentic"
@@ -66,7 +63,11 @@ def run_launcher(root: Path) -> subprocess.CompletedProcess[str]:
     environment["PYTHONPATH"] = str(REPOSITORY_ROOT / "src")
 
     return subprocess.run(
-        [sys.executable, str(LAUNCHER)],
+        [
+            sys.executable,
+            "-m",
+            "agentic_workflow_generator.cli.permission_profiles",
+        ],
         cwd=root,
         env=environment,
         text=True,

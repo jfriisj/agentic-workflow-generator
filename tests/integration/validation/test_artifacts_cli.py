@@ -17,7 +17,6 @@ from agentic_workflow_generator.validation.artifacts import (
 )
 
 REPOSITORY_ROOT = Path(__file__).parents[3]
-LAUNCHER = REPOSITORY_ROOT / "scripts" / "agentic" / "validate-artifacts.py"
 SCHEMA_SOURCE = (
     REPOSITORY_ROOT / ".agentic" / "schemas" / "registry" / "artifact.schema.json"
 )
@@ -91,7 +90,8 @@ def run_launcher(
     return subprocess.run(
         [
             sys.executable,
-            str(LAUNCHER),
+            "-m",
+            "agentic_workflow_generator.cli.artifacts",
         ],
         cwd=root,
         env=environment,

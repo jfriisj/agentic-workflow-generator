@@ -104,3 +104,6 @@ def _render_failure(
     diagnostics: tuple[Diagnostic, ...],
 ) -> int:
     return render_failure('Bundle registry', diagnostics)
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -545,3 +545,6 @@ def _confirm_guided_plan(
         f"invalid confirmation {answer!r}; expected "
         "'y' or 'n'; no files were written"
     )
+
+if __name__ == "__main__":
+    raise SystemExit(main())

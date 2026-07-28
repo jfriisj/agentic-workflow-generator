@@ -133,9 +133,6 @@ validate_json_files() {
 
 check_scripts() {
   require_file "scripts/agentic/validate-environment.py"
-  require_file "scripts/agentic/validate-setup-registry.py"
-  require_file "scripts/agentic/validate-setup-profile.py"
-  require_file "scripts/agentic/validate-agentic-config.sh"
   require_file "scripts/agentic/resolve-agentic-config.py"
   require_file "scripts/agentic/validate-resolution-output.py"
   require_file "scripts/agentic/generate-vscode-copilot.py"
@@ -145,24 +142,11 @@ check_scripts() {
   require_file "scripts/agentic/validate-generated-output.py"
   require_file "scripts/agentic/target_generation_support.py"
   require_file "scripts/agentic/validate-target-compatibility.py"
-  require_file "scripts/agentic/validate-artifacts.py"
-  require_file "scripts/agentic/validate-permission-profile-registry.py"
-  require_file "scripts/agentic/validate-agent-registry.py"
-  require_file "scripts/agentic/validate-target-adapters.py"
-  require_file "scripts/agentic/validate-skill-registry.py"
-  require_file "scripts/agentic/validate-workflow-registry.py"
-  require_file "scripts/agentic/validate-profile-registry.py"
-  require_file "scripts/agentic/init-from-bundle.py"
-  require_file "scripts/agentic/validate-init-idempotency.py"
-  require_file "scripts/agentic/validate-bundle-registry.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
 
   uv run python -m py_compile "scripts/agentic/validate-environment.py"
-  uv run python -m py_compile "scripts/agentic/validate-setup-registry.py"
-  uv run python -m py_compile "scripts/agentic/validate-setup-profile.py"
-  bash -n "scripts/agentic/validate-agentic-config.sh"
   bash -n "scripts/agentic/agentic-gen.sh"
 
   uv run python -m py_compile "scripts/agentic/resolve-agentic-config.py"
@@ -174,16 +158,6 @@ check_scripts() {
   uv run python -m py_compile "scripts/agentic/validate-generated-output.py"
   uv run python -m py_compile "scripts/agentic/target_generation_support.py"
   uv run python -m py_compile "scripts/agentic/validate-target-compatibility.py"
-  uv run python -m py_compile "scripts/agentic/validate-artifacts.py"
-  uv run python -m py_compile "scripts/agentic/validate-permission-profile-registry.py"
-  uv run python -m py_compile "scripts/agentic/validate-agent-registry.py"
-  uv run python -m py_compile "scripts/agentic/validate-target-adapters.py"
-  uv run python -m py_compile "scripts/agentic/validate-skill-registry.py"
-  uv run python -m py_compile "scripts/agentic/validate-workflow-registry.py"
-  uv run python -m py_compile "scripts/agentic/validate-profile-registry.py"
-  uv run python -m py_compile "scripts/agentic/init-from-bundle.py"
-  uv run python -m py_compile "scripts/agentic/validate-init-idempotency.py"
-  uv run python -m py_compile "scripts/agentic/validate-bundle-registry.py"
   uv run python -m py_compile "scripts/agentic/validate-registry-references.py"
   uv run python -m py_compile "scripts/agentic/validate-registry-schemas.py"
   uv run python -m py_compile "scripts/agentic/report-capability-coverage.py"
@@ -218,24 +192,24 @@ run_pipeline() {
 
   check_scripts || return 1
   validate_json_files || return 1
-  scripts/agentic/validate-agentic-config.sh || return 1
-  uv run python scripts/agentic/validate-target-adapters.py || return 1
-  uv run python scripts/agentic/validate-skill-registry.py || return 1
-  uv run python scripts/agentic/validate-workflow-registry.py || return 1
-  uv run python scripts/agentic/validate-profile-registry.py || return 1
-  uv run python scripts/agentic/validate-bundle-registry.py || return 1
-  uv run python scripts/agentic/validate-setup-registry.py || return 1
-  uv run python scripts/agentic/validate-setup-profile.py || return 1
+  uv run python -m agentic_workflow_generator.cli.active_config || return 1
+  uv run python -m agentic_workflow_generator.cli.targets || return 1
+  uv run python -m agentic_workflow_generator.cli.skills || return 1
+  uv run python -m agentic_workflow_generator.cli.workflows || return 1
+  uv run python -m agentic_workflow_generator.cli.profiles || return 1
+  uv run python -m agentic_workflow_generator.cli.bundles || return 1
+  uv run python -m agentic_workflow_generator.cli.setups || return 1
+  uv run python -m agentic_workflow_generator.cli.setup_profiles || return 1
   uv run python scripts/agentic/validate-registry-references.py || return 1
   uv run python scripts/agentic/validate-registry-schemas.py || return 1
-  uv run python scripts/agentic/validate-permission-profile-registry.py || return 1
+  uv run python -m agentic_workflow_generator.cli.permission_profiles || return 1
   uv run python scripts/agentic/report-capability-coverage.py || return 1
   uv run python scripts/agentic/resolve-agentic-config.py || return 1
   uv run python scripts/agentic/validate-resolution-output.py || return 1
   uv run python scripts/agentic/generate-lockfile.py || return 1
   uv run python scripts/agentic/validate-lockfile.py || return 1
-  uv run python scripts/agentic/validate-artifacts.py || return 1
-  uv run python scripts/agentic/validate-agent-registry.py || return 1
+  uv run python -m agentic_workflow_generator.cli.artifacts || return 1
+  uv run python -m agentic_workflow_generator.cli.agents || return 1
   generate_target "$target" || return 1
   uv run python scripts/agentic/validate-generated-output.py || return 1
   uv run python scripts/agentic/validate-target-compatibility.py || return 1
@@ -367,11 +341,11 @@ case "$COMMAND" in
     ;;
 
   init)
-    uv run python scripts/agentic/init-from-bundle.py "${@:2}"
+    uv run python -m agentic_workflow_generator.cli.init "${@:2}"
     ;;
 
   validate)
-    scripts/agentic/validate-agentic-config.sh
+    uv run python -m agentic_workflow_generator.cli.active_config
     ;;
   resolve)
     uv run python scripts/agentic/resolve-agentic-config.py
@@ -398,34 +372,34 @@ case "$COMMAND" in
     uv run python scripts/agentic/cleanup-generated-output.py "${@:2}"
     ;;
   validate-artifacts)
-    uv run python scripts/agentic/validate-artifacts.py
+    uv run python -m agentic_workflow_generator.cli.artifacts
     ;;
   validate-permission-profiles)
-    uv run python scripts/agentic/validate-permission-profile-registry.py
+    uv run python -m agentic_workflow_generator.cli.permission_profiles
     ;;
   validate-agents)
-    uv run python scripts/agentic/validate-agent-registry.py
+    uv run python -m agentic_workflow_generator.cli.agents
     ;;
   validate-targets)
-    uv run python scripts/agentic/validate-target-adapters.py
+    uv run python -m agentic_workflow_generator.cli.targets
     ;;
   validate-skills)
-    uv run python scripts/agentic/validate-skill-registry.py
+    uv run python -m agentic_workflow_generator.cli.skills
     ;;
   validate-workflows)
-    uv run python scripts/agentic/validate-workflow-registry.py
+    uv run python -m agentic_workflow_generator.cli.workflows
     ;;
   validate-profiles)
-    uv run python scripts/agentic/validate-profile-registry.py
+    uv run python -m agentic_workflow_generator.cli.profiles
     ;;
   validate-bundles)
-    uv run python scripts/agentic/validate-bundle-registry.py
+    uv run python -m agentic_workflow_generator.cli.bundles
     ;;
   validate-setups)
-    uv run python scripts/agentic/validate-setup-registry.py
+    uv run python -m agentic_workflow_generator.cli.setups
     ;;
   validate-setup-profile)
-    uv run python scripts/agentic/validate-setup-profile.py
+    uv run python -m agentic_workflow_generator.cli.setup_profiles
     ;;
   validate-references)
     uv run python scripts/agentic/validate-registry-references.py
@@ -454,7 +428,7 @@ case "$COMMAND" in
     uv run python scripts/agentic/validate-generation-idempotency.py
     ;;
   validate-init-idempotency)
-    uv run python scripts/agentic/validate-init-idempotency.py "${@:2}"
+    uv run python -m agentic_workflow_generator.cli.init_idempotency "${@:2}"
     ;;
   test-negative)
     scripts/agentic/test-negative-gates.py "${@:2}"

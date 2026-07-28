@@ -96,3 +96,6 @@ def _render_failure(
     diagnostics: tuple[Diagnostic, ...],
 ) -> int:
     return render_failure('Profile registry', diagnostics)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
