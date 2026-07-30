@@ -90,3 +90,21 @@ class TransactionRollbackError(InfrastructureError):
 
 class HashReadError(PathInfrastructureError):
     """Raised when a file cannot be hashed."""
+
+
+class ProcessExecutionError(InfrastructureError):
+    """Raised when a resolved external process cannot execute."""
+
+    def __init__(
+        self,
+        executable: str,
+        arguments: tuple[str, ...],
+        *,
+        reason: str,
+    ) -> None:
+        self.executable = executable
+        self.arguments = arguments
+        self.detail = reason
+        super().__init__(
+            f"could not execute {executable}: {reason}"
+        )

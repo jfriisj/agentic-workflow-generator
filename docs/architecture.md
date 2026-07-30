@@ -644,12 +644,14 @@ src/
       init.py
       generate.py
       validate.py
+      environment.py
       lockfile_generation.py
       lockfile_validation.py
 
     application/
       initialization.py
       generation.py
+      environment.py
       lockfile.py
       registry_snapshot.py
       pipeline.py
@@ -741,6 +743,10 @@ registry
 
 infrastructure
   provides filesystem, JSON, hashing and process adapters
+
+The environment application service owns the six required command contracts, their fail-closed validation policy and a fixed 30-second timeout for each version command. The infrastructure process adapter only resolves explicitly named executables and executes resolved commands while capturing exit code and combined output. It does not select alternatives, repair `PATH`, install tools or contain environment policy.
+
+The temporary shell launcher routes `validate-environment` directly to `cli.environment`; it does not own command discovery, process execution or validation semantics.
 
 targets
   consume compiled composition

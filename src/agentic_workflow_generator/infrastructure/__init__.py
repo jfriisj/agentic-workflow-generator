@@ -8,6 +8,7 @@ from .errors import (
     JsonReadError,
     JsonRootTypeError,
     JsonSerializationError,
+    ProcessExecutionError,
     TransactionRollbackError,
 )
 from .filesystem import (
@@ -25,6 +26,11 @@ from .json_io import (
     serialize_json,
     write_json,
 )
+from .processes import (
+    ProcessResult,
+    resolve_executable,
+    run_process,
+)
 
 __all__ = [
     "AtomicWriteError",
@@ -36,11 +42,15 @@ __all__ = [
     "JsonRootTypeError",
     "JsonSerializationError",
     "JsonValue",
+    "ProcessExecutionError",
+    "ProcessResult",
     "TransactionRollbackError",
     "atomic_write_bytes",
     "atomic_write_text",
     "read_json",
     "read_json_object",
+    "resolve_executable",
+    "run_process",
     "serialize_json",
     "sha256_bytes",
     "sha256_file",

@@ -45,9 +45,11 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-environment
 
 This is a fail-fast preflight.
 
-It checks the selected commands from `PATH` and fails if any required command is missing or cannot run.
+The shell command delegates directly to the typed environment CLI. The application service owns the six required command contracts, while the policy-free process adapter resolves each command through the explicitly supplied `PATH` and runs its version command in the repository root.
 
-It does not install tools, repair `PATH`, or fall back to another implementation.
+Each version command has a fixed 30-second timeout. Validation fails with stable `AWG-ENVIRONMENT-*` diagnostics if a required executable is missing, cannot execute, times out or returns a non-zero exit code.
+
+It does not install tools, repair `PATH`, search alternative locations, or fall back to another implementation.
 
 Expected checked commands:
 

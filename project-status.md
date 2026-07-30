@@ -36,7 +36,7 @@ Target-materialiseringsslicen er committed og pushed som `344699c`. `doctor-stri
 
 Lockfile-slicen er committed og pushed som `71e4231`. Lockfile-generation og lockfile-validation er migreret fra `scripts/agentic` til typed application- og CLI-moduler. De gamle `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet, og shell-routeren kalder de nye CLI-grænser direkte.
 
-Den aktuelle implementation består med 755 pytest-tests, Ruff, strict mypy over 177 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede lockfile-scope består Pylint med rating 10,00/10. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules i lockfile-slicen.
+Den aktuelle uncommitted environment-slice består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede environment-scope består Pylint med rating 10,00/10. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules i denne slice.
 
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
@@ -115,8 +115,10 @@ registry
 * `agentic-gen.sh` kalder nu det typed init-CLI-modul direkte. Den midlertidige `init-from-bundle.py`-launcher og de obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
 * Typed lockfile-generation og lockfile-validation er implementeret under application- og CLI-lagene med canonical inputmønstre, deterministisk SHA-256-provenance, atomisk JSON-write og stabile `AWG-LOCKFILE-*` diagnostics.
 * De obsolete `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet. `agentic-gen.sh lock`, `validate-lockfile`, `generate` og den samlede pipeline anvender de typed CLI-moduler direkte.
-* `scripts/agentic` er reduceret fra 34 til 7 resterende filer. De resterende filer er shell-orchestratoren, environment-validation, registry-reference- og schema-validation, capability coverage, generation-idempotency samt den monolitiske negative-gate-runner.
-* Den aktuelle lockfile-slice består med 11 fokuserede tests, 755 samlede pytest-tests, Ruff, strict mypy over 177 sourcefiler, alle 109 negative gates og `agentic-gen.sh all`. Lockfilen indeholder 157 aktuelle compilerinput og dækker alle 12 schemafiler rekursivt.
+* `scripts/agentic` er reduceret fra 34 til 6 resterende filer. De resterende filer er shell-orchestratoren, registry-reference- og schema-validation, capability coverage, generation-idempotency samt den monolitiske negative-gate-runner.
+* Typed environment-validation er implementeret under application-, infrastructure- og CLI-lagene med seks obligatoriske command contracts, eksplicit PATH-resolution, typed process-resultater og stabile `AWG-ENVIRONMENT-*` diagnostics.
+* Det obsolete `validate-environment.py`-script er fjernet. `agentic-gen.sh validate-environment` kalder nu det typed CLI-modul direkte.
+* Den aktuelle environment-slice består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og `agentic-gen.sh all`. Lockfilen indeholder 159 aktuelle compilerinput og dækker alle 12 schemafiler rekursivt.
 * Den fokuserede init-migrationsgate består med 39 tests samt script- og JSON-syntaxkontrol.
 * Alle fire setups materialiserer gyldige profiler med defaults, OpenCode-only og VS Code Copilot-only.
 * `target-platforms` er nu den eneste spørgsmålsdimension, der ejer targetvalget; dobbelt target-autoritet er fjernet fra `project-domain` og `project-type`.
@@ -131,7 +133,7 @@ registry
 ### Resterende migrations- og afslutningsarbejde
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
-* `validate-environment.py`, `validate-registry-references.py`, `validate-registry-schemas.py`, `report-capability-coverage.py` og `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
+* `validate-registry-references.py`, `validate-registry-schemas.py`, `report-capability-coverage.py` og `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
 * Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
 * Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
 * Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
@@ -250,22 +252,22 @@ agentic-gen.sh all
   PASS: registry references
   PASS: komplet capability coverage
   PASS: 7 artifact contracts
-  PASS: typed lockfile med 157 compilerinput og alle 12 schemafiler
+  PASS: typed lockfile med 159 compilerinput og alle 12 schemafiler
   PASS: 2 targets og 53 kanoniske outputfiler
 
 agentic-gen.sh test-negative
   PASS: All 109 negative gate tests passed
 
 samlet Python-suite
-  PASS: 755 tests
+  PASS: 767 tests
 
 Ruff
   PASS
 
 strict mypy
-  PASS: 177 source files
+  PASS: 183 source files
 
-Pylint, fokuseret lockfile-scope
+Pylint, fokuseret environment-scope
   PASS: rating 10.00/10
 
 Pylint, samlet src og tests
@@ -285,9 +287,9 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree er rent. Den typed lockfile-slice er committed og pushed som `71e4231`.
+Working tree indeholder den endnu ikke committed typed environment-slice. Slicen omfatter typed command requirements, en policyfri procesadapter, application-validation, CLI-rendering, 12 fokuserede tests og fjernelse af det gamle `validate-environment.py`-script.
 
-De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 157 compilerinput og alle 12 schemafiler.
+De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 159 compilerinput og alle 12 schemafiler.
 
 
 ## Registry-audit — vigtigste fund
@@ -1077,26 +1079,38 @@ For hver resterende slice:
 * lockfile, targets og manifest er regenereret
 * `agentic-gen.sh all` består
 * alle 109 negative gates består
-* 755 pytest-tests, Ruff og strict mypy over 177 sourcefiler består
-* det fokuserede lockfile-scope består Pylint med rating 10,00/10
+* 767 pytest-tests, Ruff og strict mypy over 183 sourcefiler består
+* det fokuserede environment-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
-* de sidste 7 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
+* de sidste 6 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Migrér environment-validation fra `scripts/agentic/validate-environment.py` til pakkens typed application-, infrastructure- og CLI-lag.
+Afslut den typed environment-validation-slice.
 
-Slicen skal:
+Den aktuelle evidens er:
 
-1. bevare den offentlige `validate-environment`-kontrakt
-2. modellere eksterne proces- og værktøjskrav fail-fast
-3. returnere stabile `AWG-ENVIRONMENT-*` diagnostics
-4. erstatte script-consumers atomisk
-5. bevare og udvide de relevante positive og negative tests
-6. slette `scripts/agentic/validate-environment.py`
-7. regenerere og validere lockfilen
-8. opdatere dokumentation og denne statusfil
-9. bestå fokuserede gates, hele pipelinen og `doctor-strict`
+* 12 fokuserede environment- og process-tests
+* 767 samlede pytest-tests
+* Ruff
+* strict mypy for 183 sourcefiler
+* fokuseret Pylint med rating 10,00/10
+* offentlig `validate-environment`-kontrakt for 6 kommandoer
+* alle 109 negative gates
+* `agentic-gen.sh all`
+* lockfile med 159 compilerinput og alle 12 schemafiler
+* 53 kanoniske outputfiler for 2 targets
+
+Arbejdet skal nu:
+
+1. synkronisere arkitektur- og workflowdokumentation med den typed environment-grænse
+2. reviewe procesadapterens og CLI-grænsens kontrakter
+3. køre `git diff --check` og reviewe den samlede ændring
+4. committe environment-slicen
+5. køre `doctor-strict` på det rene working tree
+6. pushe branch `refactor/typed-init-consumers`
+
+Derefter migreres registry-reference- og registry-schema-grænserne.
 
 Der må ikke tilføjes fallback, implicit værktøjsopdagelse eller parallel legacy-validation.
 

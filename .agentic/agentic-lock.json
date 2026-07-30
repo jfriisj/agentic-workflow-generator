@@ -16,8 +16,8 @@
       "src/agentic_workflow_generator/**/*.py",
       "uv.lock"
     ],
-    "fileCount": 157,
-    "contentHash": "sha256:2d5ea52ac97c739a38df6953e0b8040584026be1aa4788a859173a8c85891ad0",
+    "fileCount": 159,
+    "contentHash": "sha256:aa52d2f3a642c6b996fe77d67f48c86cc77f091227c0b8eb1dca52e9ad7a02f9",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -406,8 +406,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:e3d7100934ac155efdf3b552b0d5049818e99a4313b4dab8b86e73abc27785e0",
-        "sizeBytes": 13446
+        "sha256": "sha256:79f3a387d370b1ccaa73e48dd5731155af63d0f64fca7a3d749b6da61b1a3f11",
+        "sizeBytes": 13526
       },
       {
         "path": "scripts/agentic/report-capability-coverage.py",
@@ -418,11 +418,6 @@
         "path": "scripts/agentic/test-negative-gates.py",
         "sha256": "sha256:9826c9ea6bb9a1ce6d1b02129e2fbaa82e8ec7eba78853cdb0015872458fe2dc",
         "sizeBytes": 102191
-      },
-      {
-        "path": "scripts/agentic/validate-environment.py",
-        "sha256": "sha256:8a928ca4b6cdfe3fc18c8c3a78a00d8b0b728a8a33dbc839b03ca63fadb42dbf",
-        "sizeBytes": 2060
       },
       {
         "path": "scripts/agentic/validate-generation-idempotency.py",
@@ -448,6 +443,11 @@
         "path": "src/agentic_workflow_generator/application/__init__.py",
         "sha256": "sha256:15076d5de56b579255c6387fd097ac371750712766de6f29426d178a8786807e",
         "sizeBytes": 1503
+      },
+      {
+        "path": "src/agentic_workflow_generator/application/environment.py",
+        "sha256": "sha256:7b8b68498cc24cd57a15dcec35710cbfa0c767385848b579e0e1ffcff821da5d",
+        "sizeBytes": 4858
       },
       {
         "path": "src/agentic_workflow_generator/application/guided_init.py",
@@ -518,6 +518,11 @@
         "path": "src/agentic_workflow_generator/cli/bundles.py",
         "sha256": "sha256:9016992e59642ea00081da0382cbddb2069a62bff5380ddc51fe9479b3387927",
         "sizeBytes": 3489
+      },
+      {
+        "path": "src/agentic_workflow_generator/cli/environment.py",
+        "sha256": "sha256:764b66eb7f3d33fe4a99efbc6356ce99df93477c638ff2adb1f63eabf0071d8d",
+        "sizeBytes": 2637
       },
       {
         "path": "src/agentic_workflow_generator/cli/init.py",
@@ -671,13 +676,13 @@
       },
       {
         "path": "src/agentic_workflow_generator/infrastructure/__init__.py",
-        "sha256": "sha256:74f8ab0c48c0fe923d71623e7e6fb666236194322be34dc7d7817f1723316ec8",
-        "sizeBytes": 1078
+        "sha256": "sha256:5e101765cf7c9373794a96ee1c7cf2e4707c2ce4a51b3184143cd4ebad6d88b7",
+        "sizeBytes": 1287
       },
       {
         "path": "src/agentic_workflow_generator/infrastructure/errors.py",
-        "sha256": "sha256:827b2914da6a9a8fd93d7897e43ce66e1fecdfac22715c875d658a0c566cba1e",
-        "sizeBytes": 2379
+        "sha256": "sha256:7490afcfc90e593d5384f40a2af6bc341dd564b00dbb6c53e02e0462ce43e26e",
+        "sizeBytes": 2831
       },
       {
         "path": "src/agentic_workflow_generator/infrastructure/filesystem.py",
@@ -693,6 +698,11 @@
         "path": "src/agentic_workflow_generator/infrastructure/json_io.py",
         "sha256": "sha256:5e6d65c6bcfe84c697693ddd1533832683ed5cfbd4acdd1d133b6fe0d68416ea",
         "sizeBytes": 2499
+      },
+      {
+        "path": "src/agentic_workflow_generator/infrastructure/processes.py",
+        "sha256": "sha256:a96d9d260668f1ab5ef86e928ff573fbfaa8f0c8f390a31d1fe720f7ca9c3d51",
+        "sizeBytes": 1594
       },
       {
         "path": "src/agentic_workflow_generator/registry/__init__.py",
