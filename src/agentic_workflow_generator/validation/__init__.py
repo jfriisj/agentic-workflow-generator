@@ -16,6 +16,12 @@ from .bundles import (
     BundleValidationResult,
     validate_bundle_registry,
 )
+from .capability_coverage import (
+    CapabilityConsumers,
+    CapabilityCoverageResult,
+    CapabilityProviders,
+    validate_capability_coverage,
+)
 from .permission_profiles import (
     PermissionProfileValidationResult,
     validate_permission_profile_registry,
@@ -63,6 +69,9 @@ __all__ = [
     "ArtifactValidationResult",
     "BundleReferenceData",
     "BundleValidationResult",
+    "CapabilityConsumers",
+    "CapabilityCoverageResult",
+    "CapabilityProviders",
     "PermissionProfileValidationResult",
     "ProfileReferenceData",
     "ProfileValidationResult",
@@ -80,6 +89,7 @@ __all__ = [
     "validate_agent_registry",
     "validate_artifact_registry",
     "validate_bundle_registry",
+    "validate_capability_coverage",
     "validate_permission_profile_registry",
     "validate_profile_registry",
     "validate_registry_schemas",

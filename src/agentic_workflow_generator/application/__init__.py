@@ -1,5 +1,8 @@
 """Application services orchestrating typed domain operations."""
 
+from .capability_coverage import (
+    analyze_capability_coverage,
+)
 from .guided_init import (
     GuidedInitError,
     GuidedInitService,
@@ -52,6 +55,7 @@ __all__ = [
     "RegistrySnapshotValidationError",
     "SetupMaterializationError",
     "ValidatedRegistrySnapshot",
+    "analyze_capability_coverage",
     "load_guided_init_service",
     "load_initialization_service",
     "load_project_metadata",

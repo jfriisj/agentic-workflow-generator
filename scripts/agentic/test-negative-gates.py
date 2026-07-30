@@ -737,19 +737,6 @@ def assert_ai_application_composition(
     return True, "AI application composition matched the dedicated setup"
 
 
-def break_capability_coverage(worktree: Path) -> None:
-    path = worktree / "registry" / "skills" / "workflow-routing" / "skill.json"
-    data = load_json(path)
-
-    changed = remove_string_from_nested_lists(data, "workflow.route")
-    if not changed:
-        raise RuntimeError(
-            "Could not remove workflow.route from workflow-routing skill"
-        )
-
-    write_json(path, data)
-
-
 def break_target_output_missing_file(
     worktree: Path,
 ) -> None:
@@ -2643,13 +2630,6 @@ def main() -> int:
             ["scripts/agentic/agentic-gen.sh", "validate-generated"],
             break_target_output_obsolete_resolution,
             "AWG-TARGET-OUTPUT-006",
-        ),
-        (
-            "failure",
-            "coverage fails when a skill capability is removed",
-            ["scripts/agentic/agentic-gen.sh", "coverage"],
-            break_capability_coverage,
-            "Missing skill coverage",
         ),
         (
             "failure",

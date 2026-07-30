@@ -478,6 +478,8 @@ Profile and agent-profile recommendations are not runtime requirements and must 
 
 Composition validation separately verifies that each role binding selects skills that provide all capabilities required by that binding and by its workflow gate.
 
+The authoritative global analysis is implemented by `validation/capability_coverage.py` over immutable `Bundle` and `Skill` values. `application/capability_coverage.py` loads the single `ValidatedRegistrySnapshot`, and `cli/capability_coverage.py` owns deterministic report rendering. No raw registry parser, agent-profile capability derivation or fallback authority exists in this boundary.
+
 Run:
 
 ~~~bash
@@ -648,6 +650,7 @@ src/
       init.py
       generate.py
       validate.py
+      capability_coverage.py
       environment.py
       lockfile_generation.py
       lockfile_validation.py
@@ -657,6 +660,7 @@ src/
     application/
       initialization.py
       generation.py
+      capability_coverage.py
       environment.py
       lockfile.py
       registry_references.py
@@ -685,6 +689,7 @@ src/
     validation/
       schema_support.py
       registry_schemas.py
+      capability_coverage.py
       common.py
       active_config.py
       agents.py
@@ -724,7 +729,6 @@ tests/
 scripts/
   agentic/
     agentic-gen.sh
-    report-capability-coverage.py
     test-negative-gates.py
     validate-generation-idempotency.py
 ~~~

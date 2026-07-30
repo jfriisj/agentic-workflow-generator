@@ -367,7 +367,6 @@ registry/
 
 scripts/agentic/
   agentic-gen.sh
-  report-capability-coverage.py
   test-negative-gates.py
   validate-generation-idempotency.py
 

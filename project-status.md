@@ -117,10 +117,12 @@ registry
 * `agentic-gen.sh` kalder nu det typed init-CLI-modul direkte. Den midlertidige `init-from-bundle.py`-launcher og de obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
 * Typed lockfile-generation og lockfile-validation er implementeret under application- og CLI-lagene med canonical inputmønstre, deterministisk SHA-256-provenance, atomisk JSON-write og stabile `AWG-LOCKFILE-*` diagnostics.
 * De obsolete `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet. `agentic-gen.sh lock`, `validate-lockfile`, `generate` og den samlede pipeline anvender de typed CLI-moduler direkte.
-* `scripts/agentic` er reduceret fra 34 til 4 resterende filer. De resterende filer er shell-orchestratoren, capability coverage, generation-idempotency og den monolitiske negative-gate-runner.
+* `scripts/agentic` er reduceret fra 34 til 3 resterende filer. De resterende filer er shell-orchestratoren, generation-idempotency og den monolitiske negative-gate-runner.
 * Typed registry-reference-validation er implementeret under application- og CLI-lagene. Den genbruger `ValidatedRegistrySnapshot` og den canonical active-composition-grænse, så registryidentiteter, versioner og materialiseret komposition ikke valideres gennem en parallel parser.
 * Typed registry-schema-validation er implementeret under validation- og CLI-lagene med Draft 2020-12, deterministisk discovery, individuel JSON-læsning og aggregerede `AWG-REGISTRY-SCHEMA-*` diagnostics for alle 46 registryfiler.
 * De obsolete `validate-registry-references.py`- og `validate-registry-schemas.py`-scripts er fjernet. `agentic-gen.sh validate-references`, `validate-registry-schemas` og den samlede pipeline anvender de typed CLI-moduler direkte.
+* Typed global capability coverage er implementeret under validation-, application- og CLI-lagene. Analysen anvender kun immutable `Bundle`-role-bindings og `Skill.provides` fra ét `ValidatedRegistrySnapshot`, returnerer stabile `AWG-CAPABILITY-COVERAGE-*` diagnostics og bevarer det offentlige rapportformat.
+* Det obsolete `report-capability-coverage.py`-script er fjernet. `agentic-gen.sh coverage` og den samlede pipeline anvender nu det typed CLI-modul direkte. Den tidligere capability-mutation er flyttet fra den monolitiske negative-gate-runner til en fokuseret integrationstest.
 * Typed environment-validation er implementeret under application-, infrastructure- og CLI-lagene med seks obligatoriske command contracts, eksplicit PATH-resolution, typed process-resultater og stabile `AWG-ENVIRONMENT-*` diagnostics.
 * Det obsolete `validate-environment.py`-script er fjernet. `agentic-gen.sh validate-environment` kalder nu det typed CLI-modul direkte.
 * Den aktuelle environment-slice består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og `agentic-gen.sh all`. Lockfilen indeholder 159 aktuelle compilerinput og dækker alle 12 schemafiler rekursivt.
@@ -138,7 +140,7 @@ registry
 ### Resterende migrations- og afslutningsarbejde
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
-* `report-capability-coverage.py` og `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
+* `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
 * Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
 * Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
 * Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
@@ -257,14 +259,14 @@ agentic-gen.sh all
   PASS: registry references
   PASS: komplet capability coverage
   PASS: 7 artifact contracts
-  PASS: typed lockfile med 161 compilerinput og alle 12 schemafiler
+  PASS: typed lockfile med 163 compilerinput og alle 12 schemafiler
   PASS: 2 targets og 53 kanoniske outputfiler
 
 agentic-gen.sh test-negative
-  PASS: All 105 negative gate tests passed
+  PASS: All 104 negative gate tests passed
 
 samlet Python-suite
-  PASS: 785 tests
+  PASS: 796 tests
 
 Ruff
   PASS
@@ -292,11 +294,11 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree er rent. Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`, og `doctor-strict` består med alle 105 resterende negative gates.
+Working tree indeholder de intentionelle, endnu ikke committede ændringer for capability-coverage-slicen. Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`.
 
-Den aktuelle branch består med 785 pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10 og `agentic-gen.sh all`.
+Den aktuelle branch består med 796 pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`.
 
-De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 161 compilerinput og alle 12 schemafiler.
+De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 163 compilerinput og alle 12 schemafiler.
 
 
 ## Registry-audit — vigtigste fund
@@ -1087,30 +1089,24 @@ For hver resterende slice:
 * `agentic-gen.sh all` består
 * registry-reference- og registry-schema-validation er migreret til typed application-, validation- og CLI-grænser
 * de to obsolete registry-validation-scripts er fjernet
-* alle 105 resterende negative gates består
-* 785 pytest-tests, Ruff og strict mypy over 79 sourcefiler består
-* det fokuserede registry-reference- og schema-scope består Pylint med rating 10,00/10
+* alle 104 resterende negative gates består
+* 796 pytest-tests, Ruff og strict mypy over 82 sourcefiler består
+* det fokuserede capability-coverage-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
-* de sidste 4 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
+* capability-coverage-slicen er implementeret i working tree og består med 11 fokuserede tests
+* de sidste 3 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Migrér capability coverage fra `scripts/agentic/report-capability-coverage.py` til pakkens typed application-, validation- og CLI-lag.
+Afslut capability-coverage-slicen:
 
-Slicen skal:
-
-1. kortlægge det nuværende capability-coverage-contract og alle consumers
-2. anvende `ValidatedRegistrySnapshot` og bundle-ejede role bindings som eneste runtimeautoritet
-3. bevare den offentlige `coverage`-routes succesoutput
-4. returnere stabile typed diagnostics uden print-baseret valideringslogik
-5. migrere relevante negative gates til fokuserede pytest-tests
-6. erstatte shell-routerens scriptkald atomisk
-7. slette det obsolete coverage-script i samme ændring
-8. regenerere og validere lockfilen
-9. synkronisere dokumentation og denne statusfil
-10. bestå fokuserede gates, hele pipelinen og `doctor-strict`
+1. gennemgå det samlede diff og kontrollér, at kun den typed coverage-grænse, tests, shell-routing, lockfile og dokumentation er ændret
+2. stage det komplette atomiske ændringssæt og gennemgå staged diff
+3. commit slicen
+4. kør `doctor-strict` på det committede working tree
+5. push og registrér den afsluttede commit i denne statusfil
 
 Der må ikke indføres fallback, capability-afledning fra agentprofiler, parallel registryautoritet eller compatibility paths.
 
