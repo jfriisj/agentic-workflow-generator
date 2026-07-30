@@ -40,6 +40,8 @@ Environment-slicen er committed og pushed som `b87629e`. Den består med 12 foku
 
 Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`. De offentlige shell-routes anvender nu typed application-, validation- og CLI-grænser, de to obsolete scripts er fjernet, og aktiv kompositionsdrift valideres mod den samme canonical `CompiledComposition` som targetmaterialiseringen. Slicen består med 21 fokuserede tests, 785 samlede pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10, alle 105 resterende negative gates og den samlede `agentic-gen.sh all`-pipeline. `doctor-strict` består på et rent working tree, og lockfilen indeholder 161 compilerinput.
 
+Capability-coverage-slicen er committed og pushed som `8ad0c4d`. Den globale analyse anvender kun immutable bundle-role-bindings og registrerede skill-providers fra ét `ValidatedRegistrySnapshot`; legacy-scriptet er fjernet, og den offentlige `coverage`-route anvender det typed CLI-modul. Slicen består med 11 fokuserede tests, 796 samlede pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`. `doctor-strict` består på et rent working tree, og lockfilen indeholder 163 compilerinput.
+
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
 Målflowet er:
@@ -294,7 +296,7 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree indeholder de intentionelle, endnu ikke committede ændringer for capability-coverage-slicen. Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`.
+Working tree er rent. Capability-coverage-slicen er committed og pushed som `8ad0c4d`, og `doctor-strict` består med alle 104 resterende negative gates.
 
 Den aktuelle branch består med 796 pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`.
 
@@ -1095,20 +1097,27 @@ For hver resterende slice:
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
-* capability-coverage-slicen er implementeret i working tree og består med 11 fokuserede tests
+* capability-coverage-slicen er committed som `8ad0c4d`, valideret med `doctor-strict` på et rent working tree og pushed
 * de sidste 3 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Afslut capability-coverage-slicen:
+Migrér generation-idempotency fra `scripts/agentic/validate-generation-idempotency.py` til pakkens typed application-, validation- og CLI-lag.
 
-1. gennemgå det samlede diff og kontrollér, at kun den typed coverage-grænse, tests, shell-routing, lockfile og dokumentation er ændret
-2. stage det komplette atomiske ændringssæt og gennemgå staged diff
-3. commit slicen
-4. kør `doctor-strict` på det committede working tree
-5. push og registrér den afsluttede commit i denne statusfil
+Slicen skal:
 
-Der må ikke indføres fallback, capability-afledning fra agentprofiler, parallel registryautoritet eller compatibility paths.
+1. kortlægge den nuværende generation-idempotency-kontrakt og alle consumers
+2. anvende de eksisterende typed generation-, lockfile- og target-materialization-grænser uden parallel compilerlogik
+3. bevare den offentlige `validate-idempotency`-route og dens fail-fast-kontrakt
+4. returnere stabile typed diagnostics uden print-baseret valideringslogik
+5. migrere den relevante negative gate til fokuserede pytest-tests
+6. erstatte shell-routerens scriptkald atomisk
+7. slette det obsolete idempotency-script i samme ændring
+8. regenerere og validere lockfilen
+9. synkronisere dokumentation og denne statusfil
+10. bestå fokuserede tests, hele pipelinen og `doctor-strict`
+
+Der må ikke indføres fallback, parallel generation, compatibility paths eller skjult normalisering af drift.
 
 
 ## Autoritativ domænemodel
