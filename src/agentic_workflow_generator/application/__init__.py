@@ -3,6 +3,14 @@
 from .capability_coverage import (
     analyze_capability_coverage,
 )
+from .generation_idempotency import (
+    GenerationIdempotencyAnalysis,
+    GenerationIdempotencyValidationError,
+    GenerationRunSummary,
+    GenerationSnapshotError,
+    collect_generation_snapshot,
+    validate_generation_idempotency,
+)
 from .guided_init import (
     GuidedInitError,
     GuidedInitService,
@@ -39,6 +47,10 @@ from .setup_materialization import (
 )
 
 __all__ = [
+    "GenerationIdempotencyAnalysis",
+    "GenerationIdempotencyValidationError",
+    "GenerationRunSummary",
+    "GenerationSnapshotError",
     "GuidedInitError",
     "GuidedInitService",
     "GuidedInitValidationError",
@@ -56,6 +68,7 @@ __all__ = [
     "SetupMaterializationError",
     "ValidatedRegistrySnapshot",
     "analyze_capability_coverage",
+    "collect_generation_snapshot",
     "load_guided_init_service",
     "load_initialization_service",
     "load_project_metadata",
@@ -63,5 +76,6 @@ __all__ = [
     "materialize_setup_profile",
     "parse_answer_overrides",
     "setup_profile_to_json",
+    "validate_generation_idempotency",
     "validate_registry_references",
 ]

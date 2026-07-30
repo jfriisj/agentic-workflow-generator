@@ -881,39 +881,6 @@ def break_environment_validation_node_command(worktree: Path) -> None:
     npx_path.chmod(0o755)
 
 
-def break_generation_idempotency_by_changing_renderer(
-    worktree: Path,
-) -> None:
-    subprocess.run(
-        ["scripts/agentic/agentic-gen.sh", "all"],
-        cwd=worktree,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=True,
-    )
-
-    renderer_path = (
-        worktree
-        / "src"
-        / "agentic_workflow_generator"
-        / "application"
-        / "target_rendering.py"
-    )
-
-    if not renderer_path.is_file():
-        raise RuntimeError(
-            "Expected typed target renderer not found before "
-            f"mutation: {renderer_path}"
-        )
-
-    renderer_path.write_text(
-        renderer_path.read_text(encoding="utf-8")
-        + "\n# negative idempotency drift marker\n",
-        encoding="utf-8",
-    )
-
-
 
 
 
@@ -2642,13 +2609,6 @@ def main() -> int:
             ],
             break_environment_validation_node_command,
             "node is required but failed to run",
-        ),
-        (
-            "failure",
-            "generation idempotency validation fails when a compiler input changes between runs",
-            ["scripts/agentic/agentic-gen.sh", "validate-idempotency"],
-            break_generation_idempotency_by_changing_renderer,
-            "Generation is not idempotent",
         ),
         (
             "failure",

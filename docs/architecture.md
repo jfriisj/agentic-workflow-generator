@@ -730,7 +730,6 @@ scripts/
   agentic/
     agentic-gen.sh
     test-negative-gates.py
-    validate-generation-idempotency.py
 ~~~
 
 This is a responsibility map, not permission to create empty placeholder modules.

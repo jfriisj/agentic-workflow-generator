@@ -128,7 +128,7 @@ check_scripts() {
 
   bash -n "scripts/agentic/agentic-gen.sh"
 
-  uv run python -m py_compile     "src/agentic_workflow_generator/application/environment.py" "src/agentic_workflow_generator/cli/environment.py" "src/agentic_workflow_generator/infrastructure/processes.py"     "src/agentic_workflow_generator/application/registry_references.py" "src/agentic_workflow_generator/validation/registry_schemas.py" "src/agentic_workflow_generator/cli/registry_references.py" "src/agentic_workflow_generator/cli/registry_schemas.py"     "src/agentic_workflow_generator/validation/capability_coverage.py" "src/agentic_workflow_generator/application/capability_coverage.py" "src/agentic_workflow_generator/cli/capability_coverage.py"     "scripts/agentic/test-negative-gates.py" "src/agentic_workflow_generator/application/lockfile.py" "src/agentic_workflow_generator/cli/lockfile_generation.py" "src/agentic_workflow_generator/cli/lockfile_validation.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
+  uv run python -m py_compile     "src/agentic_workflow_generator/validation/generation_idempotency.py" "src/agentic_workflow_generator/application/generation_idempotency.py" "src/agentic_workflow_generator/cli/generation_idempotency.py"     "src/agentic_workflow_generator/application/environment.py" "src/agentic_workflow_generator/cli/environment.py" "src/agentic_workflow_generator/infrastructure/processes.py"     "src/agentic_workflow_generator/application/registry_references.py" "src/agentic_workflow_generator/validation/registry_schemas.py" "src/agentic_workflow_generator/cli/registry_references.py" "src/agentic_workflow_generator/cli/registry_schemas.py"     "src/agentic_workflow_generator/validation/capability_coverage.py" "src/agentic_workflow_generator/application/capability_coverage.py" "src/agentic_workflow_generator/cli/capability_coverage.py"     "scripts/agentic/test-negative-gates.py" "src/agentic_workflow_generator/application/lockfile.py" "src/agentic_workflow_generator/cli/lockfile_generation.py" "src/agentic_workflow_generator/cli/lockfile_validation.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -347,7 +347,7 @@ case "$COMMAND" in
     uv run python -m agentic_workflow_generator.cli.target_runtime
     ;;
   validate-idempotency)
-    uv run python scripts/agentic/validate-generation-idempotency.py
+    uv run python -m agentic_workflow_generator.cli.generation_idempotency
     ;;
   validate-init-idempotency)
     uv run python -m agentic_workflow_generator.cli.init_idempotency "${@:2}"

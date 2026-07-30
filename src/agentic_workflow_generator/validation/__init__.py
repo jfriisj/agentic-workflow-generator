@@ -22,6 +22,12 @@ from .capability_coverage import (
     CapabilityProviders,
     validate_capability_coverage,
 )
+from .generation_idempotency import (
+    GenerationIdempotencyResult,
+    GenerationSnapshot,
+    GenerationSnapshotFile,
+    compare_generation_snapshots,
+)
 from .permission_profiles import (
     PermissionProfileValidationResult,
     validate_permission_profile_registry,
@@ -72,6 +78,9 @@ __all__ = [
     "CapabilityConsumers",
     "CapabilityCoverageResult",
     "CapabilityProviders",
+    "GenerationIdempotencyResult",
+    "GenerationSnapshot",
+    "GenerationSnapshotFile",
     "PermissionProfileValidationResult",
     "ProfileReferenceData",
     "ProfileValidationResult",
@@ -86,6 +95,7 @@ __all__ = [
     "TargetValidationResult",
     "WorkflowReferenceData",
     "WorkflowValidationResult",
+    "compare_generation_snapshots",
     "validate_agent_registry",
     "validate_artifact_registry",
     "validate_bundle_registry",

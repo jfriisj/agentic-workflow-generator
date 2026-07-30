@@ -42,6 +42,8 @@ Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e19
 
 Capability-coverage-slicen er committed og pushed som `8ad0c4d`. Den globale analyse anvender kun immutable bundle-role-bindings og registrerede skill-providers fra ét `ValidatedRegistrySnapshot`; legacy-scriptet er fjernet, og den offentlige `coverage`-route anvender det typed CLI-modul. Slicen består med 11 fokuserede tests, 796 samlede pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`. `doctor-strict` består på et rent working tree, og lockfilen indeholder 163 compilerinput.
 
+Generation-idempotency-slicen er implementeret og valideret, men endnu ikke committed. Snapshotgrænsen dækker lockfilen, outputmanifestet og alle 53 manifest-deklarerede targetfiler. Den offentlige `validate-idempotency`-route anvender typed validation-, application- og CLI-lag uden subprocess eller parallel compilerlogik. Det obsolete `validate-generation-idempotency.py`-script og den tilsvarende monolitiske negative gate er fjernet.
+
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
 Målflowet er:
@@ -119,12 +121,15 @@ registry
 * `agentic-gen.sh` kalder nu det typed init-CLI-modul direkte. Den midlertidige `init-from-bundle.py`-launcher og de obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
 * Typed lockfile-generation og lockfile-validation er implementeret under application- og CLI-lagene med canonical inputmønstre, deterministisk SHA-256-provenance, atomisk JSON-write og stabile `AWG-LOCKFILE-*` diagnostics.
 * De obsolete `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet. `agentic-gen.sh lock`, `validate-lockfile`, `generate` og den samlede pipeline anvender de typed CLI-moduler direkte.
-* `scripts/agentic` er reduceret fra 34 til 3 resterende filer. De resterende filer er shell-orchestratoren, generation-idempotency og den monolitiske negative-gate-runner.
+* `scripts/agentic` er reduceret fra 34 til 2 resterende filer. De resterende filer er shell-orchestratoren og den monolitiske negative-gate-runner.
 * Typed registry-reference-validation er implementeret under application- og CLI-lagene. Den genbruger `ValidatedRegistrySnapshot` og den canonical active-composition-grænse, så registryidentiteter, versioner og materialiseret komposition ikke valideres gennem en parallel parser.
 * Typed registry-schema-validation er implementeret under validation- og CLI-lagene med Draft 2020-12, deterministisk discovery, individuel JSON-læsning og aggregerede `AWG-REGISTRY-SCHEMA-*` diagnostics for alle 46 registryfiler.
 * De obsolete `validate-registry-references.py`- og `validate-registry-schemas.py`-scripts er fjernet. `agentic-gen.sh validate-references`, `validate-registry-schemas` og den samlede pipeline anvender de typed CLI-moduler direkte.
 * Typed global capability coverage er implementeret under validation-, application- og CLI-lagene. Analysen anvender kun immutable `Bundle`-role-bindings og `Skill.provides` fra ét `ValidatedRegistrySnapshot`, returnerer stabile `AWG-CAPABILITY-COVERAGE-*` diagnostics og bevarer det offentlige rapportformat.
 * Det obsolete `report-capability-coverage.py`-script er fjernet. `agentic-gen.sh coverage` og den samlede pipeline anvender nu det typed CLI-modul direkte. Den tidligere capability-mutation er flyttet fra den monolitiske negative-gate-runner til en fokuseret integrationstest.
+* Typed generation-idempotency er implementeret under validation-, application- og CLI-lagene. Snapshotgrænsen omfatter lockfil, outputmanifest og alle manifest-deklarerede targetfiler. Servicen genbruger typed lockfile-generation, lockfile-validation, targetmaterialisering og outputvalidation uden subprocess eller parallel compilerlogik.
+* Det obsolete `validate-generation-idempotency.py`-script er fjernet. `agentic-gen.sh validate-idempotency` kalder nu det typed CLI-modul direkte, og den tidligere compilerinput-mutation er flyttet fra den monolitiske negative-gate-runner til fokuserede unit-, integration- og CLI-tests.
+* Generation-idempotency-slicen består med 10 fokuserede tests, 806 samlede pytest-tests, Ruff, strict mypy over 85 sourcefiler, fokuseret Pylint 10,00/10, alle 103 resterende negative gates og `agentic-gen.sh all`. Lockfilen indeholder 165 compilerinput, og idempotency-snapshotet dækker 55 filer.
 * Typed environment-validation er implementeret under application-, infrastructure- og CLI-lagene med seks obligatoriske command contracts, eksplicit PATH-resolution, typed process-resultater og stabile `AWG-ENVIRONMENT-*` diagnostics.
 * Det obsolete `validate-environment.py`-script er fjernet. `agentic-gen.sh validate-environment` kalder nu det typed CLI-modul direkte.
 * Den aktuelle environment-slice består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og `agentic-gen.sh all`. Lockfilen indeholder 159 aktuelle compilerinput og dækker alle 12 schemafiler rekursivt.
@@ -142,7 +147,6 @@ registry
 ### Resterende migrations- og afslutningsarbejde
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
-* `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
 * Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
 * Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
 * Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
@@ -261,22 +265,23 @@ agentic-gen.sh all
   PASS: registry references
   PASS: komplet capability coverage
   PASS: 7 artifact contracts
-  PASS: typed lockfile med 163 compilerinput og alle 12 schemafiler
+  PASS: typed lockfile med 165 compilerinput og alle 12 schemafiler
   PASS: 2 targets og 53 kanoniske outputfiler
+  PASS: generation-idempotency over 55 snapshotfiler
 
 agentic-gen.sh test-negative
-  PASS: All 104 negative gate tests passed
+  PASS: All 103 negative gate tests passed
 
 samlet Python-suite
-  PASS: 796 tests
+  PASS: 806 tests
 
 Ruff
   PASS
 
 strict mypy
-  PASS: 79 source files
+  PASS: 85 source files
 
-Pylint, fokuseret registry-reference- og schema-scope
+Pylint, fokuseret generation-idempotency-scope
   PASS: rating 10.00/10
 
 Pylint, samlet src og tests
@@ -296,11 +301,13 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree er rent. Capability-coverage-slicen er committed og pushed som `8ad0c4d`, og `doctor-strict` består med alle 104 resterende negative gates.
+Capability-coverage-slicen er committed og pushed som `8ad0c4d`, og dens afsluttende `doctor-strict` bestod på et rent working tree.
 
-Den aktuelle branch består med 796 pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`.
+Working tree indeholder den implementerede, validerede og endnu ikke committede generation-idempotency-slice samt dens dokumentations- og lockfileændringer.
 
-De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 163 compilerinput og alle 12 schemafiler.
+Den aktuelle branch består med 806 pytest-tests, Ruff, strict mypy over 85 sourcefiler, fokuseret Pylint 10,00/10, alle 103 resterende negative gates og `agentic-gen.sh all`.
+
+De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, lockfilen indeholder 165 compilerinput og alle 12 schemafiler, og generation-idempotency validerer 55 snapshotfiler.
 
 
 ## Registry-audit — vigtigste fund
@@ -312,7 +319,7 @@ Kodebasen er nu struktureret som en typed compiler med eksplicit dependency dire
 Resterende arkitekturarbejde:
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator
-* capability-coverage- og generation-idempotency-grænserne ligger fortsat under `scripts/agentic`
+* shell-routing, pipeline-, status- og doctor-kontrakterne samt den resterende monolitiske negative-gate-runner ligger fortsat under `scripts/agentic`
 * negative gates er fortsat samlet i én monolitisk runner, selv om domæneejede gates er flyttet til fokuserede pytest-suiter
 * enkelte negative gates matcher fortsat tekst i stedet for stabile diagnostic-koder
 * den offentlige Python-entrypoint skal overtage command-routing, pipeline, status og doctor
@@ -1091,34 +1098,34 @@ For hver resterende slice:
 * `agentic-gen.sh all` består
 * registry-reference- og registry-schema-validation er migreret til typed application-, validation- og CLI-grænser
 * de to obsolete registry-validation-scripts er fjernet
-* alle 104 resterende negative gates består
-* 796 pytest-tests, Ruff og strict mypy over 82 sourcefiler består
+* alle 103 resterende negative gates består
+* 806 pytest-tests, Ruff og strict mypy over 85 sourcefiler består
 * det fokuserede capability-coverage-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
 * capability-coverage-slicen er committed som `8ad0c4d`, valideret med `doctor-strict` på et rent working tree og pushed
-* de sidste 3 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
+* generation-idempotency-slicen er implementeret og valideret, men endnu ikke committed
+* de sidste 2 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Migrér generation-idempotency fra `scripts/agentic/validate-generation-idempotency.py` til pakkens typed application-, validation- og CLI-lag.
+Migrér den resterende monolitiske negative-gate-runner fra `scripts/agentic/test-negative-gates.py` til fokuserede pytest-suiter ved de relevante domain-, validation-, application-, CLI- og integration-boundaries.
 
 Slicen skal:
 
-1. kortlægge den nuværende generation-idempotency-kontrakt og alle consumers
-2. anvende de eksisterende typed generation-, lockfile- og target-materialization-grænser uden parallel compilerlogik
-3. bevare den offentlige `validate-idempotency`-route og dens fail-fast-kontrakt
-4. returnere stabile typed diagnostics uden print-baseret valideringslogik
-5. migrere den relevante negative gate til fokuserede pytest-tests
-6. erstatte shell-routerens scriptkald atomisk
-7. slette det obsolete idempotency-script i samme ændring
+1. kortlægge alle resterende gates, mutationshelpers, fixtureafhængigheder og shell-consumers
+2. klassificere hver gate efter den typed boundary, der ejer kontrakten
+3. genbruge eksisterende typed services og validators direkte uden at køre hele compiler-pipelinen som component-fixture
+4. anvende stabile diagnostic-koder, når kontrakten ikke specifikt kræver tekstmatching
+5. bevare nødvendige integration- og end-to-end-kontrakter uden at duplikere unit-tests
+6. flytte gates i små, kontrollerede grupper med uændret eller stærkere fail-closed-dækning
+7. fjerne den monolitiske runner og dens shell-route atomisk, når alle gates er migreret
 8. regenerere og validere lockfilen
 9. synkronisere dokumentation og denne statusfil
 10. bestå fokuserede tests, hele pipelinen og `doctor-strict`
 
-Der må ikke indføres fallback, parallel generation, compatibility paths eller skjult normalisering af drift.
-
+Der må ikke indføres fallback, parallel testlogik, compatibility paths, svækkede assertions eller skjult normalisering af fejl.
 
 ## Autoritativ domænemodel
 

@@ -368,7 +368,6 @@ registry/
 scripts/agentic/
   agentic-gen.sh
   test-negative-gates.py
-  validate-generation-idempotency.py
 
 tests/
   e2e/
@@ -411,6 +410,6 @@ typed clean-consumer initialization E2E
 negative gates
 ```
 
-The typed initialization end-to-end test materializes every registered setup into a clean temporary consumer project and proves repeated commits are byte-identical. Target generation and runtime parsing are validated separately and are being migrated in the target slice.
+The typed initialization end-to-end test materializes every registered setup into a clean temporary consumer project and proves repeated commits are byte-identical. Target generation, output validation and generation idempotency use typed application and CLI boundaries; runtime parsing is validated separately.
 
 The negative gate suite intentionally breaks contracts to prove the validators fail closed.
