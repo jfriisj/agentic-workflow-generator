@@ -42,7 +42,7 @@ Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e19
 
 Capability-coverage-slicen er committed og pushed som `8ad0c4d`. Den globale analyse anvender kun immutable bundle-role-bindings og registrerede skill-providers fra ét `ValidatedRegistrySnapshot`; legacy-scriptet er fjernet, og den offentlige `coverage`-route anvender det typed CLI-modul. Slicen består med 11 fokuserede tests, 796 samlede pytest-tests, Ruff, strict mypy over 82 sourcefiler, fokuseret Pylint 10,00/10, alle 104 resterende negative gates og `agentic-gen.sh all`. `doctor-strict` består på et rent working tree, og lockfilen indeholder 163 compilerinput.
 
-Generation-idempotency-slicen er implementeret og valideret, men endnu ikke committed. Snapshotgrænsen dækker lockfilen, outputmanifestet og alle 53 manifest-deklarerede targetfiler. Den offentlige `validate-idempotency`-route anvender typed validation-, application- og CLI-lag uden subprocess eller parallel compilerlogik. Det obsolete `validate-generation-idempotency.py`-script og den tilsvarende monolitiske negative gate er fjernet.
+Generation-idempotency-slicen er committed og pushed som `a682acb`. Snapshotgrænsen dækker lockfilen, outputmanifestet og alle 53 manifest-deklarerede targetfiler. Den offentlige `validate-idempotency`-route anvender typed validation-, application- og CLI-lag uden subprocess eller parallel compilerlogik. Det obsolete `validate-generation-idempotency.py`-script og den tilsvarende monolitiske negative gate er fjernet.
 
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
@@ -303,7 +303,7 @@ Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-s
 
 Capability-coverage-slicen er committed og pushed som `8ad0c4d`, og dens afsluttende `doctor-strict` bestod på et rent working tree.
 
-Working tree indeholder den implementerede, validerede og endnu ikke committede generation-idempotency-slice samt dens dokumentations- og lockfileændringer.
+Working tree er rent. Generation-idempotency-slicen er committed og pushed som `a682acb`, og `doctor-strict` består med alle 103 resterende negative gates.
 
 Den aktuelle branch består med 806 pytest-tests, Ruff, strict mypy over 85 sourcefiler, fokuseret Pylint 10,00/10, alle 103 resterende negative gates og `agentic-gen.sh all`.
 
@@ -1105,7 +1105,7 @@ For hver resterende slice:
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
 * capability-coverage-slicen er committed som `8ad0c4d`, valideret med `doctor-strict` på et rent working tree og pushed
-* generation-idempotency-slicen er implementeret og valideret, men endnu ikke committed
+* generation-idempotency-slicen er committed som `a682acb`, valideret med `doctor-strict` på et rent working tree og pushed
 * de sidste 2 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
