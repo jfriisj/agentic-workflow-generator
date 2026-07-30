@@ -36,7 +36,7 @@ Target-materialiseringsslicen er committed og pushed som `344699c`. `doctor-stri
 
 Lockfile-slicen er committed og pushed som `71e4231`. Lockfile-generation og lockfile-validation er migreret fra `scripts/agentic` til typed application- og CLI-moduler. De gamle `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet, og shell-routeren kalder de nye CLI-grænser direkte.
 
-Den aktuelle uncommitted environment-slice består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede environment-scope består Pylint med rating 10,00/10. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules i denne slice.
+Environment-slicen er committed og pushed som `b87629e`. Den består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede environment-scope består Pylint med rating 10,00/10, og `doctor-strict` består på et rent working tree. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules.
 
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
@@ -287,7 +287,7 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree indeholder den endnu ikke committed typed environment-slice. Slicen omfatter typed command requirements, en policyfri procesadapter, application-validation, CLI-rendering, 12 fokuserede tests og fjernelse af det gamle `validate-environment.py`-script.
+Working tree er rent. Den typed environment-slice er committed og pushed som `b87629e`, og `doctor-strict` består med alle 109 negative gates.
 
 De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 159 compilerinput og alle 12 schemafiler.
 
@@ -1082,37 +1082,27 @@ For hver resterende slice:
 * 767 pytest-tests, Ruff og strict mypy over 183 sourcefiler består
 * det fokuserede environment-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
+* environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * de sidste 6 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Afslut den typed environment-validation-slice.
+Migrér registry-reference- og registry-schema-validation fra de resterende scripts til pakkens typed validation-, application- og CLI-lag.
 
-Den aktuelle evidens er:
+Slicen skal:
 
-* 12 fokuserede environment- og process-tests
-* 767 samlede pytest-tests
-* Ruff
-* strict mypy for 183 sourcefiler
-* fokuseret Pylint med rating 10,00/10
-* offentlig `validate-environment`-kontrakt for 6 kommandoer
-* alle 109 negative gates
-* `agentic-gen.sh all`
-* lockfile med 159 compilerinput og alle 12 schemafiler
-* 53 kanoniske outputfiler for 2 targets
+1. kortlægge de nuværende contracts og consumers
+2. genbruge typed registry paths, loaders og diagnostics
+3. bevare den offentlige `validate-references`- og `validate-schemas`-adfærd
+4. returnere stabile typed diagnostics uden print-baseret valideringslogik
+5. erstatte shell-routerens scriptkald atomisk
+6. migrere relevante negative gates til fokuserede pytest-tests
+7. slette de obsolete scripts i samme ændring
+8. regenerere og validere lockfilen
+9. synkronisere dokumentation og denne statusfil
+10. bestå fokuserede gates, hele pipelinen og `doctor-strict`
 
-Arbejdet skal nu:
-
-1. synkronisere arkitektur- og workflowdokumentation med den typed environment-grænse
-2. reviewe procesadapterens og CLI-grænsens kontrakter
-3. køre `git diff --check` og reviewe den samlede ændring
-4. committe environment-slicen
-5. køre `doctor-strict` på det rene working tree
-6. pushe branch `refactor/typed-init-consumers`
-
-Derefter migreres registry-reference- og registry-schema-grænserne.
-
-Der må ikke tilføjes fallback, implicit værktøjsopdagelse eller parallel legacy-validation.
+Der må ikke indføres fallback, parallel registryautoritet eller compatibility paths.
 
 
 ## Autoritativ domænemodel
