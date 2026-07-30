@@ -30,9 +30,15 @@ Projektets mål er at generere og validere agentiske udviklingsmiljøer. Det er 
 
 Projektet er i gang med en atomisk breaking migration fra den tidligere statiske agentmodel til den autoritative `AgentInstance`- og `RoleBinding`-model.
 
-Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups, materialiserede setup-profiler og target adapters er migreret. Den typed initialization pipeline kompilerer de virkelige registryfiler til én autoritativ `CompiledComposition`, som serialiseres i `.agentic/agentic.json`. Targetrendering, transaktionel materialisering, outputmanifest og outputvalidering anvender nu samme typed composition uden et separat resolutionlag.
+Registrydata, registry-schemaer og de semantiske validator-slices for permissions, agents, skills, artifacts, workflows, bundles, profiles, setups, materialiserede setup-profiler og target adapters er migreret. Den typed initialization pipeline kompilerer de virkelige registryfiler til én autoritativ `CompiledComposition`, som serialiseres i `.agentic/agentic.json`. Targetrendering, transaktionel materialisering, outputmanifest og outputvalidering anvender samme typed composition uden et separat resolutionlag.
 
-Target-materialiseringsslicen, den samlede `agentic-gen.sh all`-pipeline og alle 109 negative gates er grønne. Repositoryet erklæres først endeligt green, når de resterende quality gates er genkørt efter dokumentationsændringerne, ændringerne er reviewet og committed, og `doctor-strict` består på et rent working tree. Migrationen gennemføres fortsat uden compatibility projection eller fallback.
+Target-materialiseringsslicen er committed og pushed som `344699c`. `doctor-strict` bestod på et rent working tree med alle 109 negative gates.
+
+Den aktuelle uncommitted slice migrerer lockfile-generation og lockfile-validation fra `scripts/agentic` til typed application- og CLI-moduler. De gamle `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet, og shell-routeren kalder de nye CLI-grænser direkte.
+
+Den aktuelle implementation består med 755 pytest-tests, Ruff, strict mypy over 177 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede lockfile-scope består Pylint med rating 10,00/10. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules i lockfile-slicen.
+
+Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
 Målflowet er:
 
@@ -107,8 +113,10 @@ registry
 * Initialization commit-grænsen schema-validerer alle outputs før side effects, springer byte-identiske filer over og skriver guided setup-profil samt aktiv konfiguration som én flerfilstransaktion med fail-fast rollback.
 * Den offentlige init-CLI anvender kun typed application services. Direct bundle init, non-interactive guided init, answer overrides, dry-run, interaktivt setupvalg, back-navigation, cancellation og confirmation er bevaret uden raw registry- eller kompositionslogik i CLI-laget.
 * `agentic-gen.sh` kalder nu det typed init-CLI-modul direkte. Den midlertidige `init-from-bundle.py`-launcher og de obsolete helper-moduler `init_support.py`, `setup_materializer.py` og `guided_init.py` er fjernet.
-* `scripts/agentic` er reduceret fra 34 til 19 resterende filer. 12 tynde Python-launchers, de urefererede `install-git-hooks.sh` og `test-output-manifest-negative.py` samt den obsolete `validate-agentic-config.sh` er fjernet. De resterende scripts indeholder aktiv orkestrering eller endnu ikke migreret compiler-, target-, lockfile- og valideringslogik.
-* Den fokuserede launcher- og active-config-oprydning består med 24 init/CLI/integration/E2E-tests, 10 active-config CLI- og contract-tests samt 2 active-config-negative gates. Hele Python-suiten består med 707 tests; Ruff, mypy og Pylint består, og Pylint vurderer pakken til 10,00/10. `agentic-gen.sh check` består også. Lockfilen er regenereret med 85 aktuelle inputfiler og består lockfile-valideringen. Lockfilen er regenereret med 85 aktuelle inputfiler og består lockfile-valideringen.
+* Typed lockfile-generation og lockfile-validation er implementeret under application- og CLI-lagene med canonical inputmønstre, deterministisk SHA-256-provenance, atomisk JSON-write og stabile `AWG-LOCKFILE-*` diagnostics.
+* De obsolete `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet. `agentic-gen.sh lock`, `validate-lockfile`, `generate` og den samlede pipeline anvender de typed CLI-moduler direkte.
+* `scripts/agentic` er reduceret fra 34 til 7 resterende filer. De resterende filer er shell-orchestratoren, environment-validation, registry-reference- og schema-validation, capability coverage, generation-idempotency samt den monolitiske negative-gate-runner.
+* Den aktuelle lockfile-slice består med 11 fokuserede tests, 755 samlede pytest-tests, Ruff, strict mypy over 177 sourcefiler, alle 109 negative gates og `agentic-gen.sh all`. Lockfilen indeholder 157 aktuelle compilerinput og dækker alle 12 schemafiler rekursivt.
 * Den fokuserede init-migrationsgate består med 39 tests samt script- og JSON-syntaxkontrol.
 * Alle fire setups materialiserer gyldige profiler med defaults, OpenCode-only og VS Code Copilot-only.
 * `target-platforms` er nu den eneste spørgsmålsdimension, der ejer targetvalget; dobbelt target-autoritet er fjernet fra `project-domain` og `project-type`.
@@ -122,11 +130,13 @@ registry
 
 ### Resterende migrations- og afslutningsarbejde
 
-* `validate-registry-references.py`, lockfile-generatoren, lockfile-validatoren og shell-orchestreringen ligger fortsat midlertidigt under `scripts/agentic`.
-* Den monolitiske negative-gate-runner er reduceret, men skal senere opdeles efter de samme domæne- og application boundaries som pytest-suiterne.
-* Den fulde pytest-, Ruff-, mypy- og Pylint-pipeline skal genkøres efter de sidste dokumentations- og lockfileændringer.
-* Den aktuelle slice skal afsluttes med diff-review, commit, `doctor-strict` på rent working tree og push.
-
+* `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
+* `validate-environment.py`, `validate-registry-references.py`, `validate-registry-schemas.py`, `report-capability-coverage.py` og `validate-generation-idempotency.py` skal migreres til pakkens application-, validation- og CLI-lag.
+* Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
+* Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
+* Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
+* Den aktuelle lockfile-slice skal afsluttes med dokumentationsreview, diff-review, commit, `doctor-strict` på rent working tree og push.
+* Den eksisterende duplicate-code-gæld i testsuiten skal håndteres eksplicit uden at svække eller deaktivere Pylint-gaten.
 
 Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
 
@@ -240,27 +250,31 @@ agentic-gen.sh all
   PASS: registry references
   PASS: komplet capability coverage
   PASS: 7 artifact contracts
-  PASS: lockfile med 146 compilerinput
+  PASS: typed lockfile med 157 compilerinput og alle 12 schemafiler
   PASS: 2 targets og 53 kanoniske outputfiler
 
 agentic-gen.sh test-negative
   PASS: All 109 negative gate tests passed
 
 samlet Python-suite
-  PASS: 744 tests
+  PASS: 755 tests
 
 Ruff
   PASS
 
 strict mypy
-  PASS: 169 source files
+  PASS: 177 source files
 
-Pylint
+Pylint, fokuseret lockfile-scope
   PASS: rating 10.00/10
-  PASS: ingen duplicate-code diagnostics
+
+Pylint, samlet src og tests
+  kendt test duplicate-code-gæld rapporteres
 ~~~
 
-Targetrendering, materialisering, outputvalidering og OpenCode-runtimevalidering anvender nu den autoritative typed `CompiledComposition`. Det separate resolutionformat og dets consumers er fjernet.
+Targetrendering, materialisering, outputvalidering og OpenCode-runtimevalidering anvender den autoritative typed `CompiledComposition`. Det separate resolutionformat og dets consumers er fjernet.
+
+Lockfile-generation og validation anvender nu én typed canonical implementation. De tidligere scripts og deres dynamiske `runpy`-kobling er fjernet.
 
 Den historiske før-migrationsbaseline nedenfor bevares kun som reference og må ikke bruges som evidens for den aktuelle model.
 
@@ -269,9 +283,11 @@ Den historiske før-migrationsbaseline nedenfor bevares kun som reference og må
 
 Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
-Working tree indeholder den endnu ikke committed target-materialiseringsslice. Slicen omfatter typed rendering for OpenCode og VS Code Copilot, transaktionel materialisering, outputmanifest version `0.3.0`, kanonisk outputvalidering, OpenCode-runtimevalidering og fjernelse af resolutionlaget samt obsolete generator-, manifest-, cleanup- og compatibility-scripts.
+Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-De genererede outputs er regenereret fra `.agentic/agentic.json`; materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 146 compilerinput.
+Working tree indeholder den endnu ikke committed typed lockfile-slice. Slicen omfatter typed lockfile-generation, typed lockfile-validation, tre nye CLI/application-testgrænser, en fælles testfixture, fjernelse af de to gamle lockfile-scripts og opdatering af shell-routeren.
+
+De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 157 compilerinput og alle 12 schemafiler.
 
 
 ## Registry-audit — vigtigste fund
@@ -283,10 +299,11 @@ Kodebasen er nu struktureret som en typed compiler med eksplicit dependency dire
 Resterende arkitekturarbejde:
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator
-* lockfile-generatoren, lockfile-validatoren og registry-reference-validatoren ligger fortsat under `scripts/agentic`
+* environment-, registry-reference-, registry-schema-, capability-coverage- og generation-idempotency-grænserne ligger fortsat under `scripts/agentic`
 * negative gates er fortsat samlet i én monolitisk runner, selv om domæneejede gates er flyttet til fokuserede pytest-suiter
 * enkelte negative gates matcher fortsat tekst i stedet for stabile diagnostic-koder
-* den offentlige Python-entrypoint skal senere overtage den resterende shell-orchestrering
+* den offentlige Python-entrypoint skal overtage command-routing, pipeline, status og doctor
+* hele `scripts/agentic` skal fjernes efter de sidste migrationsslices
 
 `registry/core` er tomt og skal ikke bruges som placering for Python-kode. Registryet forbliver deklarativt compiler-input.
 
@@ -1054,35 +1071,41 @@ For hver resterende slice:
 
 ### Fase 5 — Dokumentation og afslutning — igangværende
 
-* hoved-README og relevante udviklerguides er opdateret
+* target-materialiseringsslicen er committed, valideret med `doctor-strict` og pushed
+* typed lockfile-generation og validation er implementeret
+* de to obsolete lockfile-scripts er fjernet
 * lockfile, targets og manifest er regenereret
 * `agentic-gen.sh all` består
 * alle 109 negative gates består
-* resterende aktive dokumentationsreferencer skal reviewes
-* fuld pytest-, Ruff-, mypy- og Pylint-validering skal genkøres
-* ændringerne skal reviewes, committed, valideres med `doctor-strict` og pushes
+* 755 pytest-tests, Ruff og strict mypy over 177 sourcefiler består
+* det fokuserede lockfile-scope består Pylint med rating 10,00/10
+* den aktuelle lockfile-slice skal reviewes, committed, valideres med `doctor-strict` og pushes
+* de sidste 7 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Afslut den typed target-materialiseringsslice.
+Afslut den typed lockfile-slice.
 
-De afsluttende quality gates er grønne:
+Den aktuelle evidens er:
 
-* 744 pytest-tests
+* 755 pytest-tests
 * Ruff
-* strict mypy for 169 sourcefiler
-* Pylint med rating 10,00/10 uden duplicate-code diagnostics
+* strict mypy for 177 sourcefiler
+* fokuseret Pylint med rating 10,00/10
 * `agentic-gen.sh all`
 * alle 109 negative gates
-* lockfile med 146 compilerinput
+* lockfile med 157 compilerinput og komplet dækning af alle 12 schemafiler
 * 53 kanoniske outputfiler for 2 targets
 
 Arbejdet skal nu:
 
-1. køre `git diff --check` og reviewe den samlede ændring
-2. committe slicen
-3. køre `doctor-strict` på det rene working tree
-4. pushe branch `refactor/typed-init-consumers`
+1. synkronisere README og relevante udviklerguides med den typed lockfile-grænse
+2. køre `git diff --check` og reviewe den samlede ændring
+3. committe lockfile-slicen
+4. køre `doctor-strict` på det rene working tree
+5. pushe branch `refactor/typed-init-consumers`
+
+Efter lockfile-slicen migreres de resterende environment-, registry-, coverage- og idempotency-grænser. Derefter erstattes den monolitiske negative-gate-runner, den offentlige Python-CLI overtager shell-orchestreringen, og hele `scripts/agentic` slettes.
 
 Der må ikke genindføres resolution-output, compatibility projections, fallback eller parallel runtimeautoritet under afslutningen.
 

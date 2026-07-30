@@ -119,8 +119,6 @@ validate_json_files() {
 
 check_scripts() {
   require_file "scripts/agentic/validate-environment.py"
-  require_file "scripts/agentic/generate-lockfile.py"
-  require_file "scripts/agentic/validate-lockfile.py"
   require_file "scripts/agentic/validate-registry-references.py"
   require_file "scripts/agentic/validate-registry-schemas.py"
   require_file "scripts/agentic/report-capability-coverage.py"
@@ -134,7 +132,7 @@ check_scripts() {
 
   bash -n "scripts/agentic/agentic-gen.sh"
 
-  uv run python -m py_compile     "scripts/agentic/validate-environment.py"     "scripts/agentic/generate-lockfile.py"     "scripts/agentic/validate-lockfile.py"     "scripts/agentic/validate-registry-references.py"     "scripts/agentic/validate-registry-schemas.py"     "scripts/agentic/report-capability-coverage.py"     "scripts/agentic/test-negative-gates.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
+  uv run python -m py_compile     "scripts/agentic/validate-environment.py"     "scripts/agentic/validate-registry-references.py"     "scripts/agentic/validate-registry-schemas.py"     "scripts/agentic/report-capability-coverage.py"     "scripts/agentic/test-negative-gates.py" "src/agentic_workflow_generator/application/lockfile.py" "src/agentic_workflow_generator/cli/lockfile_generation.py" "src/agentic_workflow_generator/cli/lockfile_validation.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -154,8 +152,8 @@ run_pipeline() {
   uv run python scripts/agentic/validate-registry-schemas.py || return 1
   uv run python -m agentic_workflow_generator.cli.permission_profiles || return 1
   uv run python scripts/agentic/report-capability-coverage.py || return 1
-  uv run python scripts/agentic/generate-lockfile.py || return 1
-  uv run python scripts/agentic/validate-lockfile.py || return 1
+  uv run python -m agentic_workflow_generator.cli.lockfile_generation || return 1
+  uv run python -m agentic_workflow_generator.cli.lockfile_validation || return 1
   uv run python -m agentic_workflow_generator.cli.artifacts || return 1
   uv run python -m agentic_workflow_generator.cli.agents || return 1
   uv run python -m agentic_workflow_generator.cli.target_materialization || return 1
@@ -293,8 +291,13 @@ case "$COMMAND" in
   validate)
     uv run python -m agentic_workflow_generator.cli.active_config
     ;;
+
+  lock)
+    uv run python -m agentic_workflow_generator.cli.lockfile_generation
+    ;;
+
   validate-lockfile)
-    uv run python scripts/agentic/validate-lockfile.py
+    uv run python -m agentic_workflow_generator.cli.lockfile_validation
     ;;
   validate-artifacts)
     uv run python -m agentic_workflow_generator.cli.artifacts
@@ -336,8 +339,8 @@ case "$COMMAND" in
     uv run python scripts/agentic/report-capability-coverage.py
     ;;
   generate)
-    uv run python scripts/agentic/generate-lockfile.py
-    uv run python scripts/agentic/validate-lockfile.py
+    uv run python -m agentic_workflow_generator.cli.lockfile_generation
+    uv run python -m agentic_workflow_generator.cli.lockfile_validation
     uv run python -m agentic_workflow_generator.cli.target_materialization
     uv run python -m agentic_workflow_generator.cli.target_output
     ;;

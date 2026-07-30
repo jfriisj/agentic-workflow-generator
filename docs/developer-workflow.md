@@ -179,7 +179,7 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh lock
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-lockfile
 ```
 
-Run this when tracked generator inputs change.
+Run this when tracked generator inputs change. The shell command delegates to the typed lockfile application service through the generation and validation CLI modules; the shell layer contains no lockfile semantics.
 
 ### Materialize and validate target output
 

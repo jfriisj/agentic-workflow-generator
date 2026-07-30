@@ -3502,14 +3502,14 @@ def main() -> int:
             "lockfile validation fails when file count drifts",
             ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
             break_lockfile_file_count_drift,
-            "lockfile content drift detected",
+            "lockfile file count drift detected",
         ),
         (
             "failure",
             "lockfile validation fails when content hash drifts",
             ["scripts/agentic/agentic-gen.sh", "validate-lockfile"],
             break_lockfile_content_hash_drift,
-            "lockfile content drift detected",
+            "lockfile content hash drift detected",
         ),
         (
             "failure",
