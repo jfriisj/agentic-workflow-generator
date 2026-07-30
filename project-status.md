@@ -34,7 +34,7 @@ Registrydata, registry-schemaer og de semantiske validator-slices for permission
 
 Target-materialiseringsslicen er committed og pushed som `344699c`. `doctor-strict` bestod på et rent working tree med alle 109 negative gates.
 
-Den aktuelle uncommitted slice migrerer lockfile-generation og lockfile-validation fra `scripts/agentic` til typed application- og CLI-moduler. De gamle `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet, og shell-routeren kalder de nye CLI-grænser direkte.
+Lockfile-slicen er committed og pushed som `71e4231`. Lockfile-generation og lockfile-validation er migreret fra `scripts/agentic` til typed application- og CLI-moduler. De gamle `generate-lockfile.py`- og `validate-lockfile.py`-scripts er fjernet, og shell-routeren kalder de nye CLI-grænser direkte.
 
 Den aktuelle implementation består med 755 pytest-tests, Ruff, strict mypy over 177 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede lockfile-scope består Pylint med rating 10,00/10. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules i lockfile-slicen.
 
@@ -135,7 +135,7 @@ registry
 * Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
 * Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
 * Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
-* Den aktuelle lockfile-slice skal afsluttes med dokumentationsreview, diff-review, commit, `doctor-strict` på rent working tree og push.
+* Lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` på et rent working tree og pushed.
 * Den eksisterende duplicate-code-gæld i testsuiten skal håndteres eksplicit uden at svække eller deaktivere Pylint-gaten.
 
 Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
@@ -285,7 +285,7 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree indeholder den endnu ikke committed typed lockfile-slice. Slicen omfatter typed lockfile-generation, typed lockfile-validation, tre nye CLI/application-testgrænser, en fælles testfixture, fjernelse af de to gamle lockfile-scripts og opdatering af shell-routeren.
+Working tree er rent. Den typed lockfile-slice er committed og pushed som `71e4231`.
 
 De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 157 compilerinput og alle 12 schemafiler.
 
@@ -1079,35 +1079,26 @@ For hver resterende slice:
 * alle 109 negative gates består
 * 755 pytest-tests, Ruff og strict mypy over 177 sourcefiler består
 * det fokuserede lockfile-scope består Pylint med rating 10,00/10
-* den aktuelle lockfile-slice skal reviewes, committed, valideres med `doctor-strict` og pushes
+* lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * de sidste 7 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
 
-Afslut den typed lockfile-slice.
+Migrér environment-validation fra `scripts/agentic/validate-environment.py` til pakkens typed application-, infrastructure- og CLI-lag.
 
-Den aktuelle evidens er:
+Slicen skal:
 
-* 755 pytest-tests
-* Ruff
-* strict mypy for 177 sourcefiler
-* fokuseret Pylint med rating 10,00/10
-* `agentic-gen.sh all`
-* alle 109 negative gates
-* lockfile med 157 compilerinput og komplet dækning af alle 12 schemafiler
-* 53 kanoniske outputfiler for 2 targets
+1. bevare den offentlige `validate-environment`-kontrakt
+2. modellere eksterne proces- og værktøjskrav fail-fast
+3. returnere stabile `AWG-ENVIRONMENT-*` diagnostics
+4. erstatte script-consumers atomisk
+5. bevare og udvide de relevante positive og negative tests
+6. slette `scripts/agentic/validate-environment.py`
+7. regenerere og validere lockfilen
+8. opdatere dokumentation og denne statusfil
+9. bestå fokuserede gates, hele pipelinen og `doctor-strict`
 
-Arbejdet skal nu:
-
-1. synkronisere README og relevante udviklerguides med den typed lockfile-grænse
-2. køre `git diff --check` og reviewe den samlede ændring
-3. committe lockfile-slicen
-4. køre `doctor-strict` på det rene working tree
-5. pushe branch `refactor/typed-init-consumers`
-
-Efter lockfile-slicen migreres de resterende environment-, registry-, coverage- og idempotency-grænser. Derefter erstattes den monolitiske negative-gate-runner, den offentlige Python-CLI overtager shell-orchestreringen, og hele `scripts/agentic` slettes.
-
-Der må ikke genindføres resolution-output, compatibility projections, fallback eller parallel runtimeautoritet under afslutningen.
+Der må ikke tilføjes fallback, implicit værktøjsopdagelse eller parallel legacy-validation.
 
 
 ## Autoritativ domænemodel
