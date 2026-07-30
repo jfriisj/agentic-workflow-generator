@@ -16,6 +16,11 @@ from .initialization import (
     load_initialization_service,
     load_project_metadata,
 )
+from .registry_references import (
+    RegistryReferenceSummary,
+    RegistryReferenceValidationResult,
+    validate_registry_references,
+)
 from .registry_snapshot import (
     RegistrySnapshotError,
     RegistrySnapshotLoadError,
@@ -39,6 +44,8 @@ __all__ = [
     "InitializationPlan",
     "InitializationService",
     "InitializationValidationError",
+    "RegistryReferenceSummary",
+    "RegistryReferenceValidationResult",
     "RegistrySnapshotError",
     "RegistrySnapshotLoadError",
     "RegistrySnapshotLookupError",
@@ -52,4 +59,5 @@ __all__ = [
     "materialize_setup_profile",
     "parse_answer_overrides",
     "setup_profile_to_json",
+    "validate_registry_references",
 ]

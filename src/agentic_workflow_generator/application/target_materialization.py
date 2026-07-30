@@ -31,7 +31,10 @@ from .initialization import (
     InitializationError,
     load_project_metadata,
 )
-from .registry_snapshot import load_validated_registry_snapshot
+from .registry_snapshot import (
+    ValidatedRegistrySnapshot,
+    load_validated_registry_snapshot,
+)
 from .target_rendering import (
     RenderedTarget,
     render_enabled_targets,
@@ -110,6 +113,8 @@ class TargetMaterializationCommitResult:
 
 def load_active_composition(
     paths: ProjectPaths,
+    *,
+    registry: ValidatedRegistrySnapshot | None = None,
 ) -> ActiveComposition:
     """Validate and recompile the active serialized composition."""
 
@@ -131,7 +136,11 @@ def load_active_composition(
             diagnostics
         )
 
-    registry = load_validated_registry_snapshot(paths)
+    validated_registry = (
+        registry
+        if registry is not None
+        else load_validated_registry_snapshot(paths)
+    )
     bundle_name = _selected_bundle_name(
         config,
         paths.active_config,
@@ -142,10 +151,10 @@ def load_active_composition(
     )
 
     try:
-        bundle = registry.bundle_by_name(bundle_name)
-        profile = registry.profile_by_name(bundle.profile)
+        bundle = validated_registry.bundle_by_name(bundle_name)
+        profile = validated_registry.profile_by_name(bundle.profile)
         composition = compile_bundle_composition(
-            registry,
+            validated_registry,
             load_project_metadata(paths, profile),
             bundle_name,
             selected_targets,

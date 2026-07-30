@@ -25,6 +25,11 @@ from .profiles import (
     ProfileValidationResult,
     validate_profile_registry,
 )
+from .registry_schemas import (
+    RegistrySchemaContract,
+    RegistrySchemaValidationResult,
+    validate_registry_schemas,
+)
 from .setup_profiles import (
     SetupProfileValidationResult,
     validate_setup_profile,
@@ -61,6 +66,8 @@ __all__ = [
     "PermissionProfileValidationResult",
     "ProfileReferenceData",
     "ProfileValidationResult",
+    "RegistrySchemaContract",
+    "RegistrySchemaValidationResult",
     "SetupProfileValidationResult",
     "SetupReferenceData",
     "SetupValidationResult",
@@ -75,6 +82,7 @@ __all__ = [
     "validate_bundle_registry",
     "validate_permission_profile_registry",
     "validate_profile_registry",
+    "validate_registry_schemas",
     "validate_setup_profile",
     "validate_setup_registry",
     "validate_skill_registry",

@@ -10,7 +10,10 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from agentic_workflow_generator.domain import Diagnostic
-from agentic_workflow_generator.infrastructure import JsonObject
+from agentic_workflow_generator.infrastructure import (
+    JsonObject,
+    JsonValue,
+)
 from agentic_workflow_generator.registry import RegistrySource
 
 
@@ -324,13 +327,13 @@ def registry_schema_diagnostics(
     )
 
 
-def object_schema_diagnostics(
-    data: JsonObject,
+def json_value_schema_diagnostics(
+    data: JsonValue,
     source_path: Path,
     validator: Draft202012Validator,
     diagnostic_code: str,
 ) -> tuple[Diagnostic, ...]:
-    """Validate one JSON object with generic schema messages."""
+    """Validate one arbitrary JSON value with generic schema messages."""
 
     errors = sorted(
         validator.iter_errors(data),
@@ -345,4 +348,20 @@ def object_schema_diagnostics(
             location=schema_error_location(error),
         )
         for error in errors
+    )
+
+
+def object_schema_diagnostics(
+    data: JsonObject,
+    source_path: Path,
+    validator: Draft202012Validator,
+    diagnostic_code: str,
+) -> tuple[Diagnostic, ...]:
+    """Validate one JSON object with generic schema messages."""
+
+    return json_value_schema_diagnostics(
+        data,
+        source_path,
+        validator,
+        diagnostic_code,
     )

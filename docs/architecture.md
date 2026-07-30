@@ -342,6 +342,10 @@ The active config is validated against:
 
 Schema and semantic validation are fail-fast. Missing tools, files, references or unsupported runtime state must produce explicit errors without fallback.
 
+The public `validate-references` route delegates to `cli.registry_references` and `application.registry_references`. It loads one `ValidatedRegistrySnapshot`, recompiles the active bundle through the canonical active-composition boundary and rejects any serialized composition drift. It does not maintain a separate active-config reference parser.
+
+The public `validate-registry-schemas` route delegates to `cli.registry_schemas` and `validation.registry_schemas`. Registry paths are discovered deterministically through `RegistryLoader`, while every JSON document is read and validated individually against its Draft 2020-12 schema so document failures can be aggregated without weakening root-type validation.
+
 ## Lockfile
 
 The deterministic lockfile is:
@@ -647,13 +651,17 @@ src/
       environment.py
       lockfile_generation.py
       lockfile_validation.py
+      registry_references.py
+      registry_schemas.py
 
     application/
       initialization.py
       generation.py
       environment.py
       lockfile.py
+      registry_references.py
       registry_snapshot.py
+      target_materialization.py
       pipeline.py
 
     domain/
@@ -676,6 +684,7 @@ src/
 
     validation/
       schema_support.py
+      registry_schemas.py
       common.py
       active_config.py
       agents.py
@@ -715,6 +724,9 @@ tests/
 scripts/
   agentic/
     agentic-gen.sh
+    report-capability-coverage.py
+    test-negative-gates.py
+    validate-generation-idempotency.py
 ~~~
 
 This is a responsibility map, not permission to create empty placeholder modules.

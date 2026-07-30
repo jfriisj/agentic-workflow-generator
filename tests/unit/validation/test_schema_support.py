@@ -9,6 +9,7 @@ from agentic_workflow_generator.registry import (
     RegistrySource,
 )
 from agentic_workflow_generator.validation.schema_support import (
+    json_value_schema_diagnostics,
     object_schema_diagnostics,
     registry_schema_diagnostics,
     schema_error_location,
@@ -105,4 +106,25 @@ def test_object_schema_diagnostics_use_explicit_path() -> None:
     assert diagnostics[0].location == "$.enabled"
     assert diagnostics[0].message.startswith(
         "schema violation: "
+    )
+
+def test_json_value_schema_diagnostics_validate_root_type() -> None:
+    validator = Draft202012Validator(
+        {
+            "type": "object",
+        }
+    )
+
+    diagnostics = json_value_schema_diagnostics(
+        [],
+        Path("registry/agents/example/agent.json"),
+        validator,
+        "AWG-TEST-003",
+    )
+
+    assert len(diagnostics) == 1
+    assert diagnostics[0].code == "AWG-TEST-003"
+    assert diagnostics[0].location == "$"
+    assert diagnostics[0].message == (
+        "schema violation: [] is not of type 'object'"
     )

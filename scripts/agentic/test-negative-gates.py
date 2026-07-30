@@ -999,62 +999,6 @@ def break_generation_idempotency_by_changing_renderer(
 
 
 
-def break_registry_schema_agent_version_pattern(
-    worktree: Path,
-) -> None:
-    path = first_agent_registry_file(worktree)
-    data = load_json(path)
-    data["version"] = "0.2"
-    write_json(path, data)
-
-
-def break_registry_schema_workflow_states_min_items(
-    worktree: Path,
-) -> None:
-    path = awg_default_workflow_registry_file(worktree)
-    data = load_json(path)
-    data["states"] = []
-    write_json(path, data)
-
-
-def break_registry_schema_workflow_terminal_const(
-    worktree: Path,
-) -> None:
-    path = awg_default_workflow_registry_file(worktree)
-    data = load_json(path)
-
-    states = data.get("states")
-    if not isinstance(states, list):
-        raise RuntimeError("workflow states must be a list before mutation")
-
-    for state in states:
-        if isinstance(state, dict) and state.get("terminal") is True:
-            state["terminal"] = False
-            write_json(path, data)
-            return
-
-    raise RuntimeError("expected a terminal workflow state before mutation")
-
-
-def break_registry_schema_permission_bash_enum(
-    worktree: Path,
-) -> None:
-    path = (
-        worktree
-        / "registry"
-        / "permission-profiles"
-        / "read-only"
-        / "permission-profile.json"
-    )
-
-    if not path.is_file():
-        raise RuntimeError(f"expected permission profile before mutation: {path}")
-
-    data = load_json(path)
-    data["bash"] = "root"
-    write_json(path, data)
-
-
 def break_target_adapter_owned_paths(worktree: Path) -> None:
     path = worktree / "registry" / "targets" / "opencode" / "adapter.json"
     data = load_json(path)
@@ -2870,34 +2814,6 @@ def main() -> int:
             no_mutation,
             "PASS: Initialized .agentic/setup-profile.json from guided setup 'orchestrated-delivery-greenfield'.",
             assert_guided_vscode_copilot_only_targets,
-        ),
-        (
-            "failure",
-            "registry schema validation enforces semantic version pattern",
-            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
-            break_registry_schema_agent_version_pattern,
-            "does not match",
-        ),
-        (
-            "failure",
-            "registry schema validation enforces workflow states minItems",
-            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
-            break_registry_schema_workflow_states_min_items,
-            "should be non-empty",
-        ),
-        (
-            "failure",
-            "registry schema validation enforces workflow state oneOf and const",
-            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
-            break_registry_schema_workflow_terminal_const,
-            "is not valid under any of the given schemas",
-        ),
-        (
-            "failure",
-            "registry schema validation enforces permission bash enum",
-            ["scripts/agentic/agentic-gen.sh", "validate-registry-schemas"],
-            break_registry_schema_permission_bash_enum,
-            "is not one of",
         ),
         (
             "failure",
