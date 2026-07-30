@@ -252,6 +252,39 @@ def test_obsolete_fields_are_rejected_before_schema(
     assert result.diagnostics[0].location == location
 
 
+def test_obsolete_agent_selection_is_rejected() -> None:
+    data = setup_data()
+    questions = cast(
+        list[JsonValue],
+        data["questions"],
+    )
+    question = cast(
+        dict[str, JsonValue],
+        questions[0],
+    )
+    options = cast(
+        list[JsonValue],
+        question["options"],
+    )
+    option = cast(
+        dict[str, JsonValue],
+        options[0],
+    )
+    selection = cast(
+        dict[str, JsonValue],
+        option["selection"],
+    )
+    selection["agents"] = ["Requirements"]
+
+    result = validate(data)
+
+    assert result.setups == ()
+    assert result.diagnostics[0].code == (OBSOLETE_FIELD_DIAGNOSTIC)
+    assert result.diagnostics[0].location == (
+        "questions[0].options[0].selection.agents"
+    )
+
+
 def test_schema_failure_is_structured() -> None:
     data = setup_data()
     data["questions"] = []

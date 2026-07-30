@@ -142,11 +142,11 @@ Run strict verification:
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
 
-A clean result should end with:
+A clean result should confirm:
 
 ```text
 PASS: verify-quiet completed successfully.
-PASS: All negative gate tests passed.
+pytest reports all tests passed
 PASS: Working tree is clean.
 ```
 
@@ -177,7 +177,6 @@ scripts/agentic/agentic-gen.sh coverage
 scripts/agentic/agentic-gen.sh generate
 scripts/agentic/agentic-gen.sh validate-generated
 scripts/agentic/agentic-gen.sh validate-target-runtime
-scripts/agentic/agentic-gen.sh test-negative
 scripts/agentic/agentic-gen.sh check
 scripts/agentic/agentic-gen.sh all
 scripts/agentic/agentic-gen.sh verify
@@ -326,7 +325,7 @@ Recommended local flow:
 
 ```bash
 scripts/agentic/agentic-gen.sh all
-scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 scripts/agentic/agentic-gen.sh doctor-strict
 ```
 
@@ -342,7 +341,7 @@ Commit only when:
 
 ```text
 doctor-strict passes
-negative gates pass
+pytest reports all tests passed
 working tree contains only intentional changes
 ```
 
@@ -367,7 +366,6 @@ registry/
 
 scripts/agentic/
   agentic-gen.sh
-  test-negative-gates.py
 
 tests/
   e2e/
@@ -407,9 +405,9 @@ generated output
 generation idempotency
 init idempotency
 typed clean-consumer initialization E2E
-negative gates
+domain-owned fail-closed pytest contracts
 ```
 
 The typed initialization end-to-end test materializes every registered setup into a clean temporary consumer project and proves repeated commits are byte-identical. Target generation, output validation and generation idempotency use typed application and CLI boundaries; runtime parsing is validated separately.
 
-The negative gate suite intentionally breaks contracts to prove the validators fail closed.
+Focused pytest suites intentionally violate owned contracts and prove that each typed boundary fails closed.

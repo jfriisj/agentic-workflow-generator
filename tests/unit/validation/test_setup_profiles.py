@@ -257,6 +257,43 @@ def test_obsolete_selected_field_is_rejected_before_schema() -> None:
     assert result.diagnostics[0].location == "selected.workflow"
 
 
+def test_obsolete_selected_skills_are_rejected() -> None:
+    data = profile_data()
+    selected(data)["skills"] = ["workflow-routing"]
+
+    result = validate(data)
+
+    assert result.profile is None
+    assert result.diagnostics[0].code == (OBSOLETE_FIELD_DIAGNOSTIC)
+    assert result.diagnostics[0].location == ("selected.skills")
+
+
+def test_schema_version_is_required() -> None:
+    data = profile_data()
+    data.pop("schemaVersion")
+
+    result = validate(data)
+
+    assert result.profile is None
+    assert result.diagnostics[0].code == (SCHEMA_DIAGNOSTIC)
+    assert result.diagnostics[0].location == "$"
+
+
+def test_fallback_policy_is_fail_closed() -> None:
+    data = profile_data()
+    policy = cast(
+        dict[str, JsonValue],
+        data["policy"],
+    )
+    policy["fallbackAllowed"] = True
+
+    result = validate(data)
+
+    assert result.profile is None
+    assert result.diagnostics[0].code == (SCHEMA_DIAGNOSTIC)
+    assert result.diagnostics[0].location == ("$.policy.fallbackAllowed")
+
+
 def test_schema_failure_prevents_parsing() -> None:
     data = profile_data()
     data["answers"] = []
@@ -491,7 +528,4 @@ def test_setup_profile_schema_location_wrapper_delegates() -> None:
         path=["answers", 0],
     )
 
-    assert (
-        setup_profiles_module._schema_error_location(error)
-        == "$.answers[0]"
-    )
+    assert setup_profiles_module._schema_error_location(error) == "$.answers[0]"

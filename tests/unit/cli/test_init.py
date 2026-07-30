@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from collections.abc import Iterator
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -28,6 +29,8 @@ from agentic_workflow_generator.domain import (
     SetupSelectionPatch,
 )
 from agentic_workflow_generator.infrastructure import (
+    JsonObject,
+    JsonValue,
     read_json_object,
 )
 from agentic_workflow_generator.registry import ProjectPaths
@@ -47,6 +50,46 @@ def copy_repository(
         tmp_path / ".agentic" / "schemas",
     )
     return ProjectPaths(tmp_path)
+
+
+def copy_existing_outputs(
+    paths: ProjectPaths,
+) -> dict[Path, tuple[bytes, int]]:
+    paths.active_config.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    shutil.copy2(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json",
+        paths.active_config,
+    )
+    shutil.copy2(
+        REPOSITORY_ROOT / ".agentic" / "setup-profile.json",
+        paths.setup_profile,
+    )
+
+    return {
+        output: (
+            output.read_bytes(),
+            output.stat().st_mtime_ns,
+        )
+        for output in (
+            paths.active_config,
+            paths.setup_profile,
+        )
+    }
+
+
+def assert_outputs_unchanged(
+    before: dict[Path, tuple[bytes, int]],
+) -> None:
+    for output, (
+        expected_bytes,
+        expected_mtime_ns,
+    ) in before.items():
+        assert output.is_file()
+        assert output.read_bytes() == expected_bytes
+        assert output.stat().st_mtime_ns == expected_mtime_ns
 
 
 def terminal_for(
@@ -121,8 +164,7 @@ def test_direct_bundle_init_writes_typed_active_config(
     assert "roleBindings" in config
     assert "agents" not in config
     assert capsys.readouterr().out == (
-        "PASS: Initialized .agentic/agentic.json "
-        "from bundle 'lean-delivery'.\n"
+        "PASS: Initialized .agentic/agentic.json from bundle 'lean-delivery'.\n"
     )
 
 
@@ -163,6 +205,207 @@ def test_noninteractive_guided_init_writes_both_outputs(
             "opencode",
         ],
     }
+
+
+@pytest.mark.parametrize(
+    (
+        "answer",
+        "expected_selected",
+        "expected_classification",
+        "expected_targets",
+    ),
+    [
+        (
+            None,
+            "opencode-and-vscode-copilot",
+            "recommended",
+            ["opencode", "vscode-copilot"],
+        ),
+        (
+            "target-platforms=opencode-only",
+            "opencode-only",
+            "compatible",
+            ["opencode"],
+        ),
+        (
+            "target-platforms=vscode-copilot-only",
+            "vscode-copilot-only",
+            "compatible",
+            ["vscode-copilot"],
+        ),
+    ],
+)
+def test_guided_target_selection_preserves_materialized_contract(
+    answer: str | None,
+    expected_selected: str,
+    expected_classification: str,
+    expected_targets: list[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    arguments = [
+        "--guided",
+        "--setup",
+        "orchestrated-delivery-greenfield",
+    ]
+
+    if answer is not None:
+        arguments.extend(
+            (
+                "--answer",
+                answer,
+            )
+        )
+
+    result = main(tuple(arguments))
+
+    assert result == 0
+    assert capsys.readouterr().out == (
+        "PASS: Initialized .agentic/setup-profile.json "
+        "from guided setup "
+        "'orchestrated-delivery-greenfield'.\n"
+        "PASS: Initialized .agentic/agentic.json "
+        "from bundle 'orchestrated-delivery'.\n"
+    )
+
+    profile = read_json_object(paths.setup_profile)
+    config = read_json_object(paths.active_config)
+    answers = profile["answers"]
+    assert isinstance(answers, list)
+    target_answer = next(
+        answer_value
+        for answer_value in answers
+        if isinstance(answer_value, dict)
+        and answer_value.get("question") == "target-platforms"
+    )
+
+    selected = cast(JsonObject, profile["selected"])
+    targets = cast(list[JsonValue], config["targets"])
+    target_objects = [cast(JsonObject, target) for target in targets]
+
+    assert target_answer["selected"] == expected_selected
+    assert target_answer["classification"] == expected_classification
+    assert selected["targets"] == expected_targets
+    assert [target["name"] for target in target_objects] == expected_targets
+
+
+def test_ai_guided_init_preserves_complete_composition(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    paths = copy_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(
+        (
+            "--guided",
+            "--setup",
+            "ai-application-greenfield",
+        )
+    )
+
+    assert result == 0
+    profile = read_json_object(paths.setup_profile)
+    config = read_json_object(paths.active_config)
+
+    assert profile["selected"] == {
+        "bundle": "ai-application",
+        "targets": [
+            "opencode",
+            "vscode-copilot",
+        ],
+    }
+    selection = cast(JsonObject, config["selection"])
+    bundle_selection = cast(JsonObject, selection["bundle"])
+    profile_selection = cast(JsonObject, selection["profile"])
+    workflow_selection = cast(JsonObject, selection["workflow"])
+    workflow = cast(JsonObject, config["workflow"])
+    agent_instances = [
+        cast(JsonObject, instance)
+        for instance in cast(list[JsonValue], config["agentInstances"])
+    ]
+
+    assert bundle_selection["name"] == "ai-application"
+    assert profile_selection["name"] == "ai-application"
+    assert workflow_selection["name"] == "ai-application-delivery"
+    assert workflow["name"] == "ai-application-delivery"
+    assert [
+        (
+            instance["id"],
+            cast(JsonObject, instance["profile"])["name"],
+        )
+        for instance in agent_instances
+    ] == [
+        ("requirements-worker", "Requirements"),
+        ("architecture-worker", "Architect"),
+        ("implementation-worker", "Implementer"),
+        ("ai-evaluation-worker", "AIEvaluator"),
+        ("test-runner", "TestRunner"),
+        ("code-review-worker", "CodeReviewer"),
+        ("qa-worker", "QA"),
+        ("workflow-controller", "Orchestrator"),
+    ]
+
+
+@pytest.mark.parametrize(
+    (
+        "answer_arguments",
+        "expected_answer_line",
+        "expected_targets_line",
+    ),
+    [
+        (
+            (),
+            ("target-platforms: opencode-and-vscode-copilot [recommended]"),
+            "targets: opencode, vscode-copilot",
+        ),
+        (
+            (
+                "--answer",
+                "target-platforms=opencode-only",
+            ),
+            "target-platforms: opencode-only [compatible]",
+            "targets: opencode",
+        ),
+    ],
+)
+def test_guided_dry_run_preserves_existing_outputs(
+    answer_arguments: tuple[str, ...],
+    expected_answer_line: str,
+    expected_targets_line: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_repository(tmp_path)
+    before = copy_existing_outputs(paths)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(
+        (
+            "--guided",
+            "--setup",
+            "orchestrated-delivery-greenfield",
+            "--dry-run",
+            *answer_arguments,
+        )
+    )
+    output = capsys.readouterr().out
+
+    assert result == 0
+    assert expected_answer_line in output
+    assert expected_targets_line in output
+    assert (
+        "PASS: Guided dry-run validated setup "
+        "'orchestrated-delivery-greenfield'; "
+        "no files were written."
+    ) in output
+    assert "PASS: Initialized .agentic/setup-profile.json" not in output
+    assert "PASS: Initialized .agentic/agentic.json" not in output
+    assert_outputs_unchanged(before)
 
 
 def test_guided_dry_run_prints_typed_plan_without_writes(
@@ -225,9 +468,7 @@ def test_interactive_back_from_first_question_reselects_setup(
     paths = copy_repository(tmp_path)
     monkeypatch.chdir(tmp_path)
     setup_name = "lean-delivery-greenfield"
-    setup = load_initialization_service(
-        paths
-    ).guided_init.setup_by_name(setup_name)
+    setup = load_initialization_service(paths).guided_init.setup_by_name(setup_name)
     terminal = terminal_for(
         [
             setup_name,
@@ -248,35 +489,52 @@ def test_interactive_back_from_first_question_reselects_setup(
     assert paths.setup_profile.is_file()
 
 
-def test_interactive_cancellation_writes_nothing(
+def test_interactive_cancellation_preserves_existing_outputs(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     paths = copy_repository(tmp_path)
+    before = copy_existing_outputs(paths)
     monkeypatch.chdir(tmp_path)
-    setup_name = "lean-delivery-greenfield"
-    terminal = terminal_for(
-        default_interactive_values(
-            paths,
-            setup_name,
-            confirmation="n",
-        )
-    )
 
     result = main(
         ("--guided",),
-        terminal=terminal,
+        terminal=terminal_for(["q"]),
     )
-    output = capsys.readouterr().out
 
     assert result == 1
-    assert "was cancelled" in output
-    assert not paths.active_config.exists()
-    assert not paths.setup_profile.exists()
+    output = capsys.readouterr().out
+
+    assert "== Guided Agentic Initialization ==" in output
+    assert "Select a registered guided setup:" in output
+
+    for setup_name in (
+        "ai-application-greenfield",
+        "lean-delivery-greenfield",
+        "orchestrated-delivery-greenfield",
+        "review-heavy-delivery-greenfield",
+    ):
+        assert setup_name in output
+
+    assert output.endswith(
+        "FAIL: interactive guided init was cancelled; no files were written\n"
+    )
+    assert_outputs_unchanged(before)
 
 
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ("--guided",),
+        (
+            "--guided",
+            "--dry-run",
+        ),
+    ],
+)
 def test_interactive_mode_requires_attached_terminal(
+    arguments: tuple[str, ...],
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -285,7 +543,7 @@ def test_interactive_mode_requires_attached_terminal(
     monkeypatch.chdir(tmp_path)
 
     result = main(
-        ("--guided",),
+        arguments,
         terminal=terminal_for(
             [],
             attached=False,
@@ -293,8 +551,10 @@ def test_interactive_mode_requires_attached_terminal(
     )
 
     assert result == 1
-    assert "requires an attached terminal" in (
-        capsys.readouterr().out
+    assert capsys.readouterr().out == (
+        "FAIL: interactive --guided requires an attached terminal; "
+        "use --guided --setup <setup-name> for "
+        "non-interactive execution\n"
     )
     assert not paths.active_config.exists()
     assert not paths.setup_profile.exists()
@@ -319,18 +579,14 @@ def test_invalid_answer_override_fails_before_writes(
     )
 
     assert result == 1
-    assert "unknown setup question" in (
-        capsys.readouterr().out
-    )
+    assert "unknown setup question" in (capsys.readouterr().out)
     assert not paths.active_config.exists()
     assert not paths.setup_profile.exists()
 
 
 def setup_option(
     value: str,
-    classification: SetupOptionClassification = (
-        SetupOptionClassification.RECOMMENDED
-    ),
+    classification: SetupOptionClassification = (SetupOptionClassification.RECOMMENDED),
 ) -> SetupOption:
     return SetupOption(
         value=value,
@@ -419,37 +675,126 @@ def test_terminal_wraps_eof_and_keyboard_interrupt(
 
 
 @pytest.mark.parametrize(
-    "arguments",
+    (
+        "arguments",
+        "expected_message",
+    ),
     [
         (
-            "--guided",
-            "--bundle",
-            "lean-delivery",
+            (
+                "--guided",
+                "--bundle",
+                "lean-delivery",
+            ),
+            "--guided cannot be combined with --bundle",
         ),
         (
-            "--guided",
-            "--answer",
-            "target-platforms=opencode-only",
+            (
+                "--guided",
+                "--answer",
+                "target-platforms=opencode-only",
+            ),
+            "--answer requires --setup when used with --guided",
         ),
         (
-            "--setup",
-            "lean-delivery-greenfield",
+            (
+                "--setup",
+                "lean-delivery-greenfield",
+            ),
+            "--setup requires --guided",
         ),
         (
-            "--answer",
-            "target-platforms=opencode-only",
+            (
+                "--answer",
+                "target-platforms=opencode-only",
+            ),
+            "--answer requires --guided",
         ),
         (
-            "--dry-run",
+            ("--dry-run",),
+            "--dry-run requires --guided",
         ),
-        (),
+        (
+            (),
+            "one of --bundle or --guided is required",
+        ),
     ],
 )
 def test_invalid_cli_argument_combinations_fail_fast(
     arguments: tuple[str, ...],
+    expected_message: str,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as captured:
         main(arguments)
+
+    assert captured.value.code == 2
+    assert expected_message in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    (
+        "arguments",
+        "expected_message",
+    ),
+    [
+        (
+            (
+                "--guided",
+                "--setup",
+                "missing-setup",
+            ),
+            "unknown guided setup 'missing-setup'",
+        ),
+        (
+            (
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "project-type",
+            ),
+            "invalid answer override 'project-type'; expected question=value",
+        ),
+        (
+            (
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "missing-question=value",
+            ),
+            "answer overrides reference unknown setup "
+            "question(s): ['missing-question']",
+        ),
+        (
+            (
+                "--guided",
+                "--setup",
+                "orchestrated-delivery-greenfield",
+                "--answer",
+                "project-type=documentation-only",
+            ),
+            "question 'project-type' selected blocked option 'documentation-only'",
+        ),
+    ],
+)
+def test_noninteractive_guided_init_fails_closed(
+    arguments: tuple[str, ...],
+    expected_message: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(arguments)
+
+    assert result == 1
+    assert expected_message in capsys.readouterr().out
+    assert not paths.active_config.exists()
+    assert not paths.setup_profile.exists()
 
 
 def test_setup_selection_rejects_empty_registry() -> None:
@@ -658,9 +1003,7 @@ def test_guided_plan_renderer_rejects_direct_plan(
     tmp_path: Path,
 ) -> None:
     paths = copy_repository(tmp_path)
-    plan = load_initialization_service(
-        paths
-    ).plan_bundle("lean-delivery")
+    plan = load_initialization_service(paths).plan_bundle("lean-delivery")
 
     with pytest.raises(
         InitCommandError,
@@ -674,9 +1017,7 @@ def test_invalid_confirmation_fails_closed() -> None:
         InitCommandError,
         match="invalid confirmation",
     ):
-        init_module._confirm_guided_plan(
-            terminal_for(["maybe"])
-        )
+        init_module._confirm_guided_plan(terminal_for(["maybe"]))
 
 
 def test_unknown_bundle_is_reported_without_traceback(
@@ -695,9 +1036,7 @@ def test_unknown_bundle_is_reported_without_traceback(
     )
 
     assert result == 1
-    assert capsys.readouterr().out == (
-        "FAIL: unknown bundle 'missing'\n"
-    )
+    assert capsys.readouterr().out == ("FAIL: unknown bundle 'missing'\n")
 
 
 def test_init_cli_renders_initialization_validation_diagnostics(
@@ -767,8 +1106,5 @@ def test_init_cli_renders_guided_validation_diagnostics(
 
     assert result == 1
     output = capsys.readouterr().out
-    assert (
-        "FAIL: Guided initialization validation found "
-        "1 error(s)."
-    ) in output
+    assert ("FAIL: Guided initialization validation found 1 error(s).") in output
     assert "[AWG-GUIDED-999]" in output

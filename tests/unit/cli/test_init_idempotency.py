@@ -87,29 +87,96 @@ def test_guided_idempotency_checks_both_outputs(
     )
 
 
+def test_review_heavy_guided_idempotency_preserves_success_contract(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(
+        (
+            "--guided",
+            "--setup",
+            "review-heavy-delivery-greenfield",
+        )
+    )
+
+    assert result == 0
+    assert paths.active_config.is_file()
+    assert paths.setup_profile.is_file()
+    assert capsys.readouterr().out == (
+        "PASS: Guided init is idempotent for setup "
+        "'review-heavy-delivery-greenfield'. Checked "
+        ".agentic/setup-profile.json and "
+        ".agentic/agentic.json.\n"
+    )
+
+
+def test_orchestrated_bundle_idempotency_preserves_success_contract(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_repository(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = main(
+        (
+            "--bundle",
+            "orchestrated-delivery",
+        )
+    )
+
+    assert result == 0
+    assert paths.active_config.is_file()
+    assert not paths.setup_profile.exists()
+    assert capsys.readouterr().out == (
+        "PASS: Init from bundle is idempotent for bundle "
+        "'orchestrated-delivery'. Checked "
+        ".agentic/agentic.json.\n"
+    )
+
+
 @pytest.mark.parametrize(
-    "arguments",
+    ("arguments", "expected_message"),
     [
         (
-            "--guided",
-            "--bundle",
-            "lean-delivery",
+            (
+                "--guided",
+                "--bundle",
+                "lean-delivery",
+            ),
+            "--guided cannot be combined with --bundle",
         ),
         (
-            "--guided",
+            ("--guided",),
+            "--guided requires --setup",
         ),
         (
-            "--setup",
-            "lean-delivery-greenfield",
+            (
+                "--setup",
+                "lean-delivery-greenfield",
+            ),
+            "--setup requires --guided",
         ),
-        (),
+        (
+            (),
+            "one of --bundle or --guided --setup is required",
+        ),
     ],
 )
 def test_idempotency_cli_rejects_invalid_argument_combinations(
     arguments: tuple[str, ...],
+    expected_message: str,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as captured:
         main(arguments)
+
+    assert captured.value.code == 2
+    assert expected_message in capsys.readouterr().err
 
 
 def test_idempotency_cli_reports_application_failure(
@@ -134,9 +201,7 @@ def test_idempotency_cli_reports_application_failure(
 def test_plan_helper_rejects_missing_runtime_arguments(
     tmp_path: Path,
 ) -> None:
-    service = load_initialization_service(
-        copy_repository(tmp_path)
-    )
+    service = load_initialization_service(copy_repository(tmp_path))
 
     with pytest.raises(
         InitIdempotencyError,
@@ -168,9 +233,7 @@ def test_plan_helper_rejects_missing_runtime_arguments(
 def test_snapshot_helper_requires_materialized_output(
     tmp_path: Path,
 ) -> None:
-    service = load_initialization_service(
-        copy_repository(tmp_path)
-    )
+    service = load_initialization_service(copy_repository(tmp_path))
     plan = service.plan_bundle("lean-delivery")
 
     with pytest.raises(
@@ -218,18 +281,12 @@ class DriftingInitializationService:
             parents=True,
             exist_ok=True,
         )
-        self.paths.active_config.write_bytes(
-            f"run-{self.calls}".encode()
-        )
+        self.paths.active_config.write_bytes(f"run-{self.calls}".encode())
         changed = self.calls == 2
 
         return FakeCommitResult(
             changed=changed,
-            written_paths=(
-                (self.paths.active_config,)
-                if changed
-                else ()
-            ),
+            written_paths=((self.paths.active_config,) if changed else ()),
         )
 
 
@@ -254,9 +311,7 @@ def test_idempotency_cli_detects_repeated_write_drift(
     )
 
     assert result == 1
-    assert "repeated initialization changed output" in (
-        capsys.readouterr().out
-    )
+    assert "repeated initialization changed output" in (capsys.readouterr().out)
 
 
 def test_init_idempotency_module_entrypoint(

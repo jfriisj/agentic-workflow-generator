@@ -16,8 +16,8 @@
       "src/agentic_workflow_generator/**/*.py",
       "uv.lock"
     ],
-    "fileCount": 165,
-    "contentHash": "sha256:bea374424e6a2c90e905935d85aeea2208d25ab62e008d793bb22a2793e65f54",
+    "fileCount": 164,
+    "contentHash": "sha256:bf244c264d30789dc5379c184c8e5c7cd166bdb9523f33ab9fb9b6fbf0046433",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -406,13 +406,8 @@
       },
       {
         "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:1c62ea03ccae87aa1dcdcab4d1bde3433ccee10a373143b9b66dbcf7ec6a6c8b",
-        "sizeBytes": 13885
-      },
-      {
-        "path": "scripts/agentic/test-negative-gates.py",
-        "sha256": "sha256:59eb76990965d2ae6b29d4aa3e4fd095cc8e862560bcdce2ec759f99ede20914",
-        "sizeBytes": 97828
+        "sha256": "sha256:5af56e73e6219404abb601364e1e5cf66a0ceb7890915fd66592adb7e01b85e2",
+        "sizeBytes": 13478
       },
       {
         "path": "src/agentic_workflow_generator/__init__.py",

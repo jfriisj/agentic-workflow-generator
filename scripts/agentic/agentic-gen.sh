@@ -35,7 +35,6 @@ Usage:
   scripts/agentic/agentic-gen.sh generate
   scripts/agentic/agentic-gen.sh validate-generated
   scripts/agentic/agentic-gen.sh validate-target-runtime
-  scripts/agentic/agentic-gen.sh test-negative
   scripts/agentic/agentic-gen.sh check
   scripts/agentic/agentic-gen.sh all
   scripts/agentic/agentic-gen.sh verify
@@ -85,8 +84,6 @@ Commands:
              Require OpenCode to parse generated config, agents, and skills.
   validate-init-idempotency
              Validate init determinism for .agentic/agentic.json and guided setup profiles.
-  test-negative
-             Run negative gate tests against an isolated temporary repo copy.
   check      Run syntax checks for scripts and JSON files.
   all        Run checks, validations, coverage, lock, artifacts, and materialization.
   verify     Run all and fail if generated output drifts from git.
@@ -118,7 +115,6 @@ validate_json_files() {
 }
 
 check_scripts() {
-  require_file "scripts/agentic/test-negative-gates.py"
   require_file "src/agentic_workflow_generator/application/target_materialization.py"
   require_file "src/agentic_workflow_generator/application/target_output_validation.py"
   require_file "src/agentic_workflow_generator/application/target_runtime_validation.py"
@@ -128,7 +124,7 @@ check_scripts() {
 
   bash -n "scripts/agentic/agentic-gen.sh"
 
-  uv run python -m py_compile     "src/agentic_workflow_generator/validation/generation_idempotency.py" "src/agentic_workflow_generator/application/generation_idempotency.py" "src/agentic_workflow_generator/cli/generation_idempotency.py"     "src/agentic_workflow_generator/application/environment.py" "src/agentic_workflow_generator/cli/environment.py" "src/agentic_workflow_generator/infrastructure/processes.py"     "src/agentic_workflow_generator/application/registry_references.py" "src/agentic_workflow_generator/validation/registry_schemas.py" "src/agentic_workflow_generator/cli/registry_references.py" "src/agentic_workflow_generator/cli/registry_schemas.py"     "src/agentic_workflow_generator/validation/capability_coverage.py" "src/agentic_workflow_generator/application/capability_coverage.py" "src/agentic_workflow_generator/cli/capability_coverage.py"     "scripts/agentic/test-negative-gates.py" "src/agentic_workflow_generator/application/lockfile.py" "src/agentic_workflow_generator/cli/lockfile_generation.py" "src/agentic_workflow_generator/cli/lockfile_validation.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
+  uv run python -m py_compile     "src/agentic_workflow_generator/validation/generation_idempotency.py" "src/agentic_workflow_generator/application/generation_idempotency.py" "src/agentic_workflow_generator/cli/generation_idempotency.py"     "src/agentic_workflow_generator/application/environment.py" "src/agentic_workflow_generator/cli/environment.py" "src/agentic_workflow_generator/infrastructure/processes.py"     "src/agentic_workflow_generator/application/registry_references.py" "src/agentic_workflow_generator/validation/registry_schemas.py" "src/agentic_workflow_generator/cli/registry_references.py" "src/agentic_workflow_generator/cli/registry_schemas.py"     "src/agentic_workflow_generator/validation/capability_coverage.py" "src/agentic_workflow_generator/application/capability_coverage.py" "src/agentic_workflow_generator/cli/capability_coverage.py" "src/agentic_workflow_generator/application/lockfile.py" "src/agentic_workflow_generator/cli/lockfile_generation.py" "src/agentic_workflow_generator/cli/lockfile_validation.py"     "src/agentic_workflow_generator/application/target_materialization.py"     "src/agentic_workflow_generator/application/target_output_validation.py"     "src/agentic_workflow_generator/application/target_runtime_validation.py"     "src/agentic_workflow_generator/cli/target_materialization.py"     "src/agentic_workflow_generator/cli/target_output.py"     "src/agentic_workflow_generator/cli/target_runtime.py"
 
   echo "PASS: Script syntax checks passed."
 }
@@ -207,11 +203,8 @@ run_doctor() {
   run_quiet_verify || return 1
   echo ""
 
-  echo "== Isolated consumer end-to-end test =="
-  echo ""
-
-  echo "== Negative gate tests =="
-  scripts/agentic/test-negative-gates.py || return 1
+  echo "== Pytest suite =="
+  uv run pytest -q || return 1
   echo ""
 
   echo "== Git status =="
@@ -351,9 +344,6 @@ case "$COMMAND" in
     ;;
   validate-init-idempotency)
     uv run python -m agentic_workflow_generator.cli.init_idempotency "${@:2}"
-    ;;
-  test-negative)
-    scripts/agentic/test-negative-gates.py "${@:2}"
     ;;
   check)
     check_scripts

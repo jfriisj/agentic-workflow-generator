@@ -322,7 +322,7 @@ Run the full pipeline:
 ~~~bash
 scripts/agentic/agentic-gen.sh all
 scripts/agentic/agentic-gen.sh test-isolated-e2e
-scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 scripts/agentic/agentic-gen.sh doctor-strict
 ~~~
 

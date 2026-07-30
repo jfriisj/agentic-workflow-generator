@@ -566,7 +566,7 @@ Assertions use stable diagnostic codes. Human-readable messages may also be chec
 
 Only integration and end-to-end tests may invoke the complete command pipeline.
 
-The current monolithic `test-negative-gates.py` is transitional and must be removed as the domain-specific test suites are activated.
+The former monolithic negative-gate runner has been removed. Fail-closed contracts are owned by focused unit, integration, contract, CLI, and end-to-end pytest suites.
 
 ## Idempotency
 
@@ -729,7 +729,6 @@ tests/
 scripts/
   agentic/
     agentic-gen.sh
-    test-negative-gates.py
 ~~~
 
 This is a responsibility map, not permission to create empty placeholder modules.

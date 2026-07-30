@@ -147,7 +147,7 @@ registry
 ### Resterende migrations- og afslutningsarbejde
 
 * `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
-* Den monolitiske `test-negative-gates.py` skal erstattes af fokuserede pytest-suiter ved de relevante domæne- og application-boundaries.
+* Den monolitiske negative-gate-runner er fjernet. Fail-closed-kontrakterne ejes nu af fokuserede pytest-suiter ved de relevante typed boundaries.
 * Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
 * Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
 * Lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` på et rent working tree og pushed.
@@ -1098,34 +1098,32 @@ For hver resterende slice:
 * `agentic-gen.sh all` består
 * registry-reference- og registry-schema-validation er migreret til typed application-, validation- og CLI-grænser
 * de to obsolete registry-validation-scripts er fjernet
-* alle 103 resterende negative gates består
-* 806 pytest-tests, Ruff og strict mypy over 85 sourcefiler består
+* den monolitiske negative-gate-runner og dens shell- og CI-routes er fjernet; kontrakterne er migreret til fokuserede pytest-suiter
+* 845 pytest-tests, Ruff og strict mypy over 203 sourcefiler består; slicens ændrede Python-filer består fokuseret Pylint med rating 10,00/10
 * det fokuserede capability-coverage-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
 * capability-coverage-slicen er committed som `8ad0c4d`, valideret med `doctor-strict` på et rent working tree og pushed
 * generation-idempotency-slicen er committed som `a682acb`, valideret med `doctor-strict` på et rent working tree og pushed
-* de sidste 2 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
+* kun `scripts/agentic/agentic-gen.sh` er tilbage; den skal migreres til en typed top-level CLI, hvorefter hele `scripts/agentic` slettes
 
 ## Næste konkrete opgave
 
-Migrér den resterende monolitiske negative-gate-runner fra `scripts/agentic/test-negative-gates.py` til fokuserede pytest-suiter ved de relevante domain-, validation-, application-, CLI- og integration-boundaries.
+Migrér den sidste shell-launcher `scripts/agentic/agentic-gen.sh` til en typed top-level CLI under `src/agentic_workflow_generator`, og slet derefter hele `scripts/agentic` atomisk.
 
 Slicen skal:
 
-1. kortlægge alle resterende gates, mutationshelpers, fixtureafhængigheder og shell-consumers
-2. klassificere hver gate efter den typed boundary, der ejer kontrakten
-3. genbruge eksisterende typed services og validators direkte uden at køre hele compiler-pipelinen som component-fixture
-4. anvende stabile diagnostic-koder, når kontrakten ikke specifikt kræver tekstmatching
-5. bevare nødvendige integration- og end-to-end-kontrakter uden at duplikere unit-tests
-6. flytte gates i små, kontrollerede grupper med uændret eller stærkere fail-closed-dækning
-7. fjerne den monolitiske runner og dens shell-route atomisk, når alle gates er migreret
-8. regenerere og validere lockfilen
-9. synkronisere dokumentation og denne statusfil
-10. bestå fokuserede tests, hele pipelinen og `doctor-strict`
+1. kortlægge alle offentlige routes, pipelinefunktioner, CI-consumers og dokumentationsreferencer
+2. etablere én typed top-level command boundary uden shell-ejet domæne- eller application-logik
+3. migrere alle aktive routes uden aliases, fallback eller parallel compatibility-logik
+4. bevare fail-fast pipeline-, verify-, doctor- og doctor-strict-semantik
+5. opdatere CI og aktive udviklerinstruktioner til den typed entrypoint
+6. slette `agentic-gen.sh` og derefter hele `scripts/agentic`
+7. regenerere og validere lockfilen
+8. bestå fokuserede tests, hele pytest-suiten, Ruff, strict mypy, fokuseret Pylint, den samlede pipeline og `doctor-strict`
 
-Der må ikke indføres fallback, parallel testlogik, compatibility paths, svækkede assertions eller skjult normalisering af fejl.
+Der må ikke indføres fallback, parallel orchestration, compatibility paths, svækkede assertions eller shell-baseret compilerlogik.
 
 ## Autoritativ domænemodel
 

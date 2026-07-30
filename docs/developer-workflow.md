@@ -67,7 +67,7 @@ Use this loop while developing:
 
 ```bash
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 git status --short
 ```
 
@@ -80,7 +80,7 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
 A completed change must end with:
 
 ```text
-PASS: All negative gate tests passed.
+pytest reports all tests passed
 PASS: Working tree is clean.
 ```
 
@@ -192,13 +192,13 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
 
 Materialization writes all enabled target files and the manifest transactionally. The manifest records the canonical composition hash, target ownership, file hashes, and byte sizes.
 
-### Run negative gates
+### Run the typed test suite
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 ```
 
-The negative gate suite intentionally breaks contracts to prove that validators fail closed.
+The focused pytest suites exercise success paths and domain-owned fail-closed contracts directly.
 
 ## Preferred check sequence
 
@@ -206,7 +206,7 @@ For a normal code or registry change:
 
 ```bash
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
 ```
 
@@ -224,8 +224,8 @@ tail -80 "$LOG"
 Then:
 
 ```bash
-LOG="/tmp/agentic-negative.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh test-negative > "$LOG" 2>&1
+LOG="/tmp/agentic-pytest.log"
+uv run pytest -q > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -372,10 +372,10 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-init-idempote
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
 ```
 
-Then run negative gates and doctor:
+Then run the typed pytest suite and doctor:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
 ```
 
@@ -436,7 +436,7 @@ A change is done when:
 
 ```text
 all passes
-negative gates pass
+pytest reports all tests passed
 doctor-strict passes
 lockfile is valid
 generated target output is canonical

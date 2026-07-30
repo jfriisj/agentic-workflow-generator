@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
     JsonValue,
@@ -205,6 +207,84 @@ def test_schema_diagnostics_are_deterministic() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    (
+        "invalid_source",
+        "expected_message",
+        "expected_location",
+    ),
+    [
+        (
+            source(
+                capabilities=[
+                    "implementation.code",
+                    "implementation.code",
+                ],
+            ),
+            ("recommendedCapabilities entry 'implementation.code' is duplicated"),
+            "$.recommendedCapabilities",
+        ),
+        (
+            source(responsibilities=[]),
+            ("recommendedResponsibilities must be a non-empty list"),
+            "$.recommendedResponsibilities",
+        ),
+        (
+            source(guardrails=[]),
+            "defaultGuardrails must be a non-empty list",
+            "$.defaultGuardrails",
+        ),
+        (
+            source(version=""),
+            "version must be a non-empty string",
+            "$.version",
+        ),
+    ],
+)
+def test_agent_schema_contracts_are_enforced(
+    invalid_source: RegistrySource,
+    expected_message: str,
+    expected_location: str,
+) -> None:
+    result = validate_agent_registry(
+        (invalid_source,),
+        SCHEMA,
+        REFERENCES,
+    )
+
+    assert result.profiles == ()
+    assert len(result.diagnostics) == 1
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == expected_message
+    assert diagnostic.location == expected_location
+
+
+def test_default_permission_profile_is_required() -> None:
+    invalid = source()
+    data = invalid.to_json_object()
+    data.pop("defaultPermissionProfile")
+
+    result = validate_agent_registry(
+        (
+            RegistrySource(
+                kind=RegistryKind.AGENT,
+                source_path=invalid.source_path,
+                data=data,
+            ),
+        ),
+        SCHEMA,
+        REFERENCES,
+    )
+
+    assert result.profiles == ()
+    assert len(result.diagnostics) == 1
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == ("defaultPermissionProfile must be a non-empty string")
+    assert diagnostic.location == "$"
+
+
 def test_obsolete_field_has_specific_diagnostic() -> None:
     result = validate_agent_registry(
         (
@@ -219,7 +299,8 @@ def test_obsolete_field_has_specific_diagnostic() -> None:
     assert result.profiles == ()
     assert codes(source(obsolete_field="produces")) == (OBSOLETE_FIELD_DIAGNOSTIC,)
     assert (
-        result.diagnostics[0].message == "obsolete agent field 'produces' is not allowed"
+        result.diagnostics[0].message
+        == "obsolete agent field 'produces' is not allowed"
     )
 
 

@@ -76,12 +76,6 @@ jobs:
           set -euo pipefail
           scripts/agentic/agentic-gen.sh doctor-strict
 
-      - name: Run negative gates explicitly
-        shell: bash
-        run: |
-          set -euo pipefail
-          scripts/agentic/agentic-gen.sh test-negative
-
       - name: Verify clean working tree
         shell: bash
         run: |

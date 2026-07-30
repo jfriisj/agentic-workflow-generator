@@ -426,7 +426,7 @@ new tool-provider behavior
 Run:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh test-negative
+uv run pytest -q
 ~~~
 
 ### Step 9: Run the complete pipeline
