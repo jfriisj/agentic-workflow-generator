@@ -44,6 +44,8 @@ Capability-coverage-slicen er committed og pushed som `8ad0c4d`. Den globale ana
 
 Generation-idempotency-slicen er committed og pushed som `a682acb`. Snapshotgrænsen dækker lockfilen, outputmanifestet og alle 53 manifest-deklarerede targetfiler. Den offentlige `validate-idempotency`-route anvender typed validation-, application- og CLI-lag uden subprocess eller parallel compilerlogik. Det obsolete `validate-generation-idempotency.py`-script og den tilsvarende monolitiske negative gate er fjernet.
 
+Negative-gate-migrationsslicen er committed og pushed som `b45d4cc`. Den monolitiske `test-negative-gates.py`, dens offentlige shell-route og den særskilte CI-kørsel er fjernet. De fail-closed kontrakter, som runneren tidligere ejede, er migreret til fokuserede typed pytest-suiter ved domain-, validation-, application-, CLI-, contract-, integration- og end-to-end-boundaries. `doctor-strict` består på et rent working tree med 845 pytest-tests, Ruff, strict mypy over 203 sourcefiler og en lockfil med 164 compilerinput.
+
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
 Målflowet er:
@@ -1098,7 +1100,7 @@ For hver resterende slice:
 * `agentic-gen.sh all` består
 * registry-reference- og registry-schema-validation er migreret til typed application-, validation- og CLI-grænser
 * de to obsolete registry-validation-scripts er fjernet
-* den monolitiske negative-gate-runner og dens shell- og CI-routes er fjernet; kontrakterne er migreret til fokuserede pytest-suiter
+* negative-gate-migrationsslicen er committed som `b45d4cc`, valideret med `doctor-strict` på et rent working tree og pushed; den monolitiske runner og dens shell- og CI-routes er fjernet
 * 845 pytest-tests, Ruff og strict mypy over 203 sourcefiler består; slicens ændrede Python-filer består fokuseret Pylint med rating 10,00/10
 * det fokuserede capability-coverage-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
