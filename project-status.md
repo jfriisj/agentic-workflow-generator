@@ -38,7 +38,7 @@ Lockfile-slicen er committed og pushed som `71e4231`. Lockfile-generation og loc
 
 Environment-slicen er committed og pushed som `b87629e`. Den består med 12 fokuserede tests, 767 samlede pytest-tests, Ruff, strict mypy over 183 sourcefiler, alle 109 negative gates og den samlede `agentic-gen.sh all`-pipeline. Det fokuserede environment-scope består Pylint med rating 10,00/10, og `doctor-strict` består på et rent working tree. En fuld `pylint src tests`-kørsel rapporterer eksisterende duplicate-code-gæld i testsuiten, som skal håndteres separat og ikke skjules.
 
-Registry-reference- og registry-schema-slicen er implementeret i working tree. De offentlige shell-routes anvender nu typed application-, validation- og CLI-grænser, de to obsolete scripts er fjernet, og aktiv kompositionsdrift valideres mod den samme canonical `CompiledComposition` som targetmaterialiseringen. Slicen består med 21 fokuserede tests, 785 samlede pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10, alle 105 resterende negative gates og den samlede `agentic-gen.sh all`-pipeline. Lockfilen indeholder 161 compilerinput.
+Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`. De offentlige shell-routes anvender nu typed application-, validation- og CLI-grænser, de to obsolete scripts er fjernet, og aktiv kompositionsdrift valideres mod den samme canonical `CompiledComposition` som targetmaterialiseringen. Slicen består med 21 fokuserede tests, 785 samlede pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10, alle 105 resterende negative gates og den samlede `agentic-gen.sh all`-pipeline. `doctor-strict` består på et rent working tree, og lockfilen indeholder 161 compilerinput.
 
 Migrationen gennemføres fortsat uden compatibility projection, fallback eller parallel autoritet.
 
@@ -292,9 +292,9 @@ Arbejdet foregår på branch `refactor/typed-init-consumers`.
 
 Target-materialiseringsslicen er committed og pushed som `344699c`, og `doctor-strict` bestod på det rene working tree.
 
-Working tree indeholder de intentionelle, endnu ikke committede ændringer for registry-reference- og registry-schema-slicen. Den typed environment-slice er committed og pushed som `b87629e`.
+Working tree er rent. Registry-reference- og registry-schema-slicen er committed og pushed som `4d6e190`, og `doctor-strict` består med alle 105 resterende negative gates.
 
-Den aktuelle slice består med 785 pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10, alle 105 resterende negative gates og `agentic-gen.sh all`.
+Den aktuelle branch består med 785 pytest-tests, Ruff, strict mypy over 79 sourcefiler, fokuseret Pylint 10,00/10 og `agentic-gen.sh all`.
 
 De genererede outputs er canonical: materialiseringen producerer 53 filer for 2 targets, og lockfilen indeholder 161 compilerinput og alle 12 schemafiler.
 
@@ -1092,6 +1092,7 @@ For hver resterende slice:
 * det fokuserede registry-reference- og schema-scope består Pylint med rating 10,00/10
 * lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` og pushed
 * environment-slicen er committed som `b87629e`, valideret med `doctor-strict` på et rent working tree og pushed
+* registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
 * de sidste 4 filer under `scripts/agentic` skal migreres og mappen derefter slettes helt
 
 ## Næste konkrete opgave
