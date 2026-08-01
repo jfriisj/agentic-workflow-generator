@@ -1,8 +1,29 @@
 # Developer workflow
 
-This document describes the daily development workflow for `agentic-workflow-generator`.
+This document is the command and validation reference for development of
+`agentic-workflow-generator`.
 
-The goal is to keep every change deterministic, validated, and fail-fast.
+The goal is to keep every executed change deterministic, validated, and
+fail-fast.
+
+The end-to-end delivery sequence is defined by `docs/workflow.md`.
+
+Mandatory governance, branch semantics, decision gates, merge policy and release
+policy are defined by `docs/governance.md`.
+
+Accepted implementation scope is defined by `docs/scope.md`.
+
+This document owns concrete local commands, validator usage, generated-output
+handling, lockfile handling and concern-specific development checks.
+
+It must not redefine the delivery sequence, accepted scope or architecture.
+
+If instructions appear to conflict:
+
+1. `docs/scope.md` owns whether work is accepted.
+2. `docs/governance.md` owns mandatory delivery rules.
+3. `docs/workflow.md` owns the operational sequence.
+4. This document owns the concrete commands used to execute that sequence.
 
 ## Core rule
 
@@ -71,11 +92,12 @@ uv run pytest -q
 git status --short
 ```
 
-Use `doctor-strict` before committing:
+During development, run the happy-path and pytest checks before committing:
 
-```bash
-PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
-```
+~~~bash
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
+uv run pytest -q
+~~~
 
 A completed change must end with:
 
@@ -202,13 +224,16 @@ The focused pytest suites exercise success paths and domain-owned fail-closed co
 
 ## Preferred check sequence
 
-For a normal code or registry change:
+For a normal code or registry change before commit:
 
-```bash
+~~~bash
 PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 uv run pytest -q
-PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
-```
+~~~
+
+After committing, run `doctor-strict` on the clean topic branch before
+push or pull request. `verify` and `doctor-strict` intentionally reject
+any tracked or staged working-tree changes.
 
 For noisy runs:
 
@@ -243,7 +268,10 @@ echo "Status: $STATUS"
 tail -80 "$LOG"
 ```
 
-## Commit workflow
+## Commit and clean-tree validation
+
+Normal work must already be on a topic branch created from the latest `dev`.
+Do not use this section to commit ordinary work directly to `main` or `dev`.
 
 Before committing:
 
@@ -258,18 +286,14 @@ PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator lock
 PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-lockfile
 ```
 
-Run strict doctor:
+Run pre-commit validation:
 
-```bash
-LOG="/tmp/agentic-final-doctor.log"
-PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
-STATUS="$?"
+~~~bash
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
+uv run pytest -q
+~~~
 
-echo "Status: $STATUS"
-tail -80 "$LOG"
-```
-
-Commit only when `Status: 0`.
+Commit only when the pre-commit validation completes successfully.
 
 ```bash
 git add <intentional-files>
@@ -290,6 +314,12 @@ git status --short
 ```
 
 The final `git status --short` should be empty.
+
+After the clean-tree validation passes, continue with push, pull request,
+review, merge and resynchronization according to `docs/workflow.md`.
+
+The mandatory rules governing those steps remain defined in
+`docs/governance.md`.
 
 ## Handling generated output drift
 
@@ -443,7 +473,7 @@ generated target output is canonical
 working tree is clean after commit
 ```
 
-Use this final check:
+After committing, use this final clean-tree check:
 
 ```bash
 LOG="/tmp/agentic-done.log"
