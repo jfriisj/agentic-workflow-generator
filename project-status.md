@@ -163,6 +163,10 @@ Scope, status, arkitektur og implementation er separate autoritative concerns.
 
 Chat-historik, AI-samtaler og lokale antagelser er ikke projektets source of truth.
 
+CI validerer pushes og pull requests mod både `dev` og `main` med den eksisterende
+`doctor-strict`-gate. GitHub-hosted runners installerer en eksplicit pinned
+`uv`-version før validering.
+
 ## Kendte gaps
 
 ### Artifact contracts
