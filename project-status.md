@@ -154,7 +154,7 @@ registry
 * CI og aktive udviklerinstruktioner anvender det installerede typed entrypoint.
 * Lockfile-kontrakten indeholder ikke længere `scripts/agentic`-inputmønstre, og generatoridentiteten er `agentic-workflow-generator`.
 * Den typed `all`-pipeline består med 165 compilerinput. Hele testsuiten består med 856 pytest-tests, Ruff og strict mypy over 206 sourcefiler; slicens fokuserede Python-scope består Pylint med rating 10,00/10.
-* Clean-tree `doctor-strict`, commit og push mangler som afsluttende validering af denne slice.
+* Top-level CLI-slicen er committed og pushed som `4ab8415`; `doctor-strict` består på et rent working tree med 856 pytest-tests.
 * Den eksisterende duplicate-code-gæld i testsuiten skal håndteres eksplicit uden at svække eller deaktivere Pylint-gaten.
 
 Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
@@ -1116,19 +1116,13 @@ For hver resterende slice:
 * lockfile-kontrakten er renset for legacy-scriptinput og anvender generatoridentiteten `agentic-workflow-generator`
 * 856 pytest-tests, Ruff og strict mypy over 206 sourcefiler består; slicens fokuserede Python-scope består Pylint med rating 10,00/10
 * den typed `all`-pipeline består med 165 compilerinput
+* top-level CLI-slicen er committed som `4ab8415`, valideret med `doctor-strict` på et rent working tree og pushed
 
 ## Næste konkrete opgave
 
-Afslut top-level CLI-slicen med den sidste repository-validering og release-hygiejne.
+Den atomiske migration til typed top-level CLI er afsluttet. Næste arbejde skal vælges ud fra de resterende kendte mangler og prioriteringer i denne statusfil.
 
-Slicen skal herefter:
-
-1. regenerere lockfilen efter de sidste dokumentations- og statusændringer
-2. bestå den samlede typed `all`-pipeline
-3. gennemgå den endelige staged diff uden legacy-routes eller compatibility paths
-4. committe den atomiske top-level CLI-migration
-5. bestå `doctor-strict` på et rent working tree
-6. pushe branchen og registrere commit- og push-status i `project-status.md`
+Den eksisterende duplicate-code-gæld i testsuiten skal fortsat håndteres eksplicit uden at svække eller deaktivere Pylint-gaten.
 
 Der må ikke genindføres fallback, parallel orchestration, compatibility paths, svækkede assertions eller shell-baseret compilerlogik.
 
