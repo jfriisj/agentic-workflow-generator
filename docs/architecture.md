@@ -101,23 +101,31 @@ There is no separate persisted resolution model. The active configuration serial
 
 ## Documentation consistency gate
 
-A vertical migration slice is not complete until all affected representations
-describe the same implemented model:
+A change is not complete until all affected authoritative representations
+describe the same implemented model.
+
+Depending on the change, this may include:
 
 ~~~text
 source code
 tests and validation gates
 JSON schemas and registry contracts
+docs/scope.md
+project-status.md
+docs/governance.md
 docs/architecture.md
 docs/core-domain-model.md
+docs/adr/
 docs/diagrams/domain/README.md
 docs/diagrams/domain/*.puml
 docs/diagrams/domain/*.svg
-project-status.md
 ~~~
 
+Only affected authority files should change. Scope and governance must not be
+rewritten merely because implementation changed.
+
 The detailed PlantUML sources are authoritative for their respective bounded
-contexts. Every affected rendered SVG must be regenerated in the same slice.
+contexts. Every affected rendered SVG must be regenerated in the same change.
 
 Research and analysis documents must be clearly separated from authoritative
 current-state documentation. Historical proposals must not be used as
