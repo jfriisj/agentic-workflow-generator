@@ -11,7 +11,7 @@ It does not ask an LLM to invent a workflow. Questions, options, classifications
 Use this for a human-driven greenfield setup:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init --guided
+uv run agentic-workflow-generator init --guided
 ~~~
 
 Interactive mode requires an attached terminal.
@@ -40,7 +40,7 @@ Pressing Enter selects the recommended default when the question has one unambig
 Use this for scripts, CI, repeatable examples, and idempotency validation:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield
 ~~~
@@ -54,7 +54,7 @@ It selects the registered recommended defaults unless explicit answer overrides 
 Use `--dry-run` to materialize and validate the complete guided result without writing either output file:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield \
   --dry-run
@@ -75,7 +75,7 @@ does not write or rewrite .agentic/agentic.json
 Answer overrides can be combined with dry-run:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield \
   --answer target-platforms=opencode-only \
@@ -91,7 +91,7 @@ Interactive `--guided --dry-run` still requires an attached terminal because the
 Use direct bundle initialization when no guided project-shaping step is needed:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
+uv run agentic-workflow-generator init --bundle orchestrated-delivery
 ~~~
 
 `--bundle` and `--guided` are mutually exclusive.
@@ -182,7 +182,7 @@ The option may be repeated.
 Generate only OpenCode output:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield \
   --answer target-platforms=opencode-only
@@ -191,7 +191,7 @@ scripts/agentic/agentic-gen.sh init \
 Generate only VS Code Copilot output:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield \
   --answer target-platforms=vscode-copilot-only
@@ -200,7 +200,7 @@ scripts/agentic/agentic-gen.sh init \
 Initialize the dedicated AI application setup:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup ai-application-greenfield
 ~~~
@@ -210,7 +210,7 @@ It does not remove access to generic delivery compositions. A deliberately
 generic orchestrated configuration can still be initialized directly:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --bundle orchestrated-delivery
 ~~~
 
@@ -300,19 +300,19 @@ There is no partial-success state and no fallback output.
 Validate the setup registry:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-setups
+uv run agentic-workflow-generator validate-setups
 ~~~
 
 Validate the materialized setup profile:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-setup-profile
+uv run agentic-workflow-generator validate-setup-profile
 ~~~
 
 Validate deterministic guided-init idempotency:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-init-idempotency \
+uv run agentic-workflow-generator validate-init-idempotency \
   --guided \
   --setup orchestrated-delivery-greenfield
 ~~~
@@ -320,10 +320,9 @@ scripts/agentic/agentic-gen.sh validate-init-idempotency \
 Run the full pipeline:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh all
-scripts/agentic/agentic-gen.sh test-isolated-e2e
+uv run agentic-workflow-generator all
 uv run pytest -q
-scripts/agentic/agentic-gen.sh doctor-strict
+uv run agentic-workflow-generator doctor-strict
 ~~~
 
 ## Automated coverage

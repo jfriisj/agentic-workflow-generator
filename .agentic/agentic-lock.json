@@ -1,7 +1,7 @@
 {
   "lockfileVersion": 1,
   "generator": {
-    "name": "agentic-gen",
+    "name": "agentic-workflow-generator",
     "mode": "local-mvp-lockfile"
   },
   "inputs": {
@@ -11,13 +11,11 @@
       "pyproject.toml",
       "registry/**/*.json",
       "registry/**/SKILL.md",
-      "scripts/agentic/*.py",
-      "scripts/agentic/*.sh",
       "src/agentic_workflow_generator/**/*.py",
       "uv.lock"
     ],
-    "fileCount": 164,
-    "contentHash": "sha256:bf244c264d30789dc5379c184c8e5c7cd166bdb9523f33ab9fb9b6fbf0046433",
+    "fileCount": 165,
+    "contentHash": "sha256:9078d7e69aec9eded7b5fdd6261c63f56e82079526a27e1fa2333a8084cfd300",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -86,8 +84,8 @@
       },
       {
         "path": "pyproject.toml",
-        "sha256": "sha256:5efea629bb1f63869a39b79e7c07a1f38ed84d26a625c5d7a382186afd3a6f1a",
-        "sizeBytes": 1386
+        "sha256": "sha256:171f066c72f43f7480e601457af5c201c5c3e4676091eadafe02e94527e7705e",
+        "sizeBytes": 1477
       },
       {
         "path": "registry/agents/AIEvaluator/agent.json",
@@ -405,14 +403,14 @@
         "sizeBytes": 3465
       },
       {
-        "path": "scripts/agentic/agentic-gen.sh",
-        "sha256": "sha256:5af56e73e6219404abb601364e1e5cf66a0ceb7890915fd66592adb7e01b85e2",
-        "sizeBytes": 13478
-      },
-      {
         "path": "src/agentic_workflow_generator/__init__.py",
         "sha256": "sha256:d18d8828637df71450f954dbdb646ce7dda7ac9d6faee4a696d46947577d5a50",
         "sizeBytes": 51
+      },
+      {
+        "path": "src/agentic_workflow_generator/__main__.py",
+        "sha256": "sha256:4eeda250f1469c535dbdb7ad60da033763fff5ac9f4bf936c8934a2a4cc99b0c",
+        "sizeBytes": 116
       },
       {
         "path": "src/agentic_workflow_generator/application/__init__.py",
@@ -446,8 +444,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/application/lockfile.py",
-        "sha256": "sha256:8c923e6f2946935a7538cba647653660a8b159cd8308764ac6c51d57e305edee",
-        "sizeBytes": 14146
+        "sha256": "sha256:5610810abbf51b4be07a76fcaf33e3a29cba0eabc1f585c68a05c067f1af23bb",
+        "sizeBytes": 14105
       },
       {
         "path": "src/agentic_workflow_generator/application/registry_references.py",
@@ -543,6 +541,11 @@
         "path": "src/agentic_workflow_generator/cli/lockfile_validation.py",
         "sha256": "sha256:477d6b161e79f1a7d94246990af7be26e8a9633e366ee6dc1e0b5f38f1c92d44",
         "sizeBytes": 766
+      },
+      {
+        "path": "src/agentic_workflow_generator/cli/main.py",
+        "sha256": "sha256:4ed0522095c5b75bbb11b24e084ea4b30a59e81c946f78b30350a437e5885d58",
+        "sizeBytes": 21298
       },
       {
         "path": "src/agentic_workflow_generator/cli/permission_profiles.py",

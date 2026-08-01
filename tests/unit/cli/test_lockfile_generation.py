@@ -31,7 +31,7 @@ def test_cli_generates_canonical_lockfile(
         "PASS: Generated deterministic lockfile."
         in captured.out
     )
-    assert "Input files: 10" in captured.out
+    assert "Input files: 8" in captured.out
     lockfile = read_json_object(
         tmp_path / ".agentic" / "agentic-lock.json"
     )

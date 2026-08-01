@@ -100,7 +100,7 @@ Generated output includes target-specific agents, skills, instructions, and conf
 For a new project, start the interactive guided initializer:
 
 ```bash
-scripts/agentic/agentic-gen.sh init --guided
+uv run agentic-workflow-generator init --guided
 ```
 
 The initializer:
@@ -117,7 +117,7 @@ writes .agentic/setup-profile.json and .agentic/agentic.json
 For deterministic automation or CI, select the registered setup explicitly:
 
 ```bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup orchestrated-delivery-greenfield
 ```
@@ -125,7 +125,7 @@ scripts/agentic/agentic-gen.sh init \
 Initialize directly from a registered bundle when guided project shaping is not needed:
 
 ```bash
-scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
+uv run agentic-workflow-generator init --bundle orchestrated-delivery
 ```
 
 See [Guided initialization](docs/guided-init.md) for classifications, overrides, generated files, failure behavior, and automation examples. Use [Adding guided setups](docs/adding-guided-setups.md) when implementing new process-oriented or domain-oriented compositions.
@@ -133,13 +133,13 @@ See [Guided initialization](docs/guided-init.md) for classifications, overrides,
 Run the full generator pipeline:
 
 ```bash
-scripts/agentic/agentic-gen.sh all
+uv run agentic-workflow-generator all
 ```
 
 Run strict verification:
 
 ```bash
-scripts/agentic/agentic-gen.sh doctor-strict
+uv run agentic-workflow-generator doctor-strict
 ```
 
 A clean result should confirm:
@@ -153,37 +153,37 @@ PASS: Working tree is clean.
 ## Main commands
 
 ```bash
-scripts/agentic/agentic-gen.sh validate-environment
-scripts/agentic/agentic-gen.sh init --bundle <bundle-name>
-scripts/agentic/agentic-gen.sh init --guided
-scripts/agentic/agentic-gen.sh init --guided --setup <setup-name>
-scripts/agentic/agentic-gen.sh init --guided --setup <setup-name> --dry-run
-scripts/agentic/agentic-gen.sh validate
-scripts/agentic/agentic-gen.sh lock
-scripts/agentic/agentic-gen.sh validate-lockfile
-scripts/agentic/agentic-gen.sh validate-artifacts
-scripts/agentic/agentic-gen.sh validate-permission-profiles
-scripts/agentic/agentic-gen.sh validate-agents
-scripts/agentic/agentic-gen.sh validate-targets
-scripts/agentic/agentic-gen.sh validate-skills
-scripts/agentic/agentic-gen.sh validate-workflows
-scripts/agentic/agentic-gen.sh validate-profiles
-scripts/agentic/agentic-gen.sh validate-bundles
-scripts/agentic/agentic-gen.sh validate-setups
-scripts/agentic/agentic-gen.sh validate-setup-profile
-scripts/agentic/agentic-gen.sh validate-references
-scripts/agentic/agentic-gen.sh validate-registry-schemas
-scripts/agentic/agentic-gen.sh coverage
-scripts/agentic/agentic-gen.sh generate
-scripts/agentic/agentic-gen.sh validate-generated
-scripts/agentic/agentic-gen.sh validate-target-runtime
-scripts/agentic/agentic-gen.sh check
-scripts/agentic/agentic-gen.sh all
-scripts/agentic/agentic-gen.sh verify
-scripts/agentic/agentic-gen.sh verify-quiet
-scripts/agentic/agentic-gen.sh status
-scripts/agentic/agentic-gen.sh doctor
-scripts/agentic/agentic-gen.sh doctor-strict
+uv run agentic-workflow-generator validate-environment
+uv run agentic-workflow-generator init --bundle <bundle-name>
+uv run agentic-workflow-generator init --guided
+uv run agentic-workflow-generator init --guided --setup <setup-name>
+uv run agentic-workflow-generator init --guided --setup <setup-name> --dry-run
+uv run agentic-workflow-generator validate
+uv run agentic-workflow-generator lock
+uv run agentic-workflow-generator validate-lockfile
+uv run agentic-workflow-generator validate-artifacts
+uv run agentic-workflow-generator validate-permission-profiles
+uv run agentic-workflow-generator validate-agents
+uv run agentic-workflow-generator validate-targets
+uv run agentic-workflow-generator validate-skills
+uv run agentic-workflow-generator validate-workflows
+uv run agentic-workflow-generator validate-profiles
+uv run agentic-workflow-generator validate-bundles
+uv run agentic-workflow-generator validate-setups
+uv run agentic-workflow-generator validate-setup-profile
+uv run agentic-workflow-generator validate-references
+uv run agentic-workflow-generator validate-registry-schemas
+uv run agentic-workflow-generator coverage
+uv run agentic-workflow-generator generate
+uv run agentic-workflow-generator validate-generated
+uv run agentic-workflow-generator validate-target-runtime
+uv run agentic-workflow-generator check
+uv run agentic-workflow-generator all
+uv run agentic-workflow-generator verify
+uv run agentic-workflow-generator verify-quiet
+uv run agentic-workflow-generator status
+uv run agentic-workflow-generator doctor
+uv run agentic-workflow-generator doctor-strict
 ```
 
 ## Guided setup flow
@@ -324,16 +324,16 @@ No silent degradation. No skipped validation. No fallback paths.
 Recommended local flow:
 
 ```bash
-scripts/agentic/agentic-gen.sh all
+uv run agentic-workflow-generator all
 uv run pytest -q
-scripts/agentic/agentic-gen.sh doctor-strict
+uv run agentic-workflow-generator doctor-strict
 ```
 
 Use log redirection for noisy checks:
 
 ```bash
 LOG="/tmp/agentic-doctor.log"
-scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 tail -80 "$LOG"
 ```
 
@@ -363,9 +363,6 @@ registry/
   skills/
   targets/
   workflows/
-
-scripts/agentic/
-  agentic-gen.sh
 
 tests/
   e2e/

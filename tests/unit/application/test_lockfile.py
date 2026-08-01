@@ -43,7 +43,7 @@ def test_build_lockfile_document_is_deterministic(
     inputs = first["inputs"]
     assert isinstance(inputs, dict)
     assert inputs["patterns"] == list(LOCK_PATTERNS)
-    assert inputs["fileCount"] == 10
+    assert inputs["fileCount"] == 8
 
 
 def test_collect_inputs_excludes_cache_and_lockfile(
@@ -72,7 +72,7 @@ def test_generate_and_validate_canonical_lockfile(
 
     result = generate_lockfile(paths)
 
-    assert result.input_file_count == 10
+    assert result.input_file_count == 8
     assert result.content_hash.startswith("sha256:")
     assert read_json_object(paths.lockfile) == build_lockfile_document(paths)
     assert validate_lockfile(paths) == ()

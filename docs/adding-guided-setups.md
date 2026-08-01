@@ -317,8 +317,8 @@ registry/workflows/<name>.workflow.json
 Validate immediately:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-registry-schemas
-scripts/agentic/agentic-gen.sh validate-workflows
+uv run agentic-workflow-generator validate-registry-schemas
+uv run agentic-workflow-generator validate-workflows
 ~~~
 
 ### Step 3: Add the profile
@@ -332,7 +332,7 @@ registry/profiles/<name>.profile.json
 Validate:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-profiles
+uv run agentic-workflow-generator validate-profiles
 ~~~
 
 ### Step 4: Add the bundle
@@ -346,7 +346,7 @@ registry/bundles/<name>.bundle.json
 Validate:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-bundles
+uv run agentic-workflow-generator validate-bundles
 ~~~
 
 ### Step 5: Add the setup
@@ -360,7 +360,7 @@ registry/setups/<name>-greenfield.setup.json
 Validate:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-setups
+uv run agentic-workflow-generator validate-setups
 ~~~
 
 ### Step 6: Run guided dry-run
@@ -368,7 +368,7 @@ scripts/agentic/agentic-gen.sh validate-setups
 Use the recommended defaults:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh init \
+uv run agentic-workflow-generator init \
   --guided \
   --setup <name>-greenfield \
   --dry-run
@@ -396,7 +396,7 @@ no files are written
 Run:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh validate-init-idempotency \
+uv run agentic-workflow-generator validate-init-idempotency \
   --guided \
   --setup <name>-greenfield
 ~~~
@@ -434,7 +434,7 @@ uv run pytest -q
 Run:
 
 ~~~bash
-scripts/agentic/agentic-gen.sh doctor-strict
+uv run agentic-workflow-generator doctor-strict
 ~~~
 
 The working tree may be dirty during implementation, but all validators and tests must pass.

@@ -18,7 +18,7 @@ from agentic_workflow_generator.infrastructure import (
 from agentic_workflow_generator.registry import ProjectPaths
 
 LOCKFILE_VERSION = 1
-GENERATOR_NAME = "agentic-gen"
+GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_MODE = "local-mvp-lockfile"
 
 LOCK_PATTERNS = (
@@ -27,8 +27,6 @@ LOCK_PATTERNS = (
     "pyproject.toml",
     "registry/**/*.json",
     "registry/**/SKILL.md",
-    "scripts/agentic/*.py",
-    "scripts/agentic/*.sh",
     "src/agentic_workflow_generator/**/*.py",
     "uv.lock",
 )

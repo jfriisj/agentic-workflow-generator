@@ -24,13 +24,13 @@ On some machines, `node` from another environment can appear before the system `
 For this repository, use the known-good system path when running validation:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh <command>
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator <command>
 ```
 
 Example:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
 ```
 
 This is not a fallback. It is an explicit environment choice.
@@ -40,12 +40,12 @@ This is not a fallback. It is an explicit environment choice.
 Validate the required local tools explicitly:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-environment
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-environment
 ```
 
 This is a fail-fast preflight.
 
-The shell command delegates directly to the typed environment CLI. The application service owns the six required command contracts, while the policy-free process adapter resolves each command through the explicitly supplied `PATH` and runs its version command in the repository root.
+The public top-level CLI routes directly to the typed environment boundary. The application service owns the six required command contracts, while the policy-free process adapter resolves each command through the explicitly supplied `PATH` and runs its version command in the repository root.
 
 Each version command has a fixed 30-second timeout. Validation fails with stable `AWG-ENVIRONMENT-*` diagnostics if a required executable is missing, cannot execute, times out or returns a non-zero exit code.
 
@@ -66,7 +66,7 @@ npx
 Use this loop while developing:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 uv run pytest -q
 git status --short
 ```
@@ -74,7 +74,7 @@ git status --short
 Use `doctor-strict` before committing:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
 ```
 
 A completed change must end with:
@@ -93,7 +93,7 @@ Use log redirection instead of flooding the terminal:
 ```bash
 LOG="/tmp/agentic-doctor.log"
 
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -108,7 +108,7 @@ Do not add `exit "$STATUS"` to copy/paste blocks. It can close an interactive te
 ### Validate active config
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate
 ```
 
 Validates `.agentic/agentic.json` against `.agentic/schemas/agentic.schema.json`.
@@ -118,7 +118,7 @@ This requires working `node` and `npx`.
 ### Initialize from bundle
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator init --bundle orchestrated-delivery
 ```
 
 Materializes `.agentic/agentic.json` from the selected bundle.
@@ -126,7 +126,7 @@ Materializes `.agentic/agentic.json` from the selected bundle.
 ### Validate init idempotency
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-init-idempotency --bundle orchestrated-delivery
 ```
 
 Ensures repeated `init --bundle` runs do not create config drift.
@@ -134,7 +134,7 @@ Ensures repeated `init --bundle` runs do not create config drift.
 ### Validate bundle registry
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-bundles
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-bundles
 ```
 
 Checks that registered bundles are valid and complete.
@@ -142,7 +142,7 @@ Checks that registered bundles are valid and complete.
 ### Check capability coverage
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh coverage
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator coverage
 ```
 
 Healthy output should include:
@@ -161,7 +161,7 @@ Duplicate skill capabilities:
 ### Generate everything
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 ```
 
 Runs the full happy-path pipeline.
@@ -169,7 +169,7 @@ Runs the full happy-path pipeline.
 ### Validate generated output
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-generated
 ```
 
 Checks target output for enabled targets.
@@ -177,17 +177,17 @@ Checks target output for enabled targets.
 ### Generate and validate lockfile
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh lock
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-lockfile
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator lock
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-lockfile
 ```
 
-Run this when tracked generator inputs change. The shell command delegates to the typed lockfile application service through the generation and validation CLI modules; the shell layer contains no lockfile semantics.
+Run this when tracked generator inputs change. The public top-level CLI routes to the typed lockfile generation and validation boundaries; lockfile semantics remain in the application layer.
 
 ### Materialize and validate target output
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh generate
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator generate
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-generated
 ```
 
 Materialization writes all enabled target files and the manifest transactionally. The manifest records the canonical composition hash, target ownership, file hashes, and byte sizes.
@@ -205,16 +205,16 @@ The focused pytest suites exercise success paths and domain-owned fail-closed co
 For a normal code or registry change:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 uv run pytest -q
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
 ```
 
 For noisy runs:
 
 ```bash
 LOG="/tmp/agentic-all.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -236,7 +236,7 @@ Then:
 
 ```bash
 LOG="/tmp/agentic-doctor.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -254,15 +254,15 @@ git status --short
 Regenerate lockfile if needed:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh lock
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-lockfile
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator lock
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-lockfile
 ```
 
 Run strict doctor:
 
 ```bash
 LOG="/tmp/agentic-final-doctor.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -280,7 +280,7 @@ After commit:
 
 ```bash
 LOG="/tmp/agentic-post-commit-doctor.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"
@@ -296,7 +296,7 @@ The final `git status --short` should be empty.
 If `doctor-strict` reports generated output drift, run:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 ```
 
 Then check status:
@@ -314,8 +314,8 @@ Commit them only if the drift is intentional.
 If the lockfile changes after a valid source change:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh lock
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-lockfile
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator lock
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-lockfile
 ```
 
 Commit `.agentic/agentic-lock.json` with the source change that caused it.
@@ -327,8 +327,8 @@ Do not commit unexplained lockfile drift.
 If manifest validation fails, regenerate and validate it:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh generate
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator generate
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-generated
 ```
 
 If it still fails, inspect the specific error.
@@ -366,17 +366,17 @@ The project should not skip schema validation or switch to syntax-only validatio
 After changing a bundle:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-bundles
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh init --bundle orchestrated-delivery
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-init-idempotency --bundle orchestrated-delivery
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-bundles
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator init --bundle orchestrated-delivery
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-init-idempotency --bundle orchestrated-delivery
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 ```
 
 Then run the typed pytest suite and doctor:
 
 ```bash
 uv run pytest -q
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
 ```
 
 ## Working with workflows
@@ -384,9 +384,9 @@ PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict
 After changing a workflow:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-workflows
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-bundles
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-workflows
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-bundles
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 ```
 
 Workflow changes may affect:
@@ -406,10 +406,10 @@ output manifest
 After changing an agent or skill:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-agents
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-skills
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh coverage
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-agents
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-skills
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator coverage
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
 ```
 
 Agent capability changes must be covered by skill capabilities.
@@ -421,9 +421,9 @@ Skill capability duplicates must fail validation.
 After changing a target adapter:
 
 ```bash
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-targets
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh all
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh validate-generated
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-targets
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator all
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-generated
 ```
 
 Target adapters define generated output ownership.
@@ -447,7 +447,7 @@ Use this final check:
 
 ```bash
 LOG="/tmp/agentic-done.log"
-PATH="/usr/bin:/bin:$PATH" scripts/agentic/agentic-gen.sh doctor-strict > "$LOG" 2>&1
+PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict > "$LOG" 2>&1
 STATUS="$?"
 
 echo "Status: $STATUS"

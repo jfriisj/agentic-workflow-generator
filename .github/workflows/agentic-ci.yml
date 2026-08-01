@@ -68,13 +68,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          scripts/agentic/agentic-gen.sh validate-environment
+          uv run agentic-workflow-generator validate-environment
 
       - name: Run strict doctor
         shell: bash
         run: |
           set -euo pipefail
-          scripts/agentic/agentic-gen.sh doctor-strict
+          uv run agentic-workflow-generator doctor-strict
 
       - name: Verify clean working tree
         shell: bash

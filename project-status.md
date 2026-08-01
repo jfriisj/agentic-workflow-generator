@@ -146,13 +146,15 @@ registry
 * Den konceptuelle domænemodel er opdelt i ét navigationsdiagram og fire autoritative bounded-context Chen-diagrammer med synkroniserede SVG-filer.
 * `README.md`, registrydokumentationen og de autoritative dokumenter under `docs/` er synkroniseret med den reducerede compilerarkitektur uden et separat resolutionlag, runtime-context-policy eller konfigurerbar validation policy.
 
-### Resterende migrations- og afslutningsarbejde
+### Resterende afslutningsarbejde
 
-* `agentic-gen.sh` fungerer fortsat midlertidigt som shell-router og pipeline-orchestrator.
-* Den monolitiske negative-gate-runner er fjernet. Fail-closed-kontrakterne ejes nu af fokuserede pytest-suiter ved de relevante typed boundaries.
-* Et installeret offentligt Python-entrypoint skal overtage command-routing, pipeline, status og doctor-kontrakterne.
-* Hele `scripts/agentic` skal slettes, når de sidste consumers, hooks, CI-kald og dokumentationsreferencer er migreret.
-* Lockfile-slicen er committed som `71e4231`, valideret med `doctor-strict` på et rent working tree og pushed.
+* Den installerede `agentic-workflow-generator`-kommando og `python -m agentic_workflow_generator` deler én typed top-level CLI-boundary i `cli.main`.
+* Command-routing, pipeline, verify, status, doctor og doctor-strict er flyttet ud af shell og ejes nu af den typed Python-pakke.
+* Hele `scripts/agentic` er slettet; der findes ingen legacy-launcher, compatibility-route eller parallel orchestration.
+* CI og aktive udviklerinstruktioner anvender det installerede typed entrypoint.
+* Lockfile-kontrakten indeholder ikke længere `scripts/agentic`-inputmønstre, og generatoridentiteten er `agentic-workflow-generator`.
+* Den typed `all`-pipeline består med 165 compilerinput. Hele testsuiten består med 856 pytest-tests, Ruff og strict mypy over 206 sourcefiler; slicens fokuserede Python-scope består Pylint med rating 10,00/10.
+* Clean-tree `doctor-strict`, commit og push mangler som afsluttende validering af denne slice.
 * Den eksisterende duplicate-code-gæld i testsuiten skal håndteres eksplicit uden at svække eller deaktivere Pylint-gaten.
 
 Der indføres ingen compatibility projection, fallback eller parallel pre-migration-model. Hver migreret vertikal slice skal erstatte og fjerne den gamle implementation i samme ændring.
@@ -1097,7 +1099,7 @@ For hver resterende slice:
 * typed lockfile-generation og validation er implementeret
 * de to obsolete lockfile-scripts er fjernet
 * lockfile, targets og manifest er regenereret
-* `agentic-gen.sh all` består
+* `uv run agentic-workflow-generator all` består
 * registry-reference- og registry-schema-validation er migreret til typed application-, validation- og CLI-grænser
 * de to obsolete registry-validation-scripts er fjernet
 * negative-gate-migrationsslicen er committed som `b45d4cc`, valideret med `doctor-strict` på et rent working tree og pushed; den monolitiske runner og dens shell- og CI-routes er fjernet
@@ -1108,24 +1110,27 @@ For hver resterende slice:
 * registry-reference- og registry-schema-slicen er committed som `4d6e190`, valideret med `doctor-strict` på et rent working tree og pushed
 * capability-coverage-slicen er committed som `8ad0c4d`, valideret med `doctor-strict` på et rent working tree og pushed
 * generation-idempotency-slicen er committed som `a682acb`, valideret med `doctor-strict` på et rent working tree og pushed
-* kun `scripts/agentic/agentic-gen.sh` er tilbage; den skal migreres til en typed top-level CLI, hvorefter hele `scripts/agentic` slettes
+* den typed top-level CLI er implementeret som installeret `agentic-workflow-generator`-entrypoint og modul-entrypoint
+* hele `scripts/agentic` er slettet
+* CI og aktive dokumentationsreferencer er migreret til det typed entrypoint
+* lockfile-kontrakten er renset for legacy-scriptinput og anvender generatoridentiteten `agentic-workflow-generator`
+* 856 pytest-tests, Ruff og strict mypy over 206 sourcefiler består; slicens fokuserede Python-scope består Pylint med rating 10,00/10
+* den typed `all`-pipeline består med 165 compilerinput
 
 ## Næste konkrete opgave
 
-Migrér den sidste shell-launcher `scripts/agentic/agentic-gen.sh` til en typed top-level CLI under `src/agentic_workflow_generator`, og slet derefter hele `scripts/agentic` atomisk.
+Afslut top-level CLI-slicen med den sidste repository-validering og release-hygiejne.
 
-Slicen skal:
+Slicen skal herefter:
 
-1. kortlægge alle offentlige routes, pipelinefunktioner, CI-consumers og dokumentationsreferencer
-2. etablere én typed top-level command boundary uden shell-ejet domæne- eller application-logik
-3. migrere alle aktive routes uden aliases, fallback eller parallel compatibility-logik
-4. bevare fail-fast pipeline-, verify-, doctor- og doctor-strict-semantik
-5. opdatere CI og aktive udviklerinstruktioner til den typed entrypoint
-6. slette `agentic-gen.sh` og derefter hele `scripts/agentic`
-7. regenerere og validere lockfilen
-8. bestå fokuserede tests, hele pytest-suiten, Ruff, strict mypy, fokuseret Pylint, den samlede pipeline og `doctor-strict`
+1. regenerere lockfilen efter de sidste dokumentations- og statusændringer
+2. bestå den samlede typed `all`-pipeline
+3. gennemgå den endelige staged diff uden legacy-routes eller compatibility paths
+4. committe den atomiske top-level CLI-migration
+5. bestå `doctor-strict` på et rent working tree
+6. pushe branchen og registrere commit- og push-status i `project-status.md`
 
-Der må ikke indføres fallback, parallel orchestration, compatibility paths, svækkede assertions eller shell-baseret compilerlogik.
+Der må ikke genindføres fallback, parallel orchestration, compatibility paths, svækkede assertions eller shell-baseret compilerlogik.
 
 ## Autoritativ domænemodel
 

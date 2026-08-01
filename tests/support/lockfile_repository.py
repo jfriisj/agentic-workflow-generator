@@ -19,8 +19,6 @@ def build_lockfile_repository(
         "pyproject.toml": "[project]\n",
         "registry/bundles/example.bundle.json": "{}\n",
         "registry/skills/example/SKILL.md": "# Example\n",
-        "scripts/agentic/example.py": "VALUE = 1\n",
-        "scripts/agentic/example.sh": "#!/usr/bin/env bash\n",
         "src/agentic_workflow_generator/example.py": (
             "VALUE = 2\n"
         ),
