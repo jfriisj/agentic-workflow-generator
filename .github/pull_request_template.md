@@ -44,6 +44,9 @@ Technology impact:
 
 ## Validation
 
+Follow the applicable validation sequence in `docs/workflow.md` and use the
+concrete commands defined in `docs/developer-workflow.md`.
+
 <!-- List only checks that were actually performed. -->
 
 ## Generated and canonical state
@@ -55,6 +58,7 @@ Technology impact:
 
 ## Review checklist
 
+- [ ] The applicable workflow in `docs/workflow.md` was followed.
 - [ ] This PR has one coherent purpose.
 - [ ] No unrelated cleanup is included.
 - [ ] No speculative feature or abstraction is included.

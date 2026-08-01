@@ -84,5 +84,8 @@ What becomes easier, harder, constrained or intentionally deferred?
 5. Review the ADR with the implementation pull request.
 6. Treat the ADR as accepted only when the pull request is merged.
 
-Governance for scope, branches, review and delivery is defined in
+Mandatory governance for scope, branches, review and delivery is defined in
 `docs/governance.md`.
+
+The operational sequence for creating, reviewing and accepting ADR-related
+changes is defined in `docs/workflow.md`.

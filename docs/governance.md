@@ -36,6 +36,7 @@ pull request.
 | Accepted scope | `docs/scope.md` |
 | Current project state | `project-status.md` |
 | Governance | `docs/governance.md` |
+| Operational delivery workflow | `docs/workflow.md` |
 | Architecture principles | `docs/architecture.md` |
 | Core domain documentation | `docs/core-domain-model.md` |
 | Architecture model | authoritative PlantUML sources under `docs/diagrams/domain/` as defined by `docs/architecture.md` |
@@ -53,6 +54,7 @@ must remain distinct.
 | Accepted scope | `docs/scope.md` |
 | Current project state and next accepted priority | `project-status.md` |
 | Delivery governance | `docs/governance.md` |
+| Operational delivery sequence | `docs/workflow.md` |
 | Architecture principles and authority rules | `docs/architecture.md` |
 | Core domain model documentation | `docs/core-domain-model.md` |
 | Detailed domain entities, relationships and cardinalities | authoritative PlantUML sources identified by `docs/architecture.md` |
@@ -68,6 +70,29 @@ must remain distinct.
 
 Supporting or historical documents may summarize these sources but must not
 redefine competing truth.
+
+## Authority hierarchy
+
+The project separates delivery concerns deliberately:
+
+- `docs/scope.md` defines what work is currently accepted.
+- `project-status.md` defines current state and the next accepted priority.
+- `docs/architecture.md`, its authoritative diagrams, and accepted ADRs define
+  architectural truth and rationale.
+- `docs/governance.md` defines mandatory delivery rules, decision gates, branch
+  semantics, merge policy, and release policy.
+- `docs/workflow.md` defines the repeatable end-to-end operational sequence that
+  applies the governance rules.
+- `docs/developer-workflow.md` defines concrete local commands and validation
+  procedures used while executing that workflow.
+
+`docs/workflow.md` must not redefine accepted scope, architecture, or governance.
+
+`docs/developer-workflow.md` must not redefine the delivery sequence or weaken a
+governance or workflow requirement.
+
+When two documents appear to disagree, the concern-specific authoritative
+source in the source-of-truth matrix wins.
 
 `docs/engineering-discovery.md` and documents under `docs/research/` are
 non-authoritative unless an accepted decision explicitly promotes a proposal
@@ -111,214 +136,52 @@ hotfix/<short-purpose>
 Do not introduce additional permanent branches without a concrete workflow need
 and an accepted governance decision.
 
-## Normal delivery flow
+## Normal delivery rules
 
-Normal work follows:
+The detailed end-to-end delivery sequence is defined in `docs/workflow.md`.
 
-~~~text
-dev
- ↓
-topic branch
- ↓
-local validation
- ↓
-pull request
- ↓
-review and required checks
- ↓
-squash merge
- ↓
-dev
-~~~
+Governance requires that normal work:
 
-After merge, the merged `dev` branch becomes the accepted state. The topic
-branch is no longer authoritative.
+- starts from the latest accepted `dev`;
+- is performed on a purpose-oriented topic branch;
+- stays inside accepted scope;
+- contains one coherent outcome;
+- keeps affected authoritative artifacts synchronized;
+- passes the applicable local validation gates;
+- is committed before the clean-tree `doctor-strict` gate is run;
+- is pushed and reviewed through a pull request targeting `dev`;
+- passes required remote checks;
+- resolves review conversations before merge;
+- is squash-merged into `dev`;
+- treats the resulting `dev` state as the new accepted integration state.
 
-### 1. Synchronize
+Normal work must not be committed directly to `dev` or `main`.
 
-Start from the latest integration branch:
+The operational commands, ordering and working checklist for these rules are
+defined only in `docs/workflow.md`.
 
-~~~bash
-git switch dev
-git pull --ff-only
-~~~
+## Scope transition rules
 
-### 2. Inspect authoritative state
+Implementation outside accepted `docs/scope.md` is prohibited until a separate
+scope transition has been accepted.
 
-Before deciding what to change, inspect:
+A scope transition must:
 
-- `docs/scope.md`;
-- `project-status.md`;
-- relevant architecture documentation and diagrams;
-- relevant ADRs;
-- relevant registry contracts, schemas, source code and tests.
+- use a dedicated topic branch;
+- state the concrete problem requiring expansion;
+- update `docs/scope.md`;
+- update `project-status.md` when current state or next priority changes;
+- identify architecture, ownership and technology impact;
+- update architecture sources and ADRs when required;
+- define explicit in-scope and out-of-scope boundaries;
+- define measurable acceptance criteria;
+- contain only the authority changes needed to admit the future work;
+- be reviewed and merged into `dev` before implementation begins.
 
-Do not rely on prior chat context or memory as project authority.
+A scope-transition pull request must not hide the implementation it is intended
+to authorize.
 
-### 3. Run the scope gate
-
-Before implementation, determine:
-
-1. Is the requested change explicitly inside accepted scope?
-2. Does it introduce a new capability?
-3. Does it introduce a new technology or infrastructure dependency?
-4. Does it change architecture, dependency direction or ownership?
-5. Does it require an authoritative artifact to change?
-
-If the work is outside accepted scope, implementation stops and the Scope
-Transition Workflow is used first.
-
-### 4. Define the smallest coherent change
-
-Before implementation, identify:
-
-- purpose;
-- in-scope work;
-- explicit out-of-scope work;
-- acceptance criteria;
-- affected authoritative artifacts.
-
-If these cannot be stated clearly, the change is not ready for implementation.
-
-### 5. Create a topic branch
-
-~~~bash
-git switch -c <type>/<short-purpose>
-~~~
-
-### 6. Implement only the accepted change
-
-Do not:
-
-- add speculative abstractions;
-- implement adjacent features;
-- introduce unrelated cleanup;
-- add dependencies because they may be useful later;
-- weaken fail-fast validation;
-- create compatibility or fallback behavior unless explicitly accepted by
-  scope and architecture.
-
-Keep authoritative documentation synchronized with material changes.
-
-### 7. Validate locally
-
-Use the strongest relevant focused checks while developing.
-
-Before a change is considered ready for commit or review, run the project
-quality gate defined in `docs/developer-workflow.md`.
-
-The final repository-level gate is:
-
-~~~bash
-PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict
-~~~
-
-Only claim validation that was actually performed.
-
-### 8. Review the local diff
-
-Before committing:
-
-~~~bash
-git status
-git diff
-~~~
-
-Verify:
-
-- every changed file belongs to the stated purpose;
-- no private, local or unintended generated files leaked in;
-- no hidden scope expansion occurred;
-- architecture and documentation impacts are represented;
-- no unrelated cleanup was added.
-
-### 9. Commit and push
-
-Use concise intent-oriented commits.
-
-Working commits are allowed on topic branches because normal topic pull
-requests are squash-merged.
-
-### 10. Pull request
-
-Normal pull requests target `dev`.
-
-A pull request must state:
-
-- one purpose;
-- scope impact;
-- architecture impact;
-- ownership impact;
-- technology impact;
-- explicit exclusions;
-- validation actually performed.
-
-### 11. Review
-
-Review the actual repository diff, not only the pull request description.
-
-Review must consider:
-
-- scope consistency;
-- architecture consistency;
-- ownership;
-- dependency and technology changes;
-- tests and validation;
-- authoritative documentation;
-- generated and lockfile impact;
-- unintended files;
-- unresolved review conversations.
-
-### 12. Merge and resynchronize
-
-Normal topic pull requests are squash-merged to `dev`.
-
-After merge:
-
-~~~bash
-git switch dev
-git pull --ff-only
-git status
-~~~
-
-Delete the topic branch unless there is a concrete reason to retain it.
-
-Before starting the next change, re-read accepted repository state.
-
-## Scope Transition Workflow
-
-If the logical next implementation is outside accepted scope:
-
-~~~text
-new requirement
-      ↓
-scope decision
-      ↓
-docs/<scope-purpose>
-      ↓
-update scope and project status
-      ↓
-pull request to dev
-      ↓
-review and merge
-      ↓
-new scope becomes accepted
-      ↓
-separate implementation branch
-~~~
-
-A scope-transition pull request should contain only the authority changes needed
-to admit the next work. It must not hide the full implementation in the same
-change.
-
-Before accepting a scope transition:
-
-- the previous accepted phase is accurately represented;
-- `project-status.md` reflects reality;
-- new in-scope work is explicit;
-- out-of-scope work is explicit;
-- acceptance criteria are testable;
-- the next implementation can be bounded by the new scope.
+The operational scope-transition sequence is defined in `docs/workflow.md`.
 
 ## Capability admission
 
@@ -450,49 +313,42 @@ Use a deliberate release pull request.
 
 The release boundary must remain visible and reviewable.
 
-## Release workflow
+## Release rules
 
-Release promotion follows:
+`main` represents stable, release-ready or released state.
 
-~~~text
-accepted dev state
-       ↓
-release-readiness check
-       ↓
-pull request: dev → main
-       ↓
-review and required validation
-       ↓
-merge
-       ↓
-release tag
-~~~
+A release must:
 
-Normal feature work is not performed directly on `main`.
+- promote an accepted `dev` state through a deliberate pull request to `main`;
+- keep the release boundary explicit and reviewable;
+- pass the required project validation gates;
+- contain only the intended release state;
+- update required release documentation or versioning;
+- create the applicable release tag after the release state is accepted.
 
-## Hotfix workflow
+Normal feature work must not be performed directly on `main`.
 
-Use a hotfix only when a defect in stable/released state cannot wait for the
-normal integration cycle.
+The detailed release sequence is defined in `docs/workflow.md`.
 
-~~~text
-main
- ↓
-hotfix/<short-purpose>
- ↓
-validate
- ↓
-pull request → main
- ↓
-merge and release
- ↓
-reconcile the same logical fix into dev
-~~~
+## Hotfix rules
+
+A hotfix is permitted only for a real defect in stable or released state that
+cannot reasonably wait for the normal integration cycle.
+
+A hotfix must:
+
+- branch from `main`;
+- remain narrowly focused on the production defect;
+- preserve accepted architecture and fail-fast behavior;
+- pass the applicable validation gates;
+- be reviewed through a pull request targeting `main`;
+- not introduce unrelated feature work or scope expansion;
+- reconcile the same logical correction into `dev` after the production fix.
 
 A hotfix does not bypass scope, review, tests, documentation, architecture or
-validation rules.
+validation requirements.
 
-`dev` must contain the same logical correction after the production fix.
+The detailed hotfix sequence is defined in `docs/workflow.md`.
 
 ## Pull request discipline
 

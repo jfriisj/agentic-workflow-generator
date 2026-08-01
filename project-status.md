@@ -132,40 +132,26 @@ Nye ændringer skal valideres på deres egen branch og må ikke antage, at denne
 
 ## Governance
 
-Projektet anvender nu governed project delivery.
+Governed project delivery er etableret som projektets accepterede leverancemodel.
 
-Permanent branch-semantik:
+Autoriteten er opdelt således:
 
-~~~text
-main = stable/release
-dev  = integration
-~~~
+- `docs/scope.md` ejer accepteret implementation scope.
+- `project-status.md` ejer aktuel projektstatus og næste accepterede prioritet.
+- `docs/architecture.md`, autoritative diagrammer og ADRs ejer arkitektur.
+- `docs/governance.md` ejer obligatoriske delivery-regler og decision gates.
+- `docs/workflow.md` ejer den operationelle end-to-end leverancesekvens.
+- `docs/developer-workflow.md` ejer konkrete lokale kommandoer og validatorprocedurer.
 
-Normalt arbejde følger:
+Permanent branch-semantik er `dev` som integration og `main` som
+stable/release, som defineret i governance.
 
-~~~text
-dev
- ↓
-topic branch
- ↓
-validation
- ↓
-pull request
- ↓
-review
- ↓
-squash merge
- ↓
-dev
-~~~
+CI validerer pushes og pull requests mod både `dev` og `main` med den
+eksisterende `doctor-strict`-gate. GitHub-hosted runners installerer en
+eksplicit pinned `uv`-version før validering.
 
-Scope, status, arkitektur og implementation er separate autoritative concerns.
-
-Chat-historik, AI-samtaler og lokale antagelser er ikke projektets source of truth.
-
-CI validerer pushes og pull requests mod både `dev` og `main` med den eksisterende
-`doctor-strict`-gate. GitHub-hosted runners installerer en eksplicit pinned
-`uv`-version før validering.
+Chat-historik, AI-samtaler og lokale antagelser er ikke projektets source of
+truth.
 
 ## Kendte gaps
 

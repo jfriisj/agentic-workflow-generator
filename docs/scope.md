@@ -11,8 +11,9 @@ It answers:
 work should be prioritized next. This document determines whether proposed work
 is permitted at all.
 
-Changes outside this document require the Scope Transition Workflow defined in
-`docs/governance.md` before implementation begins.
+Changes outside this document require the scope-transition rules defined in
+`docs/governance.md` and the operational scope-transition sequence defined in
+`docs/workflow.md` before implementation begins.
 
 ## Current phase
 
@@ -163,6 +164,7 @@ including:
 - `docs/scope.md`;
 - `project-status.md`;
 - `docs/governance.md`;
+- `docs/workflow.md`;
 - `docs/architecture.md`;
 - `docs/core-domain-model.md`;
 - relevant ADRs;

@@ -1,14 +1,29 @@
 # Developer workflow
 
-This document describes the daily development workflow for `agentic-workflow-generator`.
+This document is the command and validation reference for development of
+`agentic-workflow-generator`.
 
-The goal is to keep every change deterministic, validated, and fail-fast.
+The goal is to keep every executed change deterministic, validated, and
+fail-fast.
 
-Delivery governance, accepted scope, branch semantics, pull-request rules and
-release policy are defined by `docs/governance.md` and `docs/scope.md`.
+The end-to-end delivery sequence is defined by `docs/workflow.md`.
 
-This document is the operational command guide. If it conflicts with
-`docs/governance.md`, governance is authoritative.
+Mandatory governance, branch semantics, decision gates, merge policy and release
+policy are defined by `docs/governance.md`.
+
+Accepted implementation scope is defined by `docs/scope.md`.
+
+This document owns concrete local commands, validator usage, generated-output
+handling, lockfile handling and concern-specific development checks.
+
+It must not redefine the delivery sequence, accepted scope or architecture.
+
+If instructions appear to conflict:
+
+1. `docs/scope.md` owns whether work is accepted.
+2. `docs/governance.md` owns mandatory delivery rules.
+3. `docs/workflow.md` owns the operational sequence.
+4. This document owns the concrete commands used to execute that sequence.
 
 ## Core rule
 
@@ -253,7 +268,7 @@ echo "Status: $STATUS"
 tail -80 "$LOG"
 ```
 
-## Commit workflow
+## Commit and clean-tree validation
 
 Normal work must already be on a topic branch created from the latest `dev`.
 Do not use this section to commit ordinary work directly to `main` or `dev`.
@@ -300,17 +315,11 @@ git status --short
 
 The final `git status --short` should be empty.
 
-After the topic branch is validated and pushed, open a pull request targeting
-`dev`. Review and merge rules are defined by `docs/governance.md`.
+After the clean-tree validation passes, continue with push, pull request,
+review, merge and resynchronization according to `docs/workflow.md`.
 
-After merge, resynchronize from the accepted integration state before starting
-new work:
-
-~~~bash
-git switch dev
-git pull --ff-only
-git status --short --branch
-~~~
+The mandatory rules governing those steps remain defined in
+`docs/governance.md`.
 
 ## Handling generated output drift
 

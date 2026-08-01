@@ -113,6 +113,8 @@ JSON schemas and registry contracts
 docs/scope.md
 project-status.md
 docs/governance.md
+docs/workflow.md
+docs/developer-workflow.md
 docs/architecture.md
 docs/core-domain-model.md
 docs/adr/
