@@ -15,7 +15,7 @@
       "uv.lock"
     ],
     "fileCount": 165,
-    "contentHash": "sha256:ddd6c0a5f640c702cd5c2d65eae714921a6b916d363a75666a33506b8c6ab58b",
+    "contentHash": "sha256:7d273ad65c1c06129c02658818b75313775acbd409ce5adac548fa1519f19c90",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -424,8 +424,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/application/environment.py",
-        "sha256": "sha256:7b8b68498cc24cd57a15dcec35710cbfa0c767385848b579e0e1ffcff821da5d",
-        "sizeBytes": 4858
+        "sha256": "sha256:e2104856b99814cef9da1918b92e7be60f9106fbe4ad552bf69ce528dc394ca9",
+        "sizeBytes": 4670
       },
       {
         "path": "src/agentic_workflow_generator/application/generation_idempotency.py",

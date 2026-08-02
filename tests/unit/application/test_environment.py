@@ -40,7 +40,7 @@ def test_validate_environment_accepts_all_commands(
     )
 
     assert result.diagnostics == ()
-    assert len(result.checks) == 6
+    assert len(result.checks) == 4
     assert all(
         check.version == "version 1.0"
         for check in result.checks
@@ -101,7 +101,7 @@ def test_validate_environment_reports_missing_command(
         "resolve_executable",
         lambda command, *, path: (
             None
-            if command == "node"
+            if command == "git"
             else f"/bin/{command}"
         ),
     )
@@ -151,8 +151,8 @@ def test_validate_environment_reports_rejected_command(
         return ProcessResult(
             executable=executable,
             arguments=arguments,
-            exit_code=9 if executable.endswith("node") else 0,
-            output="node failed",
+            exit_code=9 if executable.endswith("git") else 0,
+            output="git failed",
         )
 
     monkeypatch.setattr(
@@ -172,7 +172,7 @@ def test_validate_environment_reports_rejected_command(
     } == {
         environment.COMMAND_REJECTED_DIAGNOSTIC,
     }
-    assert "node is required but failed to run" in (
+    assert "git is required but failed to run" in (
         result.diagnostics[0].message
     )
 
@@ -197,7 +197,7 @@ def test_validate_environment_reports_execution_failure(
         assert timeout_seconds == environment.COMMAND_TIMEOUT_SECONDS
         del arguments, cwd
 
-        if executable.endswith("node"):
+        if executable.endswith("git"):
             raise ProcessExecutionError(
                 executable,
                 (),

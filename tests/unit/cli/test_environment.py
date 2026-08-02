@@ -20,14 +20,14 @@ def test_cli_preserves_success_contract(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     requirement = EnvironmentRequirement(
-        name="node",
-        command=("node", "--version"),
+        name="git",
+        command=("git", "--version"),
     )
     result = EnvironmentValidationResult(
         checks=(
             EnvironmentCheck(
                 requirement=requirement,
-                executable="/bin/node",
+                executable="/bin/git",
                 version="v1.0.0",
                 diagnostic=None,
             ),
@@ -47,7 +47,7 @@ def test_cli_preserves_success_contract(
     assert exit_code == 0
     assert "== Agentic environment validation ==" in captured.out
     assert (
-        "PASS: node available at /bin/node (v1.0.0)"
+        "PASS: git available at /bin/git (v1.0.0)"
         in captured.out
     )
     assert (
@@ -64,17 +64,17 @@ def test_cli_renders_stable_failure_diagnostic(
 ) -> None:
     diagnostic = Diagnostic(
         code=COMMAND_REJECTED_DIAGNOSTIC,
-        message="node is required but failed to run.",
+        message="git is required but failed to run.",
     )
     requirement = EnvironmentRequirement(
-        name="node",
-        command=("node", "--version"),
+        name="git",
+        command=("git", "--version"),
     )
     result = EnvironmentValidationResult(
         checks=(
             EnvironmentCheck(
                 requirement=requirement,
-                executable="/bin/node",
+                executable="/bin/git",
                 version=None,
                 diagnostic=diagnostic,
             ),
@@ -93,4 +93,4 @@ def test_cli_renders_stable_failure_diagnostic(
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "AWG-ENVIRONMENT-003" in captured.out
-    assert "node is required but failed to run" in captured.out
+    assert "git is required but failed to run" in captured.out

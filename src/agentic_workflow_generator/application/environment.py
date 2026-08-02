@@ -64,14 +64,6 @@ REQUIRED_COMMANDS = (
         name="project Python",
         command=("uv", "run", "python", "--version"),
     ),
-    EnvironmentRequirement(
-        name="node",
-        command=("node", "--version"),
-    ),
-    EnvironmentRequirement(
-        name="npx",
-        command=("npx", "--version"),
-    ),
 )
 
 

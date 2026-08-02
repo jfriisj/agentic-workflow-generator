@@ -31,7 +31,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Set up Python 3.13
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -39,11 +44,6 @@ jobs:
       - name: Install uv
         shell: bash
         run: python -m pip install --disable-pip-version-check "uv==0.12.1"
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
 
       - name: Show selected toolchain
         shell: bash
@@ -60,30 +60,30 @@ jobs:
           git --version
 
           echo
-          echo "== python =="
-          command -v python
-          python --version
+          echo "== uv =="
+          command -v uv
+          uv --version
 
-          echo
-          echo "== node =="
-          command -v node
-          node --version
-
-          echo
-          echo "== npx =="
-          command -v npx
-          npx --version
-
-      - name: Validate environment
+      - name: Validate Python 3.11
         shell: bash
+        env:
+          UV_PYTHON: "3.11"
         run: |
           set -euo pipefail
+          rm -rf .venv
+          uv run python --version
           uv run agentic-workflow-generator validate-environment
+          uv run agentic-workflow-generator doctor-strict
 
-      - name: Run strict doctor
+      - name: Validate Python 3.13
         shell: bash
+        env:
+          UV_PYTHON: "3.13"
         run: |
           set -euo pipefail
+          rm -rf .venv
+          uv run python --version
+          uv run agentic-workflow-generator validate-environment
           uv run agentic-workflow-generator doctor-strict
 
       - name: Verify clean working tree
