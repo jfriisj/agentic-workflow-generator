@@ -76,6 +76,7 @@ Produced output must satisfy each compiled artifact contract.
 - required headings:
   - # Requirements
   - ## Status
+  - ## Provenance
   - ## Summary
   - ## Scope
   - ## Requirements
@@ -83,6 +84,14 @@ Produced output must satisfy each compiled artifact contract.
   - ## Assumptions
   - ## Constraints
   - ## Handoff Target
+- provenance heading: `## Provenance`
+- provenance identities:
+  - `artifactType`: `Requirements`
+  - `artifactVersion`: `0.3.0`
+  - `workflow`: `orchestrated-delivery`
+  - `workflowVersion`: `0.2.0`
+  - `roleBinding`: `requirements`
+  - `agentInstance`: `requirements-worker`
 
 
 ## Workflow Authority

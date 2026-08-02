@@ -68,12 +68,21 @@ Produced output must satisfy each compiled artifact contract.
 - required headings:
   - # Implementation Report
   - ## Status
+  - ## Provenance
   - ## Summary
   - ## Files Changed
   - ## Implementation Notes
   - ## Validation Performed
   - ## Known Risks
   - ## Handoff Target
+- provenance heading: `## Provenance`
+- provenance identities:
+  - `artifactType`: `ImplementationReport`
+  - `artifactVersion`: `0.3.0`
+  - `workflow`: `orchestrated-delivery`
+  - `workflowVersion`: `0.2.0`
+  - `roleBinding`: `implementation`
+  - `agentInstance`: `implementation-worker`
 
 
 ## Workflow Authority

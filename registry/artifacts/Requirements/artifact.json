@@ -1,11 +1,22 @@
 {
   "type": "Requirements",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Artifact contract for requirements output produced by Requirements agents.",
   "pathPattern": "agent-output/requirements/*.md",
   "status": {
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "provenance": {
+    "heading": "## Provenance",
+    "requiredIdentities": [
+      "artifactType",
+      "artifactVersion",
+      "workflow",
+      "workflowVersion",
+      "roleBinding",
+      "agentInstance"
+    ]
   },
   "allowedStatuses": [
     "PASS",
@@ -15,6 +26,7 @@
   "requiredHeadings": [
     "# Requirements",
     "## Status",
+    "## Provenance",
     "## Summary",
     "## Scope",
     "## Requirements",

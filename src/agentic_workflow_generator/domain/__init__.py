@@ -1,7 +1,11 @@
 """Stable domain concepts."""
 
 from .agents import AgentProfile
-from .artifacts import ArtifactContract, ArtifactStatus
+from .artifacts import (
+    ArtifactContract,
+    ArtifactProvenanceContract,
+    ArtifactStatus,
+)
 from .bundles import (
     AgentInstance,
     Bundle,
@@ -48,6 +52,7 @@ __all__ = [
     "AgentInstance",
     "AgentProfile",
     "ArtifactContract",
+    "ArtifactProvenanceContract",
     "ArtifactStatus",
     "BashPermission",
     "Bundle",

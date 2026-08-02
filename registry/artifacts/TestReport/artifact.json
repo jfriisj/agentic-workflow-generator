@@ -1,11 +1,22 @@
 {
   "type": "TestReport",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Artifact contract for test execution and validation output.",
   "pathPattern": "agent-output/test-report/*.md",
   "status": {
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "provenance": {
+    "heading": "## Provenance",
+    "requiredIdentities": [
+      "artifactType",
+      "artifactVersion",
+      "workflow",
+      "workflowVersion",
+      "roleBinding",
+      "agentInstance"
+    ]
   },
   "allowedStatuses": [
     "PASS",
@@ -15,6 +26,7 @@
   "requiredHeadings": [
     "# Test Report",
     "## Status",
+    "## Provenance",
     "## Summary",
     "## Test Commands",
     "## Test Results",

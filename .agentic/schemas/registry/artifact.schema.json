@@ -9,6 +9,7 @@
     "description",
     "pathPattern",
     "status",
+    "provenance",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -46,6 +47,31 @@
         "pattern": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "heading",
+        "requiredIdentities"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "type": "string",
+          "const": "## Provenance"
+        },
+        "requiredIdentities": {
+          "type": "array",
+          "const": [
+            "artifactType",
+            "artifactVersion",
+            "workflow",
+            "workflowVersion",
+            "roleBinding",
+            "agentInstance"
+          ]
         }
       }
     },

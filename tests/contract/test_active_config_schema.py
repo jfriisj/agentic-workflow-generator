@@ -154,3 +154,30 @@ def test_schema_requires_target_enabled_to_be_true() -> None:
         and error.json_path == "$.targets[0].enabled"
         for error in errors
     )
+
+
+def test_active_repository_artifacts_carry_canonical_provenance() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    assert config["schemaVersion"] == "0.4.0"
+
+    artifacts = cast(list[Any], config["artifacts"])
+    assert artifacts
+
+    expected = {
+        "heading": "## Provenance",
+        "requiredIdentities": [
+            "artifactType",
+            "artifactVersion",
+            "workflow",
+            "workflowVersion",
+            "roleBinding",
+            "agentInstance",
+        ],
+    }
+
+    assert all(
+        cast(dict[str, Any], artifact)["provenance"] == expected
+        for artifact in artifacts
+    )

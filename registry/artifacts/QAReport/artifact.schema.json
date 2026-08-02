@@ -9,6 +9,7 @@
     "description",
     "pathPattern",
     "status",
+    "provenance",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -20,7 +21,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.2.0"
+      "const": "0.3.0"
     },
     "description": {
       "type": "string",
@@ -45,6 +46,53 @@
         "pattern": {
           "type": "string",
           "const": "PASS|FAIL|BLOCKED"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "heading",
+        "requiredIdentities"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "type": "string",
+          "const": "## Provenance"
+        },
+        "requiredIdentities": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "string",
+              "const": "artifactType"
+            },
+            {
+              "type": "string",
+              "const": "artifactVersion"
+            },
+            {
+              "type": "string",
+              "const": "workflow"
+            },
+            {
+              "type": "string",
+              "const": "workflowVersion"
+            },
+            {
+              "type": "string",
+              "const": "roleBinding"
+            },
+            {
+              "type": "string",
+              "const": "agentInstance"
+            }
+          ],
+          "items": false,
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true
         }
       }
     },
@@ -82,6 +130,10 @@
         },
         {
           "type": "string",
+          "const": "## Provenance"
+        },
+        {
+          "type": "string",
           "const": "## Summary"
         },
         {
@@ -106,8 +158,8 @@
         }
       ],
       "items": false,
-      "minItems": 8,
-      "maxItems": 8,
+      "minItems": 9,
+      "maxItems": 9,
       "uniqueItems": true
     }
   }
