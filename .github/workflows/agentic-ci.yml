@@ -86,6 +86,13 @@ jobs:
           uv run agentic-workflow-generator validate-environment
           uv run agentic-workflow-generator doctor-strict
 
+      - name: Verify domain diagrams
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run render-domain-diagrams
+          git diff --exit-code -- docs/diagrams/domain
+
       - name: Verify clean working tree
         shell: bash
         run: |
