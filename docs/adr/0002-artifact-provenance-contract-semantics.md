@@ -1,6 +1,6 @@
 # ADR-0002: Artifact provenance contract semantics
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-02
 
 ## Context
