@@ -90,8 +90,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv run render-domain-diagrams
-          git diff --exit-code -- docs/diagrams/domain
+          uv run render-domain-diagrams --check
 
       - name: Verify clean working tree
         shell: bash

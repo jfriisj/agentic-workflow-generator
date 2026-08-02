@@ -28,6 +28,18 @@ PLANTUML_ARCHIVE_URL = (
     "https://github.com/plantuml/plantuml/releases/download/"
     f"v{PLANTUML_VERSION}/{PLANTUML_ARCHIVE_NAME}"
 )
+
+DEJAVU_VERSION = "2.37"
+DEJAVU_ARCHIVE_SHA256 = (
+    "7576310b219e04159d35ff61dd4a4ec4cdba4f35c00e002a136f00e96a908b0a"
+)
+DEJAVU_ARCHIVE_NAME = f"dejavu-fonts-ttf-{DEJAVU_VERSION}.zip"
+DEJAVU_ARCHIVE_URL = (
+    "https://github.com/dejavu-fonts/dejavu-fonts/releases/download/"
+    f"version_2_37/{DEJAVU_ARCHIVE_NAME}"
+)
+CANONICAL_FONT_NAME = "DejaVu Sans"
+
 DIAGRAM_DIRECTORY = Path("docs/diagrams/domain")
 DOWNLOAD_TIMEOUT_SECONDS = 60
 RENDER_TIMEOUT_SECONDS = 120
@@ -45,37 +57,42 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _verify_archive(path: Path) -> None:
+def _verify_sha256(
+    path: Path,
+    *,
+    expected: str,
+    label: str,
+) -> None:
     actual = _sha256(path)
-    if actual != PLANTUML_ARCHIVE_SHA256:
+    if actual != expected:
         raise DiagramRenderingError(
-            "PlantUML archive SHA-256 mismatch: "
-            f"expected {PLANTUML_ARCHIVE_SHA256}, got {actual}"
+            f"{label} SHA-256 mismatch: expected {expected}, got {actual}"
         )
 
 
-def _cache_directory() -> Path:
+def _cache_root() -> Path:
     configured = os.environ.get("XDG_CACHE_HOME")
     base = (
         Path(configured).expanduser()
         if configured
         else Path.home() / ".cache"
     )
-    return (
-        base
-        / "agentic-workflow-generator"
-        / "plantuml"
-        / PLANTUML_VERSION
-    )
+    return base / "agentic-workflow-generator"
 
 
-def _download_archive(destination: Path) -> None:
+def _download_archive(
+    *,
+    url: str,
+    destination: Path,
+    expected_sha256: str,
+    label: str,
+) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(f".{destination.name}.tmp")
     temporary.unlink(missing_ok=True)
 
     request = urllib.request.Request(
-        PLANTUML_ARCHIVE_URL,
+        url,
         headers={"User-Agent": "agentic-workflow-generator"},
     )
 
@@ -85,7 +102,11 @@ def _download_archive(destination: Path) -> None:
             timeout=DOWNLOAD_TIMEOUT_SECONDS,
         ) as response, temporary.open("wb") as output:
             shutil.copyfileobj(response, output)
-        _verify_archive(temporary)
+        _verify_sha256(
+            temporary,
+            expected=expected_sha256,
+            label=label,
+        )
         temporary.replace(destination)
     except (
         OSError,
@@ -96,17 +117,58 @@ def _download_archive(destination: Path) -> None:
         raise
 
 
-def _ensure_archive() -> Path:
-    archive = _cache_directory() / PLANTUML_ARCHIVE_NAME
+def _ensure_archive(
+    *,
+    directory: Path,
+    archive_name: str,
+    url: str,
+    expected_sha256: str,
+    label: str,
+) -> Path:
+    archive = directory / archive_name
     if archive.is_file():
-        _verify_archive(archive)
+        _verify_sha256(
+            archive,
+            expected=expected_sha256,
+            label=label,
+        )
         return archive
 
-    _download_archive(archive)
+    _download_archive(
+        url=url,
+        destination=archive,
+        expected_sha256=expected_sha256,
+        label=label,
+    )
     return archive
 
 
-def _extract_renderer(archive_path: Path, destination: Path) -> Path:
+def _ensure_plantuml_archive() -> Path:
+    return _ensure_archive(
+        directory=_cache_root() / "plantuml" / PLANTUML_VERSION,
+        archive_name=PLANTUML_ARCHIVE_NAME,
+        url=PLANTUML_ARCHIVE_URL,
+        expected_sha256=PLANTUML_ARCHIVE_SHA256,
+        label="PlantUML archive",
+    )
+
+
+def _ensure_dejavu_archive() -> Path:
+    return _ensure_archive(
+        directory=_cache_root() / "fonts" / "dejavu" / DEJAVU_VERSION,
+        archive_name=DEJAVU_ARCHIVE_NAME,
+        url=DEJAVU_ARCHIVE_URL,
+        expected_sha256=DEJAVU_ARCHIVE_SHA256,
+        label="DejaVu font archive",
+    )
+
+
+def _safe_extract_zip(
+    archive_path: Path,
+    destination: Path,
+    *,
+    label: str,
+) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     destination_root = destination.resolve()
 
@@ -118,11 +180,19 @@ def _extract_renderer(archive_path: Path, destination: Path) -> Path:
                 and destination_root not in member_path.parents
             ):
                 raise DiagramRenderingError(
-                    "PlantUML archive contains an unsafe member path: "
+                    f"{label} contains an unsafe member path: "
                     f"{member.filename}"
                 )
 
         archive.extractall(destination)
+
+
+def _extract_renderer(archive_path: Path, destination: Path) -> Path:
+    _safe_extract_zip(
+        archive_path,
+        destination,
+        label="PlantUML archive",
+    )
 
     candidates = tuple(
         path
@@ -141,6 +211,68 @@ def _extract_renderer(archive_path: Path, destination: Path) -> Path:
         mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
     )
     return executable
+
+
+def _extract_fonts(archive_path: Path, destination: Path) -> Path:
+    _safe_extract_zip(
+        archive_path,
+        destination,
+        label="DejaVu font archive",
+    )
+
+    candidates = tuple(destination.rglob("DejaVuSans.ttf"))
+    if len(candidates) != 1:
+        raise DiagramRenderingError(
+            "Expected exactly one DejaVuSans.ttf in font archive; "
+            f"found {len(candidates)}"
+        )
+
+    font_directory = candidates[0].parent
+    required = (
+        "DejaVuSans.ttf",
+        "DejaVuSans-Bold.ttf",
+        "DejaVuSans-Oblique.ttf",
+        "DejaVuSans-BoldOblique.ttf",
+    )
+    missing = tuple(
+        name
+        for name in required
+        if not (font_directory / name).is_file()
+    )
+    if missing:
+        raise DiagramRenderingError(
+            "DejaVu font archive is missing required canonical fonts: "
+            + ", ".join(missing)
+        )
+    return font_directory
+
+
+def _write_fontconfig(
+    *,
+    font_directory: Path,
+    destination: Path,
+) -> Path:
+    destination.mkdir(parents=True, exist_ok=True)
+    cache_directory = destination / "cache"
+    cache_directory.mkdir(parents=True, exist_ok=True)
+    config_path = destination / "fonts.conf"
+
+    config_path.write_text(
+        "\
+".join(
+            (
+                '<?xml version="1.0"?>',
+                '<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">',
+                "<fontconfig>",
+                f"  <dir>{font_directory.resolve()}</dir>",
+                f"  <cachedir>{cache_directory.resolve()}</cachedir>",
+                "</fontconfig>",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    return config_path
 
 
 def _validate_platform() -> None:
@@ -167,14 +299,18 @@ def _run_renderer(
     sources: tuple[Path, ...],
     *,
     cwd: Path,
+    fontconfig: Path,
 ) -> None:
     environment = dict(os.environ)
     environment["GRAPHVIZ_DOT"] = "/definitely/missing/dot"
+    environment["FONTCONFIG_FILE"] = str(fontconfig.resolve())
+    environment["FONTCONFIG_PATH"] = str(fontconfig.parent.resolve())
 
     completed = subprocess.run(
         [
             str(renderer),
             "-Playout=smetana",
+            f"-SdefaultFontName={CANONICAL_FONT_NAME}",
             "-tsvg",
             *(str(source) for source in sources),
         ],
@@ -230,15 +366,24 @@ def _render(
 ) -> int:
     _validate_platform()
     sources = _diagram_sources(root)
-    archive = _ensure_archive()
+    plantuml_archive = _ensure_plantuml_archive()
+    dejavu_archive = _ensure_dejavu_archive()
 
     with tempfile.TemporaryDirectory(
         prefix="agentic-domain-diagrams-"
     ) as temporary_name:
         temporary = Path(temporary_name)
         renderer = _extract_renderer(
-            archive,
+            plantuml_archive,
             temporary / "renderer",
+        )
+        font_directory = _extract_fonts(
+            dejavu_archive,
+            temporary / "fonts",
+        )
+        fontconfig = _write_fontconfig(
+            font_directory=font_directory,
+            destination=temporary / "fontconfig",
         )
 
         if check:
@@ -251,6 +396,7 @@ def _render(
                 renderer,
                 copied_sources,
                 cwd=root,
+                fontconfig=fontconfig,
             )
             mismatches = _mismatched_svgs(
                 sources,
@@ -275,6 +421,7 @@ def _render(
             renderer,
             sources,
             cwd=root,
+            fontconfig=fontconfig,
         )
 
     print(
@@ -290,7 +437,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         prog="render-domain-diagrams",
         description=(
             "Render authoritative PlantUML domain diagrams with the "
-            "repository-pinned renderer."
+            "repository-pinned renderer and font set."
         ),
     )
     parser.add_argument(

@@ -19,8 +19,10 @@ the diagrams from the repository without installing a diagram tool.
 
 A local proof on the current repository established that PlantUML 1.2026.6
 native Linux amd64 can render every existing domain diagram to SVG with the
-Smetana layout engine while Graphviz is unavailable, and that repeated renders
-are byte-identical.
+Smetana layout engine while Graphviz is unavailable. A subsequent CI proof
+showed that SVG geometry still varied across hosts because PlantUML resolved
+the generic `sans-serif` family through host-installed fonts. Font selection is
+therefore part of the canonical rendering input, not an ambient host property.
 
 ## Decision
 
@@ -37,14 +39,21 @@ Domain diagram rendering uses:
 - SHA-256
   `835c238634ed1b8638c3fdcfe4f94d005fc9664df3da2c88f80d0aaf4471b04b`;
 - SVG output;
-- the PlantUML Smetana layout engine.
+- the PlantUML Smetana layout engine;
+- DejaVu Fonts `2.37` from the official TTF distribution;
+- DejaVu archive SHA-256
+  `7576310b219e04159d35ff61dd4a4ec4cdba4f35c00e002a136f00e96a908b0a`;
+- `DejaVu Sans` as the explicit PlantUML default font;
+- an isolated Fontconfig configuration that exposes only the pinned DejaVu
+  font distribution during rendering.
 
-The repository-owned rendering command must download the pinned distribution
-only when it is not already available in its tool cache, verify the exact
-SHA-256 before execution and fail closed on any mismatch.
+The repository-owned rendering command must download the pinned PlantUML and
+font distributions only when they are not already available in its tool cache,
+verify their exact SHA-256 values before use and fail closed on any mismatch.
 
-The PlantUML executable is tooling, not repository content. The binary must not
-be committed to the repository.
+The PlantUML executable and DejaVu font distribution are tooling inputs, not
+repository content. Their binaries and archives must not be committed to the
+repository.
 
 Rendering must not depend on:
 
@@ -116,8 +125,8 @@ visual format.
 
 Stakeholders can view committed SVG files directly without installing PlantUML.
 
-Contributors and CI use the same pinned renderer contract, and diagram drift
-becomes mechanically detectable.
+Contributors and CI use the same pinned renderer and font contract, independent
+of host-installed fonts, and diagram drift becomes mechanically detectable.
 
 PlantUML becomes an admitted documentation-build technology, but Java, Graphviz,
 Docker and Node.js do not become mandatory project technologies.
@@ -132,13 +141,18 @@ A conforming implementation must satisfy all of the following:
 1. Every authoritative domain `.puml` file renders successfully with the pinned
    PlantUML version and Smetana.
 2. Rendering succeeds when Graphviz is unavailable.
-3. Two renders of unchanged sources produce byte-identical SVG output.
-4. The downloaded renderer is rejected when its SHA-256 does not match the
-   pinned value.
-5. No PlantUML executable or distribution archive is committed to the
-   repository.
-6. CI fails when an authoritative `.puml` source and its committed SVG differ.
-7. CI passes when every committed SVG matches canonical rendering.
-8. Stakeholders can view the committed SVG files independently of the rendering
-   tool.
-9. No second authoritative diagram model is introduced.
+3. Two renders of unchanged sources with the pinned font distribution produce
+   byte-identical SVG output.
+4. The downloaded PlantUML distribution is rejected when its SHA-256 does not
+   match the pinned value.
+5. The downloaded DejaVu distribution is rejected when its SHA-256 does not
+   match the pinned value.
+6. Canonical rendering uses the pinned DejaVu distribution rather than
+   host-installed fonts.
+7. No PlantUML executable, font binary or distribution archive is committed to
+   the repository.
+8. CI fails when an authoritative `.puml` source and its committed SVG differ.
+9. CI passes when every committed SVG matches canonical rendering.
+10. Stakeholders can view the committed SVG files independently of the
+    rendering tool.
+11. No second authoritative diagram model is introduced.

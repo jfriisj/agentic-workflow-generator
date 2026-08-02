@@ -15,7 +15,7 @@
       "uv.lock"
     ],
     "fileCount": 167,
-    "contentHash": "sha256:587ea4469d736a2d46fdd001e5e4dd9e15fb7a2768d77e96bf25292c14b3675e",
+    "contentHash": "sha256:757713dea169998aac8c4f26ebd474d3286183d9f21af8aeed66aecfda3ce1ff",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -759,8 +759,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/tooling/domain_diagrams.py",
-        "sha256": "sha256:29fc98b42d5c0be1c763d0582b17111ac134238e3692ceae8c598eaae05f8384",
-        "sizeBytes": 8700
+        "sha256": "sha256:7242cb97c6e4839e90060fc480c2660225f49b20bb00e416c42c5f6b517cc50f",
+        "sizeBytes": 12522
       },
       {
         "path": "src/agentic_workflow_generator/validation/__init__.py",

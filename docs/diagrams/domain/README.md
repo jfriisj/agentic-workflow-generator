@@ -60,5 +60,6 @@ Verify that committed SVGs match canonical rendering without changing files:
 uv run render-domain-diagrams --check
 ```
 
-The renderer version, distribution checksum and layout-engine decision are
-defined by ADR-0003.
+The PlantUML version, renderer checksum, pinned DejaVu font distribution,
+isolated font-resolution contract and layout-engine decision are defined by
+ADR-0003.
