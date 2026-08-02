@@ -30,11 +30,11 @@ pull request.
 | --- | --- |
 | Project | `agentic-workflow-generator` |
 | Repository | `jfriisj/agentic-workflow-generator` |
-| Stable/release branch | `main` |
-| Integration branch | `dev` |
+| Stable/release branch | `production` |
+| Integration branch | `development` |
 | Main validation gate | `PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator doctor-strict` |
 | Accepted scope | `docs/scope.md` |
-| Current project state | `project-status.md` |
+| Current project state | `docs/project-status.md` |
 | Governance | `docs/governance.md` |
 | Operational delivery workflow | `docs/workflow.md` |
 | Architecture principles | `docs/architecture.md` |
@@ -43,7 +43,7 @@ pull request.
 | Architectural decisions | `docs/adr/` |
 | Operational developer commands | `docs/developer-workflow.md` |
 
-`main` and `dev` correspond to the stable/release and integration roles from
+`production` and `development` correspond to the stable/release and integration roles from
 the governed delivery model. Their names are project-specific; their semantics
 must remain distinct.
 
@@ -52,7 +52,7 @@ must remain distinct.
 | Concern | Authoritative source |
 | --- | --- |
 | Accepted scope | `docs/scope.md` |
-| Current project state and next accepted priority | `project-status.md` |
+| Current project state and next accepted priority | `docs/project-status.md` |
 | Delivery governance | `docs/governance.md` |
 | Operational delivery sequence | `docs/workflow.md` |
 | Architecture principles and authority rules | `docs/architecture.md` |
@@ -65,7 +65,7 @@ must remain distinct.
 | Build and dependency wiring | version-controlled project configuration |
 | Generated output ownership and integrity | `.agentic/generated/output-manifest.json` and canonical renderer behavior |
 | Compiler-input provenance | `.agentic/agentic-lock.json` |
-| Release state | `main` and release tags |
+| Release state | `production` and release tags |
 | Local validation procedure | `docs/developer-workflow.md` |
 
 Supporting or historical documents may summarize these sources but must not
@@ -76,7 +76,7 @@ redefine competing truth.
 The project separates delivery concerns deliberately:
 
 - `docs/scope.md` defines what work is currently accepted.
-- `project-status.md` defines current state and the next accepted priority.
+- `docs/project-status.md` defines current state and the next accepted priority.
 - `docs/architecture.md`, its authoritative diagrams, and accepted ADRs define
   architectural truth and rationale.
 - `docs/governance.md` defines mandatory delivery rules, decision gates, branch
@@ -100,19 +100,19 @@ into current scope or architecture.
 
 ## Permanent branches
 
-### `main`
+### `production`
 
-`main` represents stable, release-ready or released state.
+`production` represents stable, release-ready or released state.
 
 Ordinary feature, refactoring, documentation and test work does not start from
-or commit directly to `main`.
+or commit directly to `production`.
 
-### `dev`
+### `development`
 
-`dev` represents the accepted next state and is the integration baseline for
+`development` represents the accepted next state and is the integration baseline for
 normal work.
 
-Normal topic branches originate from the latest accepted `dev`.
+Normal topic branches originate from the latest accepted `development`.
 
 ## Topic branches
 
@@ -142,20 +142,20 @@ The detailed end-to-end delivery sequence is defined in `docs/workflow.md`.
 
 Governance requires that normal work:
 
-- starts from the latest accepted `dev`;
+- starts from the latest accepted `development`;
 - is performed on a purpose-oriented topic branch;
 - stays inside accepted scope;
 - contains one coherent outcome;
 - keeps affected authoritative artifacts synchronized;
 - passes the applicable local validation gates;
 - is committed before the clean-tree `doctor-strict` gate is run;
-- is pushed and reviewed through a pull request targeting `dev`;
+- is pushed and reviewed through a pull request targeting `development`;
 - passes required remote checks;
 - resolves review conversations before merge;
-- is squash-merged into `dev`;
-- treats the resulting `dev` state as the new accepted integration state.
+- is squash-merged into `development`;
+- treats the resulting `development` state as the new accepted integration state.
 
-Normal work must not be committed directly to `dev` or `main`.
+Normal work must not be committed directly to `development` or `production`.
 
 The operational commands, ordering and working checklist for these rules are
 defined only in `docs/workflow.md`.
@@ -170,13 +170,13 @@ A scope transition must:
 - use a dedicated topic branch;
 - state the concrete problem requiring expansion;
 - update `docs/scope.md`;
-- update `project-status.md` when current state or next priority changes;
+- update `docs/project-status.md` when current state or next priority changes;
 - identify architecture, ownership and technology impact;
 - update architecture sources and ADRs when required;
 - define explicit in-scope and out-of-scope boundaries;
 - define measurable acceptance criteria;
 - contain only the authority changes needed to admit the future work;
-- be reviewed and merged into `dev` before implementation begins.
+- be reviewed and merged into `development` before implementation begins.
 
 A scope-transition pull request must not hide the implementation it is intended
 to authorize.
@@ -300,14 +300,14 @@ exist.
 
 ## Merge strategy
 
-### Topic branch to `dev`
+### Topic branch to `development`
 
 Prefer squash merge.
 
 This keeps one coherent accepted change in permanent integration history while
 allowing working commits on the topic branch.
 
-### `dev` to `main`
+### `development` to `production`
 
 Use a deliberate release pull request.
 
@@ -315,18 +315,18 @@ The release boundary must remain visible and reviewable.
 
 ## Release rules
 
-`main` represents stable, release-ready or released state.
+`production` represents stable, release-ready or released state.
 
 A release must:
 
-- promote an accepted `dev` state through a deliberate pull request to `main`;
+- promote an accepted `development` state through a deliberate pull request to `production`;
 - keep the release boundary explicit and reviewable;
 - pass the required project validation gates;
 - contain only the intended release state;
 - update required release documentation or versioning;
 - create the applicable release tag after the release state is accepted.
 
-Normal feature work must not be performed directly on `main`.
+Normal feature work must not be performed directly on `production`.
 
 The detailed release sequence is defined in `docs/workflow.md`.
 
@@ -337,13 +337,13 @@ cannot reasonably wait for the normal integration cycle.
 
 A hotfix must:
 
-- branch from `main`;
+- branch from `production`;
 - remain narrowly focused on the production defect;
 - preserve accepted architecture and fail-fast behavior;
 - pass the applicable validation gates;
-- be reviewed through a pull request targeting `main`;
+- be reviewed through a pull request targeting `production`;
 - not introduce unrelated feature work or scope expansion;
-- reconcile the same logical correction into `dev` after the production fix.
+- reconcile the same logical correction into `development` after the production fix.
 
 A hotfix does not bypass scope, review, tests, documentation, architecture or
 validation requirements.
@@ -418,7 +418,7 @@ Before modifying the project, an AI agent must:
 AI agents must not:
 
 - treat chat history as more authoritative than the repository;
-- commit normal work directly to `main` or `dev`;
+- commit normal work directly to `production` or `development`;
 - introduce adjacent features without scope approval;
 - create speculative abstractions for possible future needs;
 - add technologies without an accepted requirement;
@@ -453,7 +453,7 @@ After every merge:
 - re-read the repository before continuing;
 - treat previous conversational assumptions as potentially stale;
 - check `docs/scope.md`;
-- check `project-status.md`;
+- check `docs/project-status.md`;
 - select the next accepted outcome from current repository state.
 
 ## Governance changes

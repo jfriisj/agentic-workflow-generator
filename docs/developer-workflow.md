@@ -270,8 +270,8 @@ tail -80 "$LOG"
 
 ## Commit and clean-tree validation
 
-Normal work must already be on a topic branch created from the latest `dev`.
-Do not use this section to commit ordinary work directly to `main` or `dev`.
+Normal work must already be on a topic branch created from the latest `development`.
+Do not use this section to commit ordinary work directly to `production` or `development`.
 
 Before committing:
 

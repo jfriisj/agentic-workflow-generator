@@ -6,8 +6,8 @@ This document defines the authoritative operational workflow for development of
 `agentic-workflow-generator`.
 
 It explains how accepted project intent moves from scope and status into a topic
-branch, implementation, validation, pull request, accepted `dev` state, and
-eventually a release on `main`.
+branch, implementation, validation, pull request, accepted `development` state, and
+eventually a release on `production`.
 
 Governance rules are defined in [`governance.md`](governance.md).
 
@@ -15,7 +15,7 @@ Accepted implementation scope is defined in
 [`scope.md`](scope.md).
 
 Current project state and next accepted priority are defined in
-[`../project-status.md`](../project-status.md).
+[`docs/project-status.md`](project-status.md).
 
 Detailed local commands and validation procedures are defined in
 [`developer-workflow.md`](developer-workflow.md).
@@ -33,7 +33,7 @@ history, local notes, deferred ideas, generated summaries, or AI memory.
 The normal flow is:
 
 ```text
-accepted dev state
+accepted development state
       |
       v
 read scope + status
@@ -69,7 +69,7 @@ scope PR         |
           CI + review
                   |
                   v
-           squash to dev
+           squash to development
                   |
                   v
           sync local state
@@ -85,7 +85,7 @@ No implementation begins merely because a future direction appears reasonable.
 Before planning or changing code, inspect at minimum:
 
 * [`scope.md`](scope.md) for accepted scope and exclusions.
-* [`../project-status.md`](../project-status.md) for current state and next
+* [`docs/project-status.md`](project-status.md) for current state and next
   accepted priority.
 * [`governance.md`](governance.md) for delivery and change-control rules.
 * [`architecture.md`](architecture.md) for architecture principles and authority.
@@ -97,9 +97,9 @@ Before planning or changing code, inspect at minimum:
 * Relevant target adapters, generated-output contracts, lockfile rules, and
   manifests when affected.
 
-Repository state on `dev` is the accepted next-state baseline.
+Repository state on `development` is the accepted next-state baseline.
 
-Repository state on `main` is the accepted stable/release baseline.
+Repository state on `production` is the accepted stable/release baseline.
 
 Topic branches and open pull requests are proposals, not accepted truth.
 
@@ -154,7 +154,7 @@ Examples include:
 * A new product capability outside the current compiler boundary.
 * A change to a hard architectural constraint.
 
-The scope decision must be accepted into `dev` before implementation begins.
+The scope decision must be accepted into `development` before implementation begins.
 
 ### Architecture decision required
 
@@ -191,14 +191,14 @@ Prefer the smallest coherent change that proves the accepted requirement.
 
 ## 4. Synchronize the integration branch
 
-Normal work starts from the current remote `dev` state.
+Normal work starts from the current remote `development` state.
 
 First ensure there is no uncommitted work that would be lost.
 
 Typical synchronization:
 
 ```bash
-git switch dev
+git switch development
 git fetch origin --tags
 git pull --ff-only
 git status --short --branch
@@ -207,13 +207,13 @@ git status --short --branch
 The working tree should be understood and clean before creating the topic
 branch.
 
-Do not merge a squash-merged topic branch back into local `dev`.
+Do not merge a squash-merged topic branch back into local `development`.
 
-After a squash merge, synchronize local `dev` from `origin/dev`.
+After a squash merge, synchronize local `development` from `origin/development`.
 
 ## 5. Create a topic branch
 
-Branch from synchronized `dev`.
+Branch from synchronized `development`.
 
 Allowed normal prefixes:
 
@@ -223,7 +223,7 @@ Allowed normal prefixes:
 * `chore/` — repository or build maintenance.
 * `refactor/` — behavior-preserving restructuring.
 * `test/` — test-only work.
-* `hotfix/` — emergency correction based on `main`.
+* `hotfix/` — emergency correction based on `production`.
 
 Examples:
 
@@ -414,10 +414,10 @@ chore: fix CI tool bootstrap
 A topic branch may contain multiple development commits while work is in
 progress.
 
-Normal topic branches are squash-merged into `dev`, so permanent integration
+Normal topic branches are squash-merged into `development`, so permanent integration
 history receives one coherent accepted change.
 
-Never force-push `dev` or `main`.
+Never force-push `development` or `production`.
 
 If an already-pushed topic commit must be amended, use:
 
@@ -457,7 +457,7 @@ After the clean-tree gate passes:
 git push -u origin <topic-branch>
 ```
 
-Normal pull requests target `dev`.
+Normal pull requests target `development`.
 
 The pull request must use the repository PR template and explain:
 
@@ -479,7 +479,7 @@ Review the GitHub PR state, not only the local working tree.
 
 Before merge, verify:
 
-* base branch is `dev` for normal work;
+* base branch is `development` for normal work;
 * head branch is the intended topic branch;
 * commit and file sets match the intended outcome;
 * GitHub reports the PR as mergeable;
@@ -501,7 +501,7 @@ A locally green branch is not sufficient if required remote CI fails.
 
 ## 16. Merge normal work
 
-Normal topic branches are squash-merged into `dev`.
+Normal topic branches are squash-merged into `development`.
 
 Typical command:
 
@@ -509,7 +509,7 @@ Typical command:
 gh pr merge <PR_NUMBER> --squash --delete-branch
 ```
 
-The resulting squash commit on `dev` is the accepted repository state.
+The resulting squash commit on `development` is the accepted repository state.
 
 The original topic-branch commit SHA is not the authoritative integration commit
 after squash merge.
@@ -521,13 +521,13 @@ Do not continue work from assumptions based on the old topic branch.
 After confirming that the PR is merged:
 
 ```bash
-git switch dev
+git switch development
 git fetch origin --tags
 git pull --ff-only
 git status --short --branch
 ```
 
-The local `dev` branch must reflect the accepted remote integration state before
+The local `development` branch must reflect the accepted remote integration state before
 new work begins.
 
 Delete any remaining local topic branch only after verifying that no unique work
@@ -544,7 +544,7 @@ Completing one accepted change does not automatically authorize the next one.
 After every merge:
 
 1. Re-read `docs/scope.md`.
-2. Re-read `project-status.md`.
+2. Re-read `docs/project-status.md`.
 3. Inspect the newly accepted repository state.
 4. Determine the next authorized outcome.
 5. Perform a scope transition first if required.
@@ -568,7 +568,7 @@ inside accepted scope?
  topic      scope PR
  branch        |
     |          v
-    |      accepted dev
+    |      accepted development
     |          |
     +----------+
         |
@@ -600,7 +600,7 @@ update scope
       +--> architecture / ADR if required
       |
       v
-pull request -> dev
+pull request -> development
       |
       v
 review + validation
@@ -609,7 +609,7 @@ review + validation
 squash merge
       |
       v
-new accepted dev state
+new accepted development state
       |
       v
 separate implementation branch
@@ -722,19 +722,19 @@ After focused validation, the full applicable project gates still apply.
 
 ## 23. Release workflow
 
-`main` represents stable/release-ready or released state.
+`production` represents stable/release-ready or released state.
 
-A normal release promotes an accepted `dev` state through a deliberate pull
+A normal release promotes an accepted `development` state through a deliberate pull
 request:
 
 ```text
-accepted dev
+accepted development
      |
      v
 release-readiness review
      |
      v
-pull request: dev -> main
+pull request: development -> production
      |
      v
 required validation
@@ -743,7 +743,7 @@ required validation
 review
      |
      v
-main
+production
      |
      v
 release tag
@@ -751,21 +751,21 @@ release tag
 
 Before release:
 
-* the intended `dev` state must be complete and reviewable;
+* the intended `development` state must be complete and reviewable;
 * required CI and local validation must pass;
 * release-related documentation or versioning must be updated when required;
 * unrelated future work must not be bundled into the release;
 * the release boundary must remain explicit and reviewable.
 
-Normal feature development does not occur directly on `main`.
+Normal feature development does not occur directly on `production`.
 
 ## 24. Hotfix workflow
 
-Emergency fixes to stable/released state may branch from `main` using
+Emergency fixes to stable/released state may branch from `production` using
 `hotfix/`.
 
 ```text
-main
+production
  |
  v
 hotfix/<purpose>
@@ -777,13 +777,13 @@ implement narrowly
 validate
  |
  v
-pull request -> main
+pull request -> production
  |
  v
 merge / release
  |
  v
-reconcile same logical fix into dev
+reconcile same logical fix into development
 ```
 
 A hotfix must:
@@ -793,7 +793,7 @@ A hotfix must:
 3. Be validated against released state.
 4. Use the pull-request process.
 5. Preserve architecture and fail-fast rules.
-6. Be reconciled into `dev`.
+6. Be reconciled into `development`.
 
 A hotfix is not a shortcut for normal feature development.
 
@@ -862,10 +862,10 @@ Use this checklist for normal topic work.
 
 ### Before implementation
 
-* [ ] `dev` is synchronized with `origin/dev`.
+* [ ] `development` is synchronized with `origin/development`.
 * [ ] Working tree is clean or all local work is understood and protected.
 * [ ] `docs/scope.md` authorizes the change.
-* [ ] `project-status.md` supports the next action.
+* [ ] `docs/project-status.md` supports the next action.
 * [ ] Relevant architecture and ADRs have been inspected.
 * [ ] Branch purpose is one coherent outcome.
 * [ ] Explicit out-of-scope work is identified.
@@ -920,10 +920,10 @@ Use this checklist for normal topic work.
 ### After merge
 
 * [ ] PR is confirmed merged.
-* [ ] Local `dev` is synchronized with `origin/dev`.
+* [ ] Local `development` is synchronized with `origin/development`.
 * [ ] Working tree is clean.
 * [ ] Obsolete topic branch is removed safely.
 * [ ] `docs/scope.md` is re-read.
-* [ ] `project-status.md` is re-read.
+* [ ] `docs/project-status.md` is re-read.
 * [ ] The next authorized outcome is selected from accepted repository state.
 * [ ] No new implementation begins before any required scope decision.
