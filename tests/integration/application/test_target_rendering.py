@@ -89,6 +89,7 @@ def test_rendered_artifact_headings_are_nested() -> None:
         "- required headings:\n"
         "  - # Requirements\n"
         "  - ## Status\n"
+        "  - ## Provenance\n"
         "  - ## Summary\n"
     ) in requirements
     assert (
@@ -140,3 +141,41 @@ def test_every_rendered_file_is_target_owned() -> None:
                 or file.path.is_relative_to(root)
                 for root in owned
             )
+
+
+def test_rendered_provenance_uses_compiled_production_identity() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    production = next(
+        item
+        for item in active.composition.artifact_production
+        if item.artifact.type == "Requirements"
+    )
+
+    expected_lines = (
+        "- provenance heading: `## Provenance`",
+        "  - `artifactType`: `Requirements`",
+        f"  - `artifactVersion`: `{production.artifact.version}`",
+        f"  - `workflow`: `{active.composition.workflow.name}`",
+        (
+            "  - `workflowVersion`: "
+            f"`{active.composition.workflow.version}`"
+        ),
+        f"  - `roleBinding`: `{production.role_binding}`",
+        f"  - `agentInstance`: `{production.agent_instance}`",
+    )
+
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/requirements-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(".github/agents/requirements-worker.agent.md"),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        for expected in expected_lines:
+            assert expected in content

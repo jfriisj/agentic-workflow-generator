@@ -72,12 +72,21 @@ Produced output must satisfy each compiled artifact contract.
 - required headings:
   - # QA Report
   - ## Status
+  - ## Provenance
   - ## Summary
   - ## Evidence Reviewed
   - ## Gate Results
   - ## Release Risks
   - ## Required Follow-up
   - ## Handoff Target
+- provenance heading: `## Provenance`
+- provenance identities:
+  - `artifactType`: `QAReport`
+  - `artifactVersion`: `0.3.0`
+  - `workflow`: `orchestrated-delivery`
+  - `workflowVersion`: `0.2.0`
+  - `roleBinding`: `quality-assurance`
+  - `agentInstance`: `qa-worker`
 
 
 ## Workflow Authority

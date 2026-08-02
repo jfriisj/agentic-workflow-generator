@@ -1,11 +1,22 @@
 {
   "type": "ImplementationReport",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Artifact contract for implementation output produced by Implementer agents.",
   "pathPattern": "agent-output/implementation/*.md",
   "status": {
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "provenance": {
+    "heading": "## Provenance",
+    "requiredIdentities": [
+      "artifactType",
+      "artifactVersion",
+      "workflow",
+      "workflowVersion",
+      "roleBinding",
+      "agentInstance"
+    ]
   },
   "allowedStatuses": [
     "PASS",
@@ -15,6 +26,7 @@
   "requiredHeadings": [
     "# Implementation Report",
     "## Status",
+    "## Provenance",
     "## Summary",
     "## Files Changed",
     "## Implementation Notes",

@@ -22,6 +22,7 @@ from agentic_workflow_generator.validation.artifacts import (
     MISSING_GENERATED_SCHEMA_DIAGNOSTIC,
     OBSOLETE_FIELD_DIAGNOSTIC,
     ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC,
+    PROVENANCE_HEADING_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     STATUS_HEADING_DIAGNOSTIC,
     STATUS_PATTERN_MISMATCH_DIAGNOSTIC,
@@ -40,7 +41,7 @@ def source(
     *,
     artifact_type: JsonValue = "Requirements",
     folder: str = "Requirements",
-    version: JsonValue = "0.2.0",
+    version: JsonValue = "0.3.0",
     description: JsonValue = "Requirements contract.",
     path_pattern: JsonValue = ("agent-output/requirements/*.md"),
     status: JsonValue = None,
@@ -61,6 +62,17 @@ def source(
             if status is None
             else status
         ),
+        "provenance": {
+            "heading": "## Provenance",
+            "requiredIdentities": [
+                "artifactType",
+                "artifactVersion",
+                "workflow",
+                "workflowVersion",
+                "roleBinding",
+                "agentInstance",
+            ],
+        },
         "allowedStatuses": (
             ["PASS", "FAIL", "BLOCKED"]
             if allowed_statuses is None
@@ -70,6 +82,7 @@ def source(
             [
                 "# Requirements",
                 "## Status",
+                "## Provenance",
                 "## Summary",
             ]
             if required_headings is None
@@ -131,11 +144,20 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
 
     contract = result.contracts[0]
     assert contract.type == "Requirements"
-    assert contract.version == "0.2.0"
+    assert contract.version == "0.3.0"
     assert contract.description == "Requirements contract."
     assert contract.path_pattern == "agent-output/requirements/*.md"
     assert contract.status.heading == "## Status"
     assert contract.status.pattern == "PASS|FAIL|BLOCKED"
+    assert contract.provenance.heading == "## Provenance"
+    assert contract.provenance.required_identities == (
+        "artifactType",
+        "artifactVersion",
+        "workflow",
+        "workflowVersion",
+        "roleBinding",
+        "agentInstance",
+    )
     assert contract.allowed_statuses == (
         "PASS",
         "FAIL",
@@ -144,6 +166,7 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     assert contract.required_headings == (
         "# Requirements",
         "## Status",
+        "## Provenance",
         "## Summary",
     )
 
@@ -154,7 +177,8 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         projection.schema_path == "registry/artifacts/Requirements/artifact.schema.json"
     )
     assert '"version": {' in projection.canonical_json
-    assert '"const": "0.2.0"' in projection.canonical_json
+    assert '"const": "0.3.0"' in projection.canonical_json
+    assert '"provenance": {' in projection.canonical_json
 
 
 @pytest.mark.parametrize(
@@ -508,3 +532,89 @@ def test_artifact_schema_wrapper_helpers_delegate() -> None:
     assert artifacts_module._schema_error_location(
         error
     ) == "$.requiredHeadings[0]"
+
+
+def test_missing_provenance_is_rejected() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    data.pop("provenance")
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == "provenance must be an object"
+
+
+def test_provenance_heading_is_canonical() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    provenance = data["provenance"]
+    assert isinstance(provenance, dict)
+    provenance["heading"] = "### Provenance"
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == (
+        "provenance.heading must be exactly '## Provenance'"
+    )
+
+
+def test_provenance_identity_set_is_canonical() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    provenance = data["provenance"]
+    assert isinstance(provenance, dict)
+    provenance["requiredIdentities"] = [
+        "artifactType",
+        "artifactVersion",
+    ]
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == (
+        "provenance.requiredIdentities must match the canonical "
+        "identity set"
+    )
+
+
+def test_provenance_heading_must_be_required() -> None:
+    result = validate(
+        source(
+            required_headings=[
+                "# Requirements",
+                "## Status",
+                "## Summary",
+            ]
+        )
+    )
+
+    diagnostic = next(
+        item
+        for item in result.diagnostics
+        if item.code == PROVENANCE_HEADING_DIAGNOSTIC
+    )
+    assert diagnostic.location == "provenance.heading"
+    assert diagnostic.related_identities == (
+        "Requirements",
+        "## Provenance",
+    )

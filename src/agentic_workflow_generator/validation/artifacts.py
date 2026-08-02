@@ -14,6 +14,7 @@ from jsonschema.exceptions import ValidationError
 from agentic_workflow_generator.domain import Diagnostic
 from agentic_workflow_generator.domain.artifacts import (
     ArtifactContract,
+    ArtifactProvenanceContract,
     ArtifactStatus,
 )
 from agentic_workflow_generator.infrastructure import (
@@ -42,6 +43,7 @@ STATUS_PATTERN_MISMATCH_DIAGNOSTIC = "AWG-ARTIFACT-007"
 MISSING_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-008"
 ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-009"
 GENERATED_SCHEMA_DRIFT_DIAGNOSTIC = "AWG-ARTIFACT-010"
+PROVENANCE_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-011"
 
 OBSOLETE_ARTIFACT_FIELDS = frozenset(
     {
@@ -195,6 +197,18 @@ def _schema_error_message(
     if error.validator == "const" and field_name == "status.heading":
         return "status.heading must be exactly '## Status'"
 
+    if error.validator == "const" and field_name == "provenance.heading":
+        return "provenance.heading must be exactly '## Provenance'"
+
+    if (
+        error.validator == "const"
+        and field_name == "provenance.requiredIdentities"
+    ):
+        return (
+            "provenance.requiredIdentities must match the canonical "
+            "identity set"
+        )
+
     return f"schema violation: {error.message}"
 
 
@@ -224,11 +238,12 @@ def _required_field_message(
     if field_name in {
         "allowedStatuses",
         "requiredHeadings",
+        "provenance.requiredIdentities",
     }:
         return f"{field_name} must be a non-empty list"
 
-    if field_name == "status":
-        return "status must be an object"
+    if field_name in {"status", "provenance"}:
+        return f"{field_name} must be an object"
 
     return f"{field_name} must be a non-empty string"
 
@@ -259,6 +274,10 @@ def _parse_artifact(
         JsonObject,
         source.data["status"],
     )
+    provenance = cast(
+        JsonObject,
+        source.data["provenance"],
+    )
 
     return _ParsedArtifact(
         contract=ArtifactContract(
@@ -275,6 +294,12 @@ def _parse_artifact(
             status=ArtifactStatus(
                 heading=cast(str, status["heading"]),
                 pattern=cast(str, status["pattern"]),
+            ),
+            provenance=ArtifactProvenanceContract(
+                heading=cast(str, provenance["heading"]),
+                required_identities=_string_tuple(
+                    provenance["requiredIdentities"]
+                ),
             ),
             allowed_statuses=_string_tuple(source.data["allowedStatuses"]),
             required_headings=_string_tuple(source.data["requiredHeadings"]),
@@ -323,6 +348,22 @@ def _validate_artifact_semantics(
                 related_identities=(
                     contract.type,
                     contract.status.heading,
+                ),
+            )
+        )
+
+    if contract.provenance.heading not in contract.required_headings:
+        diagnostics.append(
+            Diagnostic(
+                code=PROVENANCE_HEADING_DIAGNOSTIC,
+                message=(
+                    "provenance.heading must be present in requiredHeadings"
+                ),
+                source_path=source_path.as_posix(),
+                location="provenance.heading",
+                related_identities=(
+                    contract.type,
+                    contract.provenance.heading,
                 ),
             )
         )
@@ -418,6 +459,7 @@ def _expected_schema(
         "description",
         "pathPattern",
         "status",
+        "provenance",
         "allowedStatuses",
         "requiredHeadings",
     ]
@@ -455,6 +497,23 @@ def _expected_schema(
                     "type": "string",
                     "const": contract.status.pattern,
                 },
+            },
+        },
+        "provenance": {
+            "type": "object",
+            "required": [
+                "heading",
+                "requiredIdentities",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "heading": {
+                    "type": "string",
+                    "const": contract.provenance.heading,
+                },
+                "requiredIdentities": _constant_string_array(
+                    contract.provenance.required_identities
+                ),
             },
         },
         "allowedStatuses": _constant_string_array(contract.allowed_statuses),

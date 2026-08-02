@@ -68,12 +68,21 @@ Produced output must satisfy each compiled artifact contract.
 - required headings:
   - # Test Report
   - ## Status
+  - ## Provenance
   - ## Summary
   - ## Test Commands
   - ## Test Results
   - ## Failures
   - ## Coverage Notes
   - ## Handoff Target
+- provenance heading: `## Provenance`
+- provenance identities:
+  - `artifactType`: `TestReport`
+  - `artifactVersion`: `0.3.0`
+  - `workflow`: `orchestrated-delivery`
+  - `workflowVersion`: `0.2.0`
+  - `roleBinding`: `test-execution`
+  - `agentInstance`: `test-runner`
 
 
 ## Workflow Authority

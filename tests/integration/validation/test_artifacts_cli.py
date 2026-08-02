@@ -40,12 +40,23 @@ def create_repository(
 
     artifact: JsonObject = {
         "type": artifact_type,
-        "version": "0.2.0",
+        "version": "0.3.0",
         "description": "Requirements contract.",
         "pathPattern": "agent-output/requirements/*.md",
         "status": {
             "heading": "## Status",
             "pattern": "PASS|FAIL|BLOCKED",
+        },
+        "provenance": {
+            "heading": "## Provenance",
+            "requiredIdentities": [
+                "artifactType",
+                "artifactVersion",
+                "workflow",
+                "workflowVersion",
+                "roleBinding",
+                "agentInstance",
+            ],
         },
         "allowedStatuses": [
             "PASS",
@@ -55,6 +66,7 @@ def create_repository(
         "requiredHeadings": [
             "# Requirements",
             "## Status",
+            "## Provenance",
             "## Summary",
         ],
     }

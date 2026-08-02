@@ -1,11 +1,22 @@
 {
   "type": "CodeReview",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Artifact contract for code review gate output.",
   "pathPattern": "agent-output/code-review/*.md",
   "status": {
     "heading": "## Status",
     "pattern": "PASS|FAIL|BLOCKED"
+  },
+  "provenance": {
+    "heading": "## Provenance",
+    "requiredIdentities": [
+      "artifactType",
+      "artifactVersion",
+      "workflow",
+      "workflowVersion",
+      "roleBinding",
+      "agentInstance"
+    ]
   },
   "allowedStatuses": [
     "PASS",
@@ -15,6 +26,7 @@
   "requiredHeadings": [
     "# Code Review",
     "## Status",
+    "## Provenance",
     "## Summary",
     "## Evidence Reviewed",
     "## Findings",

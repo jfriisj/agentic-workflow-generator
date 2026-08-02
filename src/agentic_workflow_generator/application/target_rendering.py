@@ -12,10 +12,7 @@ from agentic_workflow_generator.compiler import (
     CompiledAgentInstance,
     CompiledComposition,
 )
-from agentic_workflow_generator.domain import (
-    ArtifactContract,
-    TargetAdapter,
-)
+from agentic_workflow_generator.domain import TargetAdapter
 from agentic_workflow_generator.domain.targets import (
     TargetPermissionValue,
 )
@@ -357,7 +354,7 @@ def _render_agent_body(
 
 {_markdown_list(instance.guardrails)}
 
-{_render_produced_artifacts(instance.produces)}
+{_render_produced_artifacts(composition, instance)}
 ## Workflow Authority
 
 The canonical active composition is:
@@ -371,9 +368,16 @@ Workflow: `{composition.workflow.name}`
 
 
 def _render_produced_artifacts(
-    artifacts: tuple[ArtifactContract, ...],
+    composition: CompiledComposition,
+    instance: CompiledAgentInstance,
 ) -> str:
-    if not artifacts:
+    productions = tuple(
+        production
+        for production in composition.artifact_production
+        if production.agent_instance == instance.id
+    )
+
+    if not productions:
         return """## Produced Artifacts
 
 This agent instance does not own artifact production.
@@ -389,7 +393,32 @@ This agent instance does not own artifact production.
         ),
     ]
 
-    for artifact in artifacts:
+    for production in productions:
+        artifact = production.artifact
+        provenance_values = {
+            "artifactType": artifact.type,
+            "artifactVersion": artifact.version,
+            "workflow": composition.workflow.name,
+            "workflowVersion": composition.workflow.version,
+            "roleBinding": production.role_binding,
+            "agentInstance": production.agent_instance,
+        }
+
+        try:
+            provenance_lines = tuple(
+                (
+                    f"  - `{identity}`: "
+                    f"`{provenance_values[identity]}`"
+                )
+                for identity
+                in artifact.provenance.required_identities
+            )
+        except KeyError as exc:
+            raise TargetRenderingError(
+                "Compiled artifact provenance contains unsupported "
+                f"identity: {exc.args[0]!r}"
+            ) from exc
+
         lines.extend(
             [
                 "",
@@ -405,6 +434,12 @@ This agent instance does not own artifact production.
                     artifact.required_headings,
                     indent="  ",
                 ),
+                (
+                    "- provenance heading: "
+                    f"`{artifact.provenance.heading}`"
+                ),
+                "- provenance identities:",
+                *provenance_lines,
             ]
         )
 
