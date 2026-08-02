@@ -37,7 +37,8 @@ Følgende er implementeret og accepteret:
 - fail-fast diagnostics og semantic validation;
 - Python-baseret top-level CLI;
 - target adapters for `vscode-copilot` og `opencode`;
-- CI-validering på Python 3.11 og 3.13;
+- release-CI-validering på Python 3.11 og 3.13 for pull requests til
+  `production`;
 - reproducerbar domain-diagram-rendering med pinned PlantUML, Smetana og pinned
   DejaVu-fontinput.
 

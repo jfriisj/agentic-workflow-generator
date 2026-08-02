@@ -209,6 +209,9 @@ git push -u origin <topic-branch>
 
 Normal pull requests target `development` and use the repository PR template.
 
+GitHub Actions is not part of the normal `development` pull-request gate.
+Applicable validation is run locally before push and merge.
+
 The PR must accurately describe scope, architecture, ownership, technology,
 deliberately excluded work, validation, generated-output impact and lockfile
 impact.
@@ -221,7 +224,8 @@ Before merge, verify the actual GitHub state:
 - head is the intended topic branch;
 - commit and file sets match the intended outcome;
 - the PR is mergeable;
-- required checks are green;
+- applicable local validation has passed;
+- no remote CI check is expected for a normal PR targeting `development`;
 - all review conversations are resolved;
 - documentation matches implementation.
 
@@ -278,12 +282,18 @@ merged into `development`.
 ## Release workflow
 
 Release through a deliberate pull request from accepted `development` state to
-`production`. Run the required project validation, keep the release boundary
-reviewable and create the applicable release tag only after the release state is
-accepted.
+`production`. Run the required local project validation before opening the
+release pull request.
+
+`Agentic CI` runs only for pull requests targeting `production`. The
+`Validate generator` remote check must pass before merge.
+
+Keep the release boundary reviewable and create the applicable release tag only
+after the release state is accepted.
 
 ## Hotfix workflow
 
 A production hotfix branches from `production`, fixes only the urgent released
-defect, passes applicable validation, is reviewed into `production`, and is then
-reconciled into `development`.
+defect, passes applicable local validation, is reviewed through a pull request
+to `production`, passes the required `Validate generator` remote check, and is
+then reconciled into `development`.
