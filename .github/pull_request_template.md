@@ -44,8 +44,7 @@ Technology impact:
 
 ## Validation
 
-Follow the applicable validation sequence in `docs/workflow.md` and use the
-concrete commands defined in `docs/developer-workflow.md`.
+Follow the applicable sequence and concrete commands in `docs/workflow.md`.
 
 <!-- List only checks that were actually performed. -->
 
@@ -55,6 +54,8 @@ concrete commands defined in `docs/developer-workflow.md`.
 - [ ] Generated output was regenerated and validated where required.
 - [ ] Lockfile state is unaffected.
 - [ ] Lockfile was regenerated and validated where required.
+- [ ] Domain diagrams are unaffected.
+- [ ] Affected domain SVGs were regenerated and verified canonically.
 
 ## Review checklist
 
@@ -67,7 +68,7 @@ concrete commands defined in `docs/developer-workflow.md`.
 - [ ] Ownership impact has been considered.
 - [ ] Technology impact has been considered.
 - [ ] Authoritative documentation is updated where required.
-- [ ] Relevant tests are updated.
+- [ ] Relevant tests are updated where behavior changed.
 - [ ] The project validation gate passes.
 - [ ] No fallback, compatibility projection or silent degradation was introduced.
 - [ ] Review conversations are resolved before merge.

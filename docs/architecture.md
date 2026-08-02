@@ -211,7 +211,7 @@ docs/scope.md
 project-status.md
 docs/governance.md
 docs/workflow.md
-docs/developer-workflow.md
+docs/tech-stack.md
 docs/architecture.md
 docs/core-domain-model.md
 docs/adr/
@@ -226,9 +226,8 @@ rewritten merely because implementation changed.
 The detailed PlantUML sources are authoritative for their respective bounded
 contexts. Every affected rendered SVG must be regenerated in the same change.
 
-Research and analysis documents must be clearly separated from authoritative
-current-state documentation. Historical proposals must not be used as
-implementation requirements.
+Superseded proposals and migration history are preserved in Git history rather
+than maintained as parallel current-state authority.
 
 ## Design principle
 
