@@ -6,6 +6,103 @@ It takes a registry-based source of truth and generates target-specific agent co
 
 The architecture is intentionally deterministic, fail-fast, and validation-heavy.
 
+## Architecture style and decision authority
+
+The current implementation and deployment model is a modular monolith with a deterministic compiler core. The module boundaries are architectural responsibility boundaries, not independently deployable services.
+
+The deterministic compiler core is the stable center of the system. Delivery interfaces, input acquisition, validation, target rendering and filesystem/process effects remain outside canonical compiler semantics.
+
+Significant changes to long-lived boundaries, dependency direction, canonical representations, persistence responsibilities, external contracts or deployment topology require an ADR. ADRs preserve rationale; this document remains authoritative for the current architecture.
+
+The rationale for the current architecture style is recorded in `docs/adr/0001-modular-monolith-deterministic-compiler-core.md`.
+
+## Architecture drivers
+
+The architecture is driven by the following priorities.
+
+### P0 — correctness and trust
+
+~~~text
+one canonical compilation authority
+fail-fast and fail-closed behavior
+deterministic results
+reproducible compiler inputs and generated outputs
+semantic target independence
+~~~
+
+For the same accepted compiler input and compiler version, canonical compilation and generated output must not depend on execution order, hidden state or target-specific reinterpretation.
+
+### P1 — controlled change
+
+~~~text
+modifiability at concrete change boundaries
+testability of domain and compiler semantics
+explicit contract evolution and versioning
+maintainable dependency direction
+transactional materialization
+~~~
+
+Extensibility is not a generic goal. Expected change is localized through explicit scenarios:
+
+* adding an accepted target should primarily affect target rendering, target validation and registration rather than canonical compiler semantics;
+* adding an accepted delivery interface should reuse application and compiler services rather than move domain logic into the interface;
+* changing an accepted registry acquisition mechanism should still produce validated typed input before compilation and must not introduce a second semantic resolution authority.
+
+### P2 — portability and operational simplicity
+
+The compiler core must not depend on one delivery interface, deployment mechanism or target platform. The current local single-process deployment is preferred while it satisfies accepted requirements.
+
+Performance and scalability are measured concerns, not assumed architecture drivers. Distributed execution, hosted services and additional infrastructure require measured or accepted requirements before they influence implementation.
+
+## Canonical semantic boundary
+
+`CompiledComposition` is the sole canonical resolved internal composition. Downstream generation and validation consume that composition rather than re-resolving registry semantics.
+
+The main responsibility boundaries are:
+
+~~~text
+delivery interfaces
+  parse interaction and render diagnostics
+
+input acquisition and validation
+  load external representation and produce validated typed input
+
+application orchestration
+  coordinate accepted use cases and transactional operations
+
+compiler core
+  resolve one canonical CompiledComposition
+
+target rendering
+  translate canonical semantics into one accepted target representation
+
+materialization and infrastructure
+  own filesystem, hashing and process effects
+~~~
+
+Persistent representations have separate responsibilities:
+
+* `.agentic/agentic.json` serializes the active compiled composition;
+* `.agentic/agentic-lock.json` records compiler-input provenance;
+* `.agentic/generated/output-manifest.json` records generated-output ownership and integrity.
+
+None of these representations creates a second semantic resolution authority.
+
+Target renderers may translate canonical semantics but must not weaken them, derive alternative composition rules or reinterpret raw registry input. If an accepted semantic cannot be represented by an enabled target, generation must fail explicitly.
+
+## Evolution policy
+
+The project designs boundaries for plausible change but implements only accepted need. Future possibilities are not current capabilities.
+
+The current extension seams are intentionally narrow:
+
+* target rendering is an architectural extension seam, but registration may remain explicit and static; no dynamic plugin system is implied;
+* alternative delivery interfaces may reuse application/compiler behavior, but no API, service or web interface is implied;
+* alternative registry acquisition may feed the validated typed boundary, but no remote registry is implied;
+* runtime orchestration, if ever accepted, must be a separate responsibility and must not turn compiler output into mutable runtime state.
+
+The current workflow invariants — including one controller per workflow and exactly one state owner for each non-terminal state — are hard constraints of the current accepted compiler/workflow model. They are not claims that every possible future product model must use the same constraints. Changing them requires an explicit scope and architecture decision.
+
 ## Conceptual domain model
 
 The conceptual model is divided into bounded contexts to avoid one abstract,
@@ -607,7 +704,7 @@ The system should not silently degrade.
 Examples:
 
 ```text
-do not skip schema validation if ajv is unavailable
+do not skip schema validation if the configured validator is unavailable or fails
 do not switch to weaker syntax-only validation
 do not ignore missing bundle references
 do not ignore generated output drift
