@@ -42,3 +42,24 @@ project-status.md
 
 The rendered SVG for every PlantUML source must be regenerated in the same
 migration slice.
+
+## Rendering
+
+The `.puml` files are the authoritative domain model. The committed `.svg`
+files are derived stakeholder-facing visualizations.
+
+Render all diagrams with the repository-pinned renderer:
+
+```bash
+uv run render-domain-diagrams
+```
+
+Verify that committed SVGs match canonical rendering without changing files:
+
+```bash
+uv run render-domain-diagrams --check
+```
+
+The PlantUML version, renderer checksum, pinned DejaVu font distribution,
+isolated font-resolution contract and layout-engine decision are defined by
+ADR-0003.

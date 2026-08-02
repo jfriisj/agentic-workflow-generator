@@ -8,6 +8,7 @@ dependencies = [
 
 [project.scripts]
 agentic-workflow-generator = "agentic_workflow_generator.cli.main:main"
+render-domain-diagrams = "agentic_workflow_generator.tooling.domain_diagrams:main"
 
 [dependency-groups]
 dev = [
