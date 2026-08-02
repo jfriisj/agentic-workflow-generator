@@ -82,9 +82,10 @@ aktuel projektstatus.
 
 ### Artifact contracts
 
-Den eksisterende artifact-model mangler fortsat fuldt defineret semantik for:
+Den eksisterende artifact-model mangler fortsat fuld implementation for:
 
-- revision;
+- artifact revision; semantikken er accepteret i ADR-0004, men contract- og
+  validatorimplementation mangler;
 - statusafhængige invariants;
 - reproducerbar evidens;
 - input-artifact references;
@@ -116,9 +117,10 @@ kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
 **Artifact contract hardening** er fortsat den accepterede produktprioritet.
 
-Canonical artifact provenance semantics er implementeret. Den næste slice skal
-vælges blandt de resterende artifact-gaps og afgrænses som den mindste
-sammenhængende ændring.
+Canonical artifact provenance semantics er implementeret. Artifact revision
+semantics er nu accepteret i ADR-0004. Den næste implementation-slice skal
+implementere revision-kontrakten end-to-end som den mindste sammenhængende
+artifact-hardening-ændring.
 
 Før implementation skal slicen definere:
 
