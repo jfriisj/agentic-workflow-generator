@@ -287,10 +287,27 @@ version
 description
 path pattern
 status contract
+provenance contract
 allowed statuses
 required headings
 schema
 ~~~
+
+The provenance contract defines the canonical `## Provenance` heading and the
+fixed required identities:
+
+~~~text
+artifactType
+artifactVersion
+workflow
+workflowVersion
+roleBinding
+agentInstance
+~~~
+
+Concrete provenance values derive from the canonical compiled composition and
+the existing artifact-production relationship. Provenance is evidence and does
+not create a second ownership authority.
 
 Artifact production belongs to role bindings. Agent profiles do not own produced
 artifacts.

@@ -64,7 +64,7 @@ Følgende er implementeret og accepteret:
 - eksplicitte separation policies.
 - 4 guided setups med 12 spørgsmål.
 - 3 permission profiles.
-- 7 artifact contracts.
+- 7 artifact contracts med canonical provenance contract semantics.
 - 2 target adapters:
   - `vscode-copilot`
   - `opencode`
@@ -159,7 +159,6 @@ truth.
 
 Den eksisterende artifact-model mangler fortsat fuldt defineret semantik for:
 
-- provenance;
 - revision;
 - statusafhængige invariants;
 - reproducerbar evidens;
@@ -200,11 +199,11 @@ Denne gæld skal reduceres uden at:
 
 ## Næste prioritet
 
-Når governance-ændringen er merged til `development`, er næste accepterede leverance:
+**Artifact contract hardening** er fortsat den accepterede prioritet.
 
-**Artifact contract hardening**
-
-Arbejdet skal starte som en ny topic branch fra den opdaterede `development` og afgrænses til den mindste sammenhængende artifact-contract-slice.
+Canonical artifact provenance contract semantics er nu implementeret. Den næste
+artifact-contract-slice skal vælges blandt de resterende kendte gaps og
+afgrænses som den mindste sammenhængende ændring.
 
 Før implementation skal den konkrete slice definere:
 
