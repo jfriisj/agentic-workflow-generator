@@ -40,8 +40,6 @@ Fail fast with an explicit error.
 
 ## Recommended environment command prefix
 
-On some machines, `node` from another environment can appear before the system `node` in `PATH`.
-
 For this repository, use the known-good system path when running validation:
 
 ```bash
@@ -66,7 +64,7 @@ PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate-environmen
 
 This is a fail-fast preflight.
 
-The public top-level CLI routes directly to the typed environment boundary. The application service owns the six required command contracts, while the policy-free process adapter resolves each command through the explicitly supplied `PATH` and runs its version command in the repository root.
+The public top-level CLI routes directly to the typed environment boundary. The application service owns the four required command contracts, while the policy-free process adapter resolves each command through the explicitly supplied `PATH` and runs its version command in the repository root.
 
 Each version command has a fixed 30-second timeout. Validation fails with stable `AWG-ENVIRONMENT-*` diagnostics if a required executable is missing, cannot execute, times out or returns a non-zero exit code.
 
@@ -77,9 +75,8 @@ Expected checked commands:
 ```text
 bash
 git
-python
-node
-npx
+uv
+project Python
 ```
 
 ## Daily loop
@@ -135,7 +132,6 @@ PATH="/usr/bin:/bin:$PATH" uv run agentic-workflow-generator validate
 
 Validates `.agentic/agentic.json` against `.agentic/schemas/agentic.schema.json`.
 
-This requires working `node` and `npx`.
 
 ### Initialize from bundle
 
@@ -377,17 +373,7 @@ committed manifest differs from the canonical materialization plan
 
 Config validation is fail-fast.
 
-If `node` or `npx` is broken, validation should fail clearly.
-
-Check the selected commands:
-
-```bash
-command -v node
-node --version
-
-command -v npx
-npx --version
-```
+Schema validation is implemented by the Python application and must fail clearly on invalid input.
 
 The project should not skip schema validation or switch to syntax-only validation.
 

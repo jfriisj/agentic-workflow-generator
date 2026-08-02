@@ -309,7 +309,7 @@ If a required tool, dependency, registry file, schema, artifact contract, genera
 Examples:
 
 ```text
-node/npx must work for JSON Schema validation
+JSON Schema validation must fail closed on invalid input
 bundle references must resolve
 generated files must match the manifest
 lockfile state must be deterministic
