@@ -1,6 +1,6 @@
 # ADR-0001: Modular monolith with deterministic compiler core and explicit boundaries
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-02
 
 ## Context
