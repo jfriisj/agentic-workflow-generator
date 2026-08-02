@@ -17,17 +17,21 @@ not a technology wishlist and does not list transitive dependencies.
 | Type support | types-jsonschema | Static typing support for jsonschema | `pyproject.toml` |
 | Source control | Git | Repository version control and branch workflow | `docs/governance.md`, `docs/workflow.md` |
 | Shell | Bash | Fail-fast repository and CI command blocks | validation contract and CI |
-| CI | GitHub Actions | Required remote validation | `.github/workflows/agentic-ci.yml` |
-| CI | `actions/checkout@v6` | Repository checkout | `.github/workflows/agentic-ci.yml` |
-| CI | `actions/setup-python@v6` | Python 3.11 and 3.13 validation environments | `.github/workflows/agentic-ci.yml` |
+| CI | GitHub Actions | Required remote validation for pull requests targeting `production` | `.github/workflows/agentic-ci.yml` |
+| CI | `actions/checkout@v6` | Repository checkout for the production remote gate | `.github/workflows/agentic-ci.yml` |
+| CI | `actions/setup-python@v6` | Python 3.11 and 3.13 production validation environments | `.github/workflows/agentic-ci.yml` |
 | Documentation rendering | PlantUML `1.2026.6` native Linux amd64 | Authoritative domain-diagram SVG rendering | ADR-0003 and `tooling/domain_diagrams.py` |
 | Documentation font input | DejaVu Fonts `2.37` | Canonical diagram font metrics | ADR-0003 and `tooling/domain_diagrams.py` |
 | Diagram layout | Smetana | PlantUML layout without Graphviz | ADR-0003 and `tooling/domain_diagrams.py` |
 
 ## Python support
 
-The package requires Python 3.11 or newer. CI validates both Python 3.11 and
-Python 3.13 in the required `Validate generator` job.
+The package requires Python 3.11 or newer.
+
+Normal pull requests targeting `development` are validated locally and do not
+run GitHub Actions. The remote `Agentic CI` release gate validates both Python
+3.11 and Python 3.13 in the required `Validate generator` job for pull requests
+targeting `production`.
 
 ## Diagram rendering
 

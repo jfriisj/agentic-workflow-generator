@@ -1,18 +1,9 @@
 name: Agentic CI
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-      - production
-      - development
   pull_request:
     branches:
-      - main
-      - dev
       - production
-      - development
 
 permissions:
   contents: read

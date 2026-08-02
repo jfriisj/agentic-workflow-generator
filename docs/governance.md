@@ -135,9 +135,13 @@ Before merge they must:
 - contain one coherent outcome;
 - keep affected authoritative artifacts synchronized;
 - pass applicable local validation;
-- pass required remote checks;
+- pass required remote checks when the pull request targets `production`;
 - resolve review conversations;
 - contain no unrelated cleanup or speculative work.
+
+Normal pull requests targeting `development` do not require GitHub Actions.
+Their validation is performed locally before push and merge. Remote CI is a
+release/hotfix gate for pull requests targeting `production`.
 
 Normal topic branches are squash-merged into `development`.
 
@@ -147,6 +151,10 @@ The resulting squash commit on `development` is the accepted integration state.
 
 A release is a deliberate pull request from accepted `development` state to
 `production`.
+
+GitHub Actions remote validation is required at this boundary. The
+`Validate generator` check must pass before a pull request targeting
+`production` is merged.
 
 The release boundary must remain explicit, reviewable and validated. Normal
 feature work is not performed directly on `production`.
@@ -173,7 +181,7 @@ A change is done only when:
 - relevant tests and validation pass;
 - generated output and lockfile state are canonical when affected;
 - required ADRs exist;
-- remote checks pass;
+- required remote checks pass when the pull request targets `production`;
 - review conversations are resolved;
 - the change is merged through the approved pull-request workflow.
 
