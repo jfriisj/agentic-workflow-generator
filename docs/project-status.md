@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 1. august 2026
+Opdateret: 2. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -137,16 +137,16 @@ Governed project delivery er etableret som projektets accepterede leverancemodel
 Autoriteten er opdelt således:
 
 - `docs/scope.md` ejer accepteret implementation scope.
-- `project-status.md` ejer aktuel projektstatus og næste accepterede prioritet.
+- `docs/project-status.md` ejer aktuel projektstatus og næste accepterede prioritet.
 - `docs/architecture.md`, autoritative diagrammer og ADRs ejer arkitektur.
 - `docs/governance.md` ejer obligatoriske delivery-regler og decision gates.
 - `docs/workflow.md` ejer den operationelle end-to-end leverancesekvens.
 - `docs/developer-workflow.md` ejer konkrete lokale kommandoer og validatorprocedurer.
 
-Permanent branch-semantik er `dev` som integration og `main` som
+Permanent branch-semantik er `development` som integration og `production` som
 stable/release, som defineret i governance.
 
-CI validerer pushes og pull requests mod både `dev` og `main` med den
+CI validerer pushes og pull requests mod både `development` og `production` med den
 eksisterende `doctor-strict`-gate. GitHub-hosted runners installerer en
 eksplicit pinned `uv`-version før validering.
 
@@ -200,11 +200,11 @@ Denne gæld skal reduceres uden at:
 
 ## Næste prioritet
 
-Når governance-ændringen er merged til `dev`, er næste accepterede leverance:
+Når governance-ændringen er merged til `development`, er næste accepterede leverance:
 
 **Artifact contract hardening**
 
-Arbejdet skal starte som en ny topic branch fra den opdaterede `dev` og afgrænses til den mindste sammenhængende artifact-contract-slice.
+Arbejdet skal starte som en ny topic branch fra den opdaterede `development` og afgrænses til den mindste sammenhængende artifact-contract-slice.
 
 Før implementation skal den konkrete slice definere:
 

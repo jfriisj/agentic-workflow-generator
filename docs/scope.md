@@ -7,7 +7,7 @@ It answers:
 
 > What are we allowed to build now?
 
-`project-status.md` records where the project currently is and which accepted
+`docs/project-status.md` records where the project currently is and which accepted
 work should be prioritized next. This document determines whether proposed work
 is permitted at all.
 
@@ -162,7 +162,7 @@ Changes required to keep repository authority synchronized are in scope,
 including:
 
 - `docs/scope.md`;
-- `project-status.md`;
+- `docs/project-status.md`;
 - `docs/governance.md`;
 - `docs/workflow.md`;
 - `docs/architecture.md`;
@@ -286,5 +286,5 @@ A proposed change outside this document must answer:
 If the answers justify expansion, create a dedicated scope-transition topic
 branch and pull request.
 
-Only after that pull request is reviewed and merged into `dev` may
+Only after that pull request is reviewed and merged into `development` may
 implementation begin on a separate topic branch.
