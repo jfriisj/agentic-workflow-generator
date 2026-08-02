@@ -4,154 +4,78 @@ Opdateret: 2. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
-Accepteret scope ejes af `docs/scope.md`.
-Leveranceregler og governance ejes af `docs/governance.md`.
-Arkitektur ejes af `docs/architecture.md` og de deri udpegede autoritative diagramkilder.
-
-Historiske migrationsdetaljer bevares i Git-historikken og må ikke bruges som konkurrerende projektstatus.
-
-## Slutmål
-
-`agentic-workflow-generator` skal være en deterministisk, fail-fast compiler, der omsætter en valideret og genanvendelig registry-komposition til et komplet target-specifikt agentisk udviklingsmiljø.
-
-Målflowet er:
-
-~~~text
-validated registry
-      ↓
-setup eller bundle
-      ↓
-agent instances og role bindings
-      ↓
-CompiledComposition
-      ↓
-.agentic/agentic.json
-      ↓
-compiler-input lockfile
-      ↓
-target-specific output
-      ↓
-output manifest
-      ↓
-validation
-~~~
-
-Projektet genererer og validerer agentiske udviklingsmiljøer.
-
-Det er ikke en modelhost, autonom runtime-orchestrator eller erstatning for de frameworks, som output genereres til.
+Accepteret scope ejes af `docs/scope.md`. Governance ejes af
+`docs/governance.md`. Den operationelle leveranceproces ejes alene af
+`docs/workflow.md`. Arkitektur ejes af `docs/architecture.md`, de deri udpegede
+autoritative diagramkilder og accepterede ADRs. Teknologibaselinen dokumenteres i
+`docs/tech-stack.md`.
 
 ## Aktuel fase
 
 **Post-migration hardening**
 
-Den atomiske migration fra den tidligere statiske agentmodel og scriptbaserede orchestration til den typed `AgentInstance` / `RoleBinding`-arkitektur er afsluttet.
+Migrationen til den typed `AgentInstance` / `RoleBinding`-arkitektur,
+`CompiledComposition` som canonical compiler-authoritet og typed top-level CLI er
+afsluttet.
 
-Den aktive implementation anvender én canonical `CompiledComposition`, typed application- og CLI-lag og det installerede `agentic-workflow-generator`-entrypoint.
+Projektet er nu begrænset til hardening af den allerede accepterede compiler-,
+workflow-, artifact- og registry-model samt kendte kvalitets- og
+dokumentationsgaps.
 
-Der findes ikke længere et separat resolutionlag eller aktiv compiler-orchestration under `scripts/agentic`.
-
-## Aktuel implementeret model
+## Implementeret baseline
 
 Følgende er implementeret og accepteret:
 
-- 8 genanvendelige agentprofiler.
-- 10 skills med 21 registrerede capabilities.
-- 4 workflows med eksplicitte gates og fail-closed routing.
-- 4 profiles.
-- 4 bundles.
-- 27 agent instances.
-- 27 role bindings.
-- eksplicitte separation policies.
-- 4 guided setups med 12 spørgsmål.
-- 3 permission profiles.
-- 7 artifact contracts med canonical provenance contract semantics.
-- 2 target adapters:
-  - `vscode-copilot`
-  - `opencode`
-- typed registry-loading og immutable domænemodeller.
-- typed schema- og semantic validation.
-- canonical `CompiledComposition`.
-- typed initialization og guided initialization.
-- `.agentic/agentic.json` som aktiv persistent composition.
-- typed lockfile-generation og validation.
-- typed targetrendering og transaktionel materialisering.
-- canonical output manifest.
-- generated-output validation.
-- generation- og init-idempotency validation.
-- typed top-level CLI.
-- fail-fast diagnostics med stabile diagnostic-koder.
-- fokuserede unit-, contract-, negative-, integration- og end-to-end-tests.
+- typed registry-loading og immutable domænemodeller;
+- bundle-owned agent instances og explicit role bindings;
+- én canonical `CompiledComposition`;
+- `.agentic/agentic.json` som persistent aktiv composition;
+- compiler-input provenance via `.agentic/agentic-lock.json`;
+- typed targetrendering og transaktionel materialisering;
+- canonical output manifest og generated-output validation;
+- guided initialization og bundle initialization;
+- fail-fast diagnostics og semantic validation;
+- Python-baseret top-level CLI;
+- target adapters for `vscode-copilot` og `opencode`;
+- CI-validering på Python 3.11 og 3.13;
+- reproducerbar domain-diagram-rendering med pinned PlantUML, Smetana og pinned
+  DejaVu-fontinput.
 
-## Arkitekturinvarianter
+Der findes ingen separat resolution-authoritet, compatibility projection eller
+silent fallback-path.
 
-Den accepterede implementation følger disse hårde regler:
+## Hårde arkitekturinvarianter
 
 - `CompiledComposition` er compilerens eneste canonical interne composition.
-- `.agentic/agentic.json` er den persistente aktive serialisering.
 - Bundles ejer konkrete agent instances og role bindings.
-- Agentprofiler og profiles er rådgivende og må ikke fungere som runtime fallback.
-- Hver ikke-terminal workflow-state har præcis én state-owner-binding.
-- Hvert workflow har præcis én controller-binding.
-- Controlleren ejer routing men ingen workflow-state eller gate.
+- Agentprofiler og profiles er rådgivende og må ikke være runtime fallback.
+- Hver ikke-terminal workflow-state har præcis én state owner.
+- Hvert workflow har præcis én controller.
+- Controlleren ejer routing, men ingen workflow-state eller gate.
 - Effective permissions tilhører agent instances.
-- Concrete capabilities, skills, artifacts, responsibilities og guardrails tilhører role bindings.
-- Targetrenderere anvender canonical typed composition og må ikke genfortolke raw registry.
+- Capabilities, skills, artifacts, responsibilities og guardrails tilhører role
+  bindings.
+- Targetrenderere bruger canonical typed composition og genfortolker ikke raw
+  registry.
 - Lockfile ejer compiler-input provenance.
 - Output manifest ejer generated-output provenance og integritet.
-- Generation er deterministisk og idempotent.
-- Manglende eller ugyldige inputs, references, tools og outputs fejler eksplicit.
-- Der findes ingen compatibility projection, silent degradation eller fallback authority.
+- Manglende eller ugyldige krav fejler eksplicit.
 
 Ændring af disse regler kræver en eksplicit scope- og arkitekturbeslutning.
 
-## Seneste validerede baseline
+## Senest afsluttede hardening-slices
 
-Den afsluttede typed top-level CLI-migration blev valideret med:
+Følgende repository-foundation er etableret på `development`:
 
-~~~text
-pytest
-  PASS: 856 tests
+- governed delivery med `development` som integration og `production` som
+  stable/release;
+- artifact provenance contract semantics;
+- Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
+- canonical domain-diagram-rendering med PlantUML 1.2026.6, Smetana og isoleret
+  DejaVu 2.37 font-resolution.
 
-Ruff
-  PASS
-
-strict mypy
-  PASS: 206 source files
-
-typed all-pipeline
-  PASS
-  165 compiler inputs
-
-doctor-strict
-  PASS på rent working tree
-~~~
-
-Denne baseline er historisk evidens for den senest afsluttede hovedleverance.
-
-Nye ændringer skal valideres på deres egen branch og må ikke antage, at denne baseline automatisk gælder efter senere ændringer.
-
-## Governance
-
-Governed project delivery er etableret som projektets accepterede leverancemodel.
-
-Autoriteten er opdelt således:
-
-- `docs/scope.md` ejer accepteret implementation scope.
-- `docs/project-status.md` ejer aktuel projektstatus og næste accepterede prioritet.
-- `docs/architecture.md`, autoritative diagrammer og ADRs ejer arkitektur.
-- `docs/governance.md` ejer obligatoriske delivery-regler og decision gates.
-- `docs/workflow.md` ejer den operationelle end-to-end leverancesekvens.
-- `docs/developer-workflow.md` ejer konkrete lokale kommandoer og validatorprocedurer.
-
-Permanent branch-semantik er `development` som integration og `production` som
-stable/release, som defineret i governance.
-
-CI validerer pushes og pull requests mod både `development` og `production` med den
-eksisterende `doctor-strict`-gate. GitHub-hosted runners installerer en
-eksplicit pinned `uv`-version før validering.
-
-Chat-historik, AI-samtaler og lokale antagelser er ikke projektets source of
-truth.
+Historisk test- og migrationsstatistik bevares i Git-historikken og er ikke
+aktuel projektstatus.
 
 ## Kendte gaps
 
@@ -178,64 +102,45 @@ Retry, escalation og artifact invalidation er ikke accepteret scope.
 
 ### Profiles, bundles og setups
 
-Registry-indholdet kræver fortsat audit og hardening:
-
-- stale tekst skal fjernes;
-- capability completeness skal kontrolleres;
-- placebo-lignende setupvalg skal fjernes eller gøres materielle;
-- classifications skal svare til den composition, der faktisk materialiseres;
-- generalist- og specialistkompositioner skal være tydelige.
+Registry-indholdet kræver fortsat audit og hardening for stale tekst,
+capability completeness, placebo-lignende setupvalg og præcis klassifikation af
+den composition, der faktisk materialiseres.
 
 ### Testkvalitet
 
-Den samlede testsuite har kendt duplicate-code-gæld.
-
-Denne gæld skal reduceres uden at:
-
-- deaktivere Pylint-regler;
-- svække assertions;
-- samle tests i nye monolitiske helpers;
-- skjule reel duplication gennem exclusions.
+Testsuiten har kendt duplicate-code-gæld. Den må reduceres uden at deaktivere
+kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
 ## Næste prioritet
 
-**Artifact contract hardening** er fortsat den accepterede prioritet.
+**Artifact contract hardening** er fortsat den accepterede produktprioritet.
 
-Canonical artifact provenance contract semantics er nu implementeret. Den næste
-artifact-contract-slice skal vælges blandt de resterende kendte gaps og
-afgrænses som den mindste sammenhængende ændring.
+Canonical artifact provenance semantics er implementeret. Den næste slice skal
+vælges blandt de resterende artifact-gaps og afgrænses som den mindste
+sammenhængende ændring.
 
-Før implementation skal den konkrete slice definere:
+Før implementation skal slicen definere:
 
 - hvilket artifact-problem der løses;
 - hvilke contracts og schemas der berøres;
 - hvilke invariants der tilføjes;
 - hvilke tests der beviser semantikken;
-- hvilke relaterede ændringer der eksplicit er uden for slicen.
+- hvilket relateret arbejde der eksplicit er uden for slicen.
 
-Workflow-, setup- eller targetarbejde må ikke blandes ind i samme PR, medmindre det er strengt nødvendigt for artifact-kontraktens accepterede end-to-end-semantik.
+Workflow-, setup- og targetarbejde må ikke blandes ind, medmindre det er strengt
+nødvendigt for den valgte artifact-kontrakts accepterede end-to-end-semantik.
 
 ## Autoritativ arkitektur
 
-Arkitekturprincipper:
-
 - `docs/architecture.md`
-
-Core domain documentation:
-
 - `docs/core-domain-model.md`
-
-Navigationsdiagram:
-
+- `docs/adr/`
 - `docs/diagrams/domain/agentic-domain-overview.puml`
-
-Autoritative bounded-context-diagrammer:
-
 - `docs/diagrams/domain/setup-selection-chen.puml`
 - `docs/diagrams/domain/workflow-control-chen.puml`
 - `docs/diagrams/domain/agent-composition-chen.puml`
 - `docs/diagrams/domain/capabilities-artifacts-targets-chen.puml`
 
-De detaljerede PlantUML-kilder er autoritative for entities, relationships og cardinalities i deres respektive bounded contexts.
-
-Renderede SVG-filer skal holdes synkroniseret med deres autoritative kilder.
+De detaljerede PlantUML-kilder er autoritative for deres respektive bounded
+contexts. De committed SVG-filer er derived stakeholder-visualiseringer og skal
+forblive canonical med de pinnede rendering-inputs.

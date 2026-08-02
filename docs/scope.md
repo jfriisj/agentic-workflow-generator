@@ -171,7 +171,7 @@ including:
 - authoritative PlantUML sources;
 - rendered architecture diagrams;
 - registry documentation;
-- developer workflow documentation;
+- workflow and technology documentation;
 - CI and pull-request workflow configuration.
 
 Documentation must describe implemented current state accurately and must not
