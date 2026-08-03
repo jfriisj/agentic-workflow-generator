@@ -62,7 +62,7 @@ def test_all_governed_artifacts_match_adr_0006_status_semantics() -> None:
         artifact = cast(dict[str, Any], read_json_object(path))
         artifact_type = cast(str, artifact["type"])
 
-        assert artifact["version"] == "0.6.0"
+        assert artifact["version"] == "0.7.0"
         assert artifact["statusSemantics"] == (
             EXPECTED_STATUS_SEMANTICS[artifact_type]
         )

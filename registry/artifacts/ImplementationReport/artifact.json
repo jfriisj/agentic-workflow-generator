@@ -1,6 +1,6 @@
 {
   "type": "ImplementationReport",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Artifact contract for implementation output produced by Implementer agents.",
   "pathPattern": "agent-output/implementation/*.md",
   "status": {
@@ -21,6 +21,15 @@
   "revision": {
     "heading": "## Revision",
     "pattern": "^[1-9][0-9]*$"
+  },
+  "evidence": {
+    "heading": "## Evidence",
+    "requiredFields": [
+      "claim",
+      "source",
+      "reproduction",
+      "result"
+    ]
   },
   "statusInvariants": {
     "passRequiresCompleteEvidence": true,
@@ -44,6 +53,7 @@
     "## Status",
     "## Provenance",
     "## Revision",
+    "## Evidence",
     "## Summary",
     "## Files Changed",
     "## Implementation Notes",

@@ -74,6 +74,7 @@ Produced output must satisfy each compiled artifact contract.
   - ## Status
   - ## Provenance
   - ## Revision
+  - ## Evidence
   - ## Summary
   - ## Evidence Reviewed
   - ## Gate Results
@@ -83,13 +84,24 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `QAReport`
-  - `artifactVersion`: `0.6.0`
+  - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `quality-assurance`
   - `agentInstance`: `qa-worker`
 - revision heading: `## Revision`
 - revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
+- evidence heading: `## Evidence`
+- evidence required fields:
+  - claim
+  - source
+  - reproduction
+  - result
+- evidence semantics:
+  - record one or more reproducible evidence records for status-determining conditions
+  - cover every status-determining condition used to classify the artifact
+  - keep materially independent conditions independently reproducible
+  - evidence records supply observations; they do not define artifact status policy
 - status invariants:
   - `passRequiresCompleteEvidence`: `true`
   - `passForbidsDemonstratedNonconformance`: `true`

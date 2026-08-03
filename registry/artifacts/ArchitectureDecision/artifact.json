@@ -1,6 +1,6 @@
 {
   "type": "ArchitectureDecision",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Artifact contract for architecture decision output produced by Architect agents.",
   "pathPattern": "agent-output/architecture-decision/*.md",
   "status": {
@@ -21,6 +21,15 @@
   "revision": {
     "heading": "## Revision",
     "pattern": "^[1-9][0-9]*$"
+  },
+  "evidence": {
+    "heading": "## Evidence",
+    "requiredFields": [
+      "claim",
+      "source",
+      "reproduction",
+      "result"
+    ]
   },
   "statusInvariants": {
     "passRequiresCompleteEvidence": true,
@@ -44,6 +53,7 @@
     "## Status",
     "## Provenance",
     "## Revision",
+    "## Evidence",
     "## Summary",
     "## Context",
     "## Decision",
