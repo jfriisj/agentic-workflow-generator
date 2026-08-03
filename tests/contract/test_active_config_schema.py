@@ -160,7 +160,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.5.0"
+    assert config["schemaVersion"] == "0.6.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -187,7 +187,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.5.0"
+    assert config["schemaVersion"] == "0.6.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -199,5 +199,28 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
 
     assert all(
         cast(dict[str, Any], artifact)["revision"] == expected
+        for artifact in artifacts
+    )
+
+
+
+def test_active_repository_artifacts_carry_status_invariants() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    assert config["schemaVersion"] == "0.6.0"
+
+    artifacts = cast(list[Any], config["artifacts"])
+    assert artifacts
+
+    expected = {
+        "passRequiresCompleteEvidence": True,
+        "passForbidsDemonstratedNonconformance": True,
+        "failRequiresDemonstratedNonconformance": True,
+        "blockedRequiresUnavailablePrerequisite": True,
+    }
+
+    assert all(
+        cast(dict[str, Any], artifact)["statusInvariants"] == expected
         for artifact in artifacts
     )

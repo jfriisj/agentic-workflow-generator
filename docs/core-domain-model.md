@@ -289,6 +289,7 @@ path pattern
 status contract
 provenance contract
 revision contract
+status invariant contract
 allowed statuses
 required headings
 schema
@@ -315,6 +316,19 @@ canonical positive-integer lexical form `^[1-9][0-9]*$`. Revision remains
 separate from contract version, status, provenance, timestamps, VCS identity
 and evidence hashes. Revision-history proof is not fabricated when no previous
 edition is available to an existing validation boundary.
+
+The status invariant contract defines the shared fail-closed evidence policy:
+
+~~~text
+passRequiresCompleteEvidence
+passForbidsDemonstratedNonconformance
+failRequiresDemonstratedNonconformance
+blockedRequiresUnavailablePrerequisite
+~~~
+
+All four invariants are mandatory and true. They constrain invalid status
+claims without defining artifact-specific acceptance criteria or precedence
+between simultaneous `FAIL` and `BLOCKED` conditions.
 
 Artifact production belongs to role bindings. Agent profiles do not own produced
 artifacts.

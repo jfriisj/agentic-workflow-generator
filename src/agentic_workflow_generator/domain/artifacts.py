@@ -30,6 +30,16 @@ class ArtifactRevisionContract:
 
 
 @dataclass(frozen=True, slots=True)
+class ArtifactStatusInvariantContract:
+    """Immutable fail-closed status policy for artifact evidence."""
+
+    pass_requires_complete_evidence: bool
+    pass_forbids_demonstrated_nonconformance: bool
+    fail_requires_demonstrated_nonconformance: bool
+    blocked_requires_unavailable_prerequisite: bool
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactContract:
     """Immutable reusable artifact contract.
 
@@ -45,5 +55,6 @@ class ArtifactContract:
     status: ArtifactStatus
     provenance: ArtifactProvenanceContract
     revision: ArtifactRevisionContract
+    status_invariants: ArtifactStatusInvariantContract
     allowed_statuses: tuple[str, ...]
     required_headings: tuple[str, ...]

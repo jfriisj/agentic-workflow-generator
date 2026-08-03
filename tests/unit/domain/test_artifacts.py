@@ -7,6 +7,7 @@ from agentic_workflow_generator.domain import (
     ArtifactProvenanceContract,
     ArtifactRevisionContract,
     ArtifactStatus,
+    ArtifactStatusInvariantContract,
 )
 
 
@@ -34,6 +35,12 @@ def test_artifact_contract_is_immutable() -> None:
         revision=ArtifactRevisionContract(
             heading="## Revision",
             pattern=r"^[1-9][0-9]*$",
+        ),
+        status_invariants=ArtifactStatusInvariantContract(
+            pass_requires_complete_evidence=True,
+            pass_forbids_demonstrated_nonconformance=True,
+            fail_requires_demonstrated_nonconformance=True,
+            blocked_requires_unavailable_prerequisite=True,
         ),
         allowed_statuses=("PASS", "FAIL", "BLOCKED"),
         required_headings=(
@@ -85,3 +92,17 @@ def test_artifact_revision_contract_is_immutable() -> None:
 
     with pytest.raises(FrozenInstanceError):
         revision.pattern = ".*"  # type: ignore[misc]
+
+
+def test_artifact_status_invariant_contract_is_immutable() -> None:
+    invariants = ArtifactStatusInvariantContract(
+        pass_requires_complete_evidence=True,
+        pass_forbids_demonstrated_nonconformance=True,
+        fail_requires_demonstrated_nonconformance=True,
+        blocked_requires_unavailable_prerequisite=True,
+    )
+
+    assert invariants.pass_requires_complete_evidence is True
+
+    with pytest.raises(FrozenInstanceError):
+        invariants.pass_requires_complete_evidence = False  # type: ignore[misc]

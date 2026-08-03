@@ -47,6 +47,7 @@ def source(
     description: JsonValue = "Requirements contract.",
     path_pattern: JsonValue = ("agent-output/requirements/*.md"),
     status: JsonValue = None,
+    status_invariants: JsonValue = None,
     allowed_statuses: JsonValue = None,
     required_headings: JsonValue = None,
     extra: tuple[str, JsonValue] | None = None,
@@ -79,6 +80,16 @@ def source(
             "heading": "## Revision",
             "pattern": "^[1-9][0-9]*$",
         },
+        "statusInvariants": (
+            {
+                "passRequiresCompleteEvidence": True,
+                "passForbidsDemonstratedNonconformance": True,
+                "failRequiresDemonstratedNonconformance": True,
+                "blockedRequiresUnavailablePrerequisite": True,
+            }
+            if status_invariants is None
+            else status_invariants
+        ),
         "allowedStatuses": (
             ["PASS", "FAIL", "BLOCKED"]
             if allowed_statuses is None
@@ -167,6 +178,22 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     )
     assert contract.revision.heading == "## Revision"
     assert contract.revision.pattern == "^[1-9][0-9]*$"
+    assert contract.status_invariants.pass_requires_complete_evidence is True
+    assert (
+        contract.status_invariants
+        .pass_forbids_demonstrated_nonconformance
+        is True
+    )
+    assert (
+        contract.status_invariants
+        .fail_requires_demonstrated_nonconformance
+        is True
+    )
+    assert (
+        contract.status_invariants
+        .blocked_requires_unavailable_prerequisite
+        is True
+    )
     assert contract.allowed_statuses == (
         "PASS",
         "FAIL",
@@ -192,6 +219,12 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     assert '"revision": {' in projection.canonical_json
     assert '"const": "## Revision"' in projection.canonical_json
     assert '"const": "^[1-9][0-9]*$"' in projection.canonical_json
+    assert '"statusInvariants": {' in projection.canonical_json
+    assert '"passRequiresCompleteEvidence": {' in projection.canonical_json
+    assert (
+        '"blockedRequiresUnavailablePrerequisite": {'
+        in projection.canonical_json
+    )
 
 
 @pytest.mark.parametrize(
@@ -265,6 +298,13 @@ def test_obsolete_artifact_fields_are_rejected(
                 "invalid",
             ),
             "status must be an object",
+        ),
+        (
+            lambda data: data.__setitem__(
+                "statusInvariants",
+                "invalid",
+            ),
+            "statusInvariants must be an object",
         ),
         (
             lambda data: data.__setitem__(
@@ -477,6 +517,10 @@ def test_string_type_error_preserves_public_message() -> None:
         (
             "status",
             "status must be an object",
+        ),
+        (
+            "statusInvariants",
+            "statusInvariants must be an object",
         ),
     ],
 )
@@ -734,3 +778,57 @@ def test_revision_pattern_has_canonical_lexical_semantics(
     assert result.is_valid
     pattern = result.contracts[0].revision.pattern
     assert (re.fullmatch(pattern, value) is not None) is valid
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "passRequiresCompleteEvidence",
+        "passForbidsDemonstratedNonconformance",
+        "failRequiresDemonstratedNonconformance",
+        "blockedRequiresUnavailablePrerequisite",
+    ],
+)
+def test_status_invariant_members_must_be_true(
+    field: str,
+) -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    invariants = data["statusInvariants"]
+    assert isinstance(invariants, dict)
+    invariants[field] = False
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == f"statusInvariants.{field} must be true"
+
+
+def test_status_invariant_members_cannot_be_renamed() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    invariants = data["statusInvariants"]
+    assert isinstance(invariants, dict)
+    invariants.pop("failRequiresDemonstratedNonconformance")
+    invariants["failMayBeInferred"] = True
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    assert result.contracts == ()
+    assert result.schema_projections == ()
+    assert result.diagnostics
+    assert all(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )

@@ -17,6 +17,7 @@ from agentic_workflow_generator.domain.artifacts import (
     ArtifactProvenanceContract,
     ArtifactRevisionContract,
     ArtifactStatus,
+    ArtifactStatusInvariantContract,
 )
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
@@ -210,6 +211,12 @@ def _schema_error_message(
 
     if (
         error.validator == "const"
+        and field_name.startswith("statusInvariants.")
+    ):
+        return f"{field_name} must be true"
+
+    if (
+        error.validator == "const"
         and field_name == "provenance.requiredIdentities"
     ):
         return (
@@ -250,8 +257,16 @@ def _required_field_message(
     }:
         return f"{field_name} must be a non-empty list"
 
-    if field_name in {"status", "provenance", "revision"}:
+    if field_name in {
+        "status",
+        "provenance",
+        "revision",
+        "statusInvariants",
+    }:
         return f"{field_name} must be an object"
+
+    if field_name.startswith("statusInvariants."):
+        return f"{field_name} must be true"
 
     return f"{field_name} must be a non-empty string"
 
@@ -290,6 +305,10 @@ def _parse_artifact(
         JsonObject,
         source.data["revision"],
     )
+    status_invariants = cast(
+        JsonObject,
+        source.data["statusInvariants"],
+    )
 
     return _ParsedArtifact(
         contract=ArtifactContract(
@@ -316,6 +335,30 @@ def _parse_artifact(
             revision=ArtifactRevisionContract(
                 heading=cast(str, revision["heading"]),
                 pattern=cast(str, revision["pattern"]),
+            ),
+            status_invariants=ArtifactStatusInvariantContract(
+                pass_requires_complete_evidence=cast(
+                    bool,
+                    status_invariants["passRequiresCompleteEvidence"],
+                ),
+                pass_forbids_demonstrated_nonconformance=cast(
+                    bool,
+                    status_invariants[
+                        "passForbidsDemonstratedNonconformance"
+                    ],
+                ),
+                fail_requires_demonstrated_nonconformance=cast(
+                    bool,
+                    status_invariants[
+                        "failRequiresDemonstratedNonconformance"
+                    ],
+                ),
+                blocked_requires_unavailable_prerequisite=cast(
+                    bool,
+                    status_invariants[
+                        "blockedRequiresUnavailablePrerequisite"
+                    ],
+                ),
             ),
             allowed_statuses=_string_tuple(source.data["allowedStatuses"]),
             required_headings=_string_tuple(source.data["requiredHeadings"]),
@@ -493,6 +536,7 @@ def _expected_schema(
         "status",
         "provenance",
         "revision",
+        "statusInvariants",
         "allowedStatuses",
         "requiredHeadings",
     ]
@@ -564,6 +608,42 @@ def _expected_schema(
                 "pattern": {
                     "type": "string",
                     "const": contract.revision.pattern,
+                },
+            },
+        },
+        "statusInvariants": {
+            "type": "object",
+            "required": [
+                "passRequiresCompleteEvidence",
+                "passForbidsDemonstratedNonconformance",
+                "failRequiresDemonstratedNonconformance",
+                "blockedRequiresUnavailablePrerequisite",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "passRequiresCompleteEvidence": {
+                    "const": (
+                        contract.status_invariants
+                        .pass_requires_complete_evidence
+                    ),
+                },
+                "passForbidsDemonstratedNonconformance": {
+                    "const": (
+                        contract.status_invariants
+                        .pass_forbids_demonstrated_nonconformance
+                    ),
+                },
+                "failRequiresDemonstratedNonconformance": {
+                    "const": (
+                        contract.status_invariants
+                        .fail_requires_demonstrated_nonconformance
+                    ),
+                },
+                "blockedRequiresUnavailablePrerequisite": {
+                    "const": (
+                        contract.status_invariants
+                        .blocked_requires_unavailable_prerequisite
+                    ),
                 },
             },
         },
