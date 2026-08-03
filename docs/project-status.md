@@ -163,10 +163,10 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-**Dependency-ordered v1 roadmap derivation** er næste sammenhængende workstream.
+**Architecture-model migration** er næste sammenhængende architecture workstream.
 
-ADR-0008 og `docs/scope.md` giver nu den nødvendige authority til at oprette
-roadmap issues. Roadmappet skal:
+ADR-0008, `docs/scope.md` og ADR-0009 giver nu authority til at fortsætte det
+dependency-ordered v1 roadmap. Roadmappet skal:
 
 1. mappe hvert kendt v1-gap til et ADR-0008 milestone og exit criterion;
 2. oprette research/decision work før implementation, hvor semantics eller
@@ -176,13 +176,46 @@ roadmap issues. Roadmappet skal:
    prerequisites er resolved;
 5. holde hver implementation som én bounded, validerbar slice.
 
-De første separate roadmap-områder er architecture-model research/decision,
-architecture/documentation consolidation, input-artifact references,
+Architecture-model research og technology selection er nu afsluttet. Den næste
+bounded architecture-slice er migrationen til den ADR-0009-valgte Structurizr
+DSL-model. Architecture/documentation consolidation følger separat efter
+migrationen.
+
+De øvrige roadmap-områder omfatter input-artifact references,
 workflow-semantics, registry-audit, target preservation og consumer acceptance.
 
-Structurizr DSL er fortsat kun en kandidat til en senere architecture-model
-decision. Den nuværende PlantUML authority gælder indtil en accepteret beslutning
-erstatter den.
+Indtil migrationens atomiske authority-cutover er merged, gælder den nuværende
+PlantUML authority fortsat operationelt.
+
+## Accepted architecture-model decision
+
+ADR-0009 selects Structurizr DSL as the v1 canonical architecture-model
+technology.
+
+The accepted target authority is:
+
+```text
+docs/architecture/workspace.dsl
+```
+
+with local included `.dsl` fragments as part of the same workspace.
+
+The decision does not itself perform the migration. Until a migration PR creates
+and validates that workspace and updates authority references atomically, the
+current ADR-0003 PlantUML sources remain the operational architecture authority.
+
+The migration will use pinned Structurizr vNext validation through an official
+Docker image pinned by digest. Docker is admitted only as documentation
+build/validation tooling and does not enter the compiler/runtime dependency
+boundary.
+
+Native Structurizr browser/Playwright image export is not part of the accepted v1
+rendering boundary. If committed SVG remains required, PlantUML may remain only
+as a derived, reproducible rendering stage.
+
+The next architecture action is therefore a bounded implementation issue for
+the architecture-model migration. General architecture/documentation
+consolidation remains a separate subsequent slice.
 
 ## Autoritativ arkitektur
 
