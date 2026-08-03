@@ -69,6 +69,7 @@ Produced output must satisfy each compiled artifact contract.
   - # Test Report
   - ## Status
   - ## Provenance
+  - ## Revision
   - ## Summary
   - ## Test Commands
   - ## Test Results
@@ -78,11 +79,13 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `TestReport`
-  - `artifactVersion`: `0.3.0`
+  - `artifactVersion`: `0.4.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `test-execution`
   - `agentInstance`: `test-runner`
+- revision heading: `## Revision`
+- revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
 
 
 ## Workflow Authority

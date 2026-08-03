@@ -29,6 +29,8 @@ entity "Artifact contract" as ARTIFACT_CONTRACT {
   allowedStatus : STRING <<multi>>
   provenanceHeading : STRING
   requiredProvenanceIdentity : STRING <<multi>>
+  revisionHeading : STRING
+  revisionPattern : STRING
 }
 
 entity "Permission profile" as PERMISSION_PROFILE {

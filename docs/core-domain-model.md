@@ -288,6 +288,7 @@ description
 path pattern
 status contract
 provenance contract
+revision contract
 allowed statuses
 required headings
 schema
@@ -308,6 +309,12 @@ agentInstance
 Concrete provenance values derive from the canonical compiled composition and
 the existing artifact-production relationship. Provenance is evidence and does
 not create a second ownership authority.
+
+The revision contract defines the canonical `## Revision` heading and the
+canonical positive-integer lexical form `^[1-9][0-9]*$`. Revision remains
+separate from contract version, status, provenance, timestamps, VCS identity
+and evidence hashes. Revision-history proof is not fabricated when no previous
+edition is available to an existing validation boundary.
 
 Artifact production belongs to role bindings. Agent profiles do not own produced
 artifacts.

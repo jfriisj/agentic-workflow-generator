@@ -70,6 +70,7 @@ Produced output must satisfy each compiled artifact contract.
   - # QA Report
   - ## Status
   - ## Provenance
+  - ## Revision
   - ## Summary
   - ## Evidence Reviewed
   - ## Gate Results
@@ -79,11 +80,13 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `QAReport`
-  - `artifactVersion`: `0.3.0`
+  - `artifactVersion`: `0.4.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `quality-assurance`
   - `agentInstance`: `qa-worker`
+- revision heading: `## Revision`
+- revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
 
 
 ## Workflow Authority

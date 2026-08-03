@@ -71,6 +71,7 @@ Følgende repository-foundation er etableret på `development`:
 - governed delivery med `development` som integration og `production` som
   stable/release;
 - artifact provenance contract semantics;
+- artifact revision contract semantics og end-to-end contractimplementation;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical domain-diagram-rendering med PlantUML 1.2026.6, Smetana og isoleret
   DejaVu 2.37 font-resolution.
@@ -84,8 +85,6 @@ aktuel projektstatus.
 
 Den eksisterende artifact-model mangler fortsat fuld implementation for:
 
-- artifact revision; semantikken er accepteret i ADR-0004, men contract- og
-  validatorimplementation mangler;
 - statusafhængige invariants;
 - reproducerbar evidens;
 - input-artifact references;
@@ -117,10 +116,9 @@ kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
 **Artifact contract hardening** er fortsat den accepterede produktprioritet.
 
-Canonical artifact provenance semantics er implementeret. Artifact revision
-semantics er nu accepteret i ADR-0004. Den næste implementation-slice skal
-implementere revision-kontrakten end-to-end som den mindste sammenhængende
-artifact-hardening-ændring.
+Canonical artifact provenance semantics og artifact revision contract er
+implementeret. Den næste slice skal vælges blandt de resterende artifact-gaps
+og afgrænses som den mindste sammenhængende artifact-hardening-ændring.
 
 Før implementation skal slicen definere:
 

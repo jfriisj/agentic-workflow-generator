@@ -5,6 +5,7 @@ import pytest
 from agentic_workflow_generator.domain import (
     ArtifactContract,
     ArtifactProvenanceContract,
+    ArtifactRevisionContract,
     ArtifactStatus,
 )
 
@@ -30,11 +31,16 @@ def test_artifact_contract_is_immutable() -> None:
                 "agentInstance",
             ),
         ),
+        revision=ArtifactRevisionContract(
+            heading="## Revision",
+            pattern=r"^[1-9][0-9]*$",
+        ),
         allowed_statuses=("PASS", "FAIL", "BLOCKED"),
         required_headings=(
             "# Requirements",
             "## Status",
             "## Provenance",
+            "## Revision",
         ),
     )
 
@@ -69,3 +75,13 @@ def test_artifact_provenance_contract_is_immutable() -> None:
 
     with pytest.raises(FrozenInstanceError):
         provenance.heading = "Changed"  # type: ignore[misc]
+
+
+def test_artifact_revision_contract_is_immutable() -> None:
+    revision = ArtifactRevisionContract(
+        heading="## Revision",
+        pattern=r"^[1-9][0-9]*$",
+    )
+
+    with pytest.raises(FrozenInstanceError):
+        revision.pattern = ".*"  # type: ignore[misc]

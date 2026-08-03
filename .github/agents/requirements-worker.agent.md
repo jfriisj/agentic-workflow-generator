@@ -77,6 +77,7 @@ Produced output must satisfy each compiled artifact contract.
   - # Requirements
   - ## Status
   - ## Provenance
+  - ## Revision
   - ## Summary
   - ## Scope
   - ## Requirements
@@ -87,11 +88,13 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `Requirements`
-  - `artifactVersion`: `0.3.0`
+  - `artifactVersion`: `0.4.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `requirements`
   - `agentInstance`: `requirements-worker`
+- revision heading: `## Revision`
+- revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
 
 
 ## Workflow Authority

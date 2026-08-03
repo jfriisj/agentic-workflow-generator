@@ -1,3 +1,4 @@
+import re
 from collections.abc import Callable
 from pathlib import Path
 
@@ -23,6 +24,7 @@ from agentic_workflow_generator.validation.artifacts import (
     OBSOLETE_FIELD_DIAGNOSTIC,
     ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC,
     PROVENANCE_HEADING_DIAGNOSTIC,
+    REVISION_HEADING_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     STATUS_HEADING_DIAGNOSTIC,
     STATUS_PATTERN_MISMATCH_DIAGNOSTIC,
@@ -73,6 +75,10 @@ def source(
                 "agentInstance",
             ],
         },
+        "revision": {
+            "heading": "## Revision",
+            "pattern": "^[1-9][0-9]*$",
+        },
         "allowedStatuses": (
             ["PASS", "FAIL", "BLOCKED"]
             if allowed_statuses is None
@@ -83,6 +89,7 @@ def source(
                 "# Requirements",
                 "## Status",
                 "## Provenance",
+                "## Revision",
                 "## Summary",
             ]
             if required_headings is None
@@ -158,6 +165,8 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         "roleBinding",
         "agentInstance",
     )
+    assert contract.revision.heading == "## Revision"
+    assert contract.revision.pattern == "^[1-9][0-9]*$"
     assert contract.allowed_statuses == (
         "PASS",
         "FAIL",
@@ -167,6 +176,7 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         "# Requirements",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
     )
 
@@ -179,6 +189,9 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     assert '"version": {' in projection.canonical_json
     assert '"const": "0.3.0"' in projection.canonical_json
     assert '"provenance": {' in projection.canonical_json
+    assert '"revision": {' in projection.canonical_json
+    assert '"const": "## Revision"' in projection.canonical_json
+    assert '"const": "^[1-9][0-9]*$"' in projection.canonical_json
 
 
 @pytest.mark.parametrize(
@@ -618,3 +631,106 @@ def test_provenance_heading_must_be_required() -> None:
         "Requirements",
         "## Provenance",
     )
+
+
+def test_missing_revision_is_rejected() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    data.pop("revision")
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == "revision must be an object"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected_message"),
+    [
+        (
+            "heading",
+            "### Revision",
+            "revision.heading must be exactly '## Revision'",
+        ),
+        (
+            "pattern",
+            ".*",
+            "revision.pattern must be exactly '^[1-9][0-9]*$'",
+        ),
+    ],
+)
+def test_revision_contract_is_canonical(
+    field: str,
+    value: str,
+    expected_message: str,
+) -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    revision = data["revision"]
+    assert isinstance(revision, dict)
+    revision[field] = value
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == expected_message
+
+
+def test_revision_heading_must_be_required() -> None:
+    result = validate(
+        source(
+            required_headings=[
+                "# Requirements",
+                "## Status",
+                "## Provenance",
+                "## Summary",
+            ]
+        )
+    )
+
+    diagnostic = next(
+        item
+        for item in result.diagnostics
+        if item.code == REVISION_HEADING_DIAGNOSTIC
+    )
+    assert diagnostic.location == "revision.heading"
+    assert diagnostic.related_identities == (
+        "Requirements",
+        "## Revision",
+    )
+
+
+@pytest.mark.parametrize(
+    ("value", "valid"),
+    [
+        ("1", True),
+        ("9", True),
+        ("10", True),
+        ("0", False),
+        ("-1", False),
+        ("+1", False),
+        ("01", False),
+        ("1.0", False),
+        ("draft-2", False),
+    ],
+)
+def test_revision_pattern_has_canonical_lexical_semantics(
+    value: str,
+    valid: bool,
+) -> None:
+    result = validate(source())
+    assert result.is_valid
+    pattern = result.contracts[0].revision.pattern
+    assert (re.fullmatch(pattern, value) is not None) is valid

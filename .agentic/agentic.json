@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.4.0",
+  "schemaVersion": "0.5.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -321,7 +321,7 @@
   "artifacts": [
     {
       "type": "ArchitectureDecision",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for architecture decision output produced by Architect agents.",
       "pathPattern": "agent-output/architecture-decision/*.md",
       "status": {
@@ -339,6 +339,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -348,6 +352,7 @@
         "# Architecture Decision",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Context",
         "## Decision",
@@ -358,7 +363,7 @@
     },
     {
       "type": "CodeReview",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for code review gate output.",
       "pathPattern": "agent-output/code-review/*.md",
       "status": {
@@ -376,6 +381,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -385,6 +394,7 @@
         "# Code Review",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Evidence Reviewed",
         "## Findings",
@@ -394,7 +404,7 @@
     },
     {
       "type": "ImplementationReport",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for implementation output produced by Implementer agents.",
       "pathPattern": "agent-output/implementation/*.md",
       "status": {
@@ -412,6 +422,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -421,6 +435,7 @@
         "# Implementation Report",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Files Changed",
         "## Implementation Notes",
@@ -431,7 +446,7 @@
     },
     {
       "type": "QAReport",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for final QA gate output.",
       "pathPattern": "agent-output/qa-report/*.md",
       "status": {
@@ -449,6 +464,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -458,6 +477,7 @@
         "# QA Report",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Evidence Reviewed",
         "## Gate Results",
@@ -468,7 +488,7 @@
     },
     {
       "type": "Requirements",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for requirements output produced by Requirements agents.",
       "pathPattern": "agent-output/requirements/*.md",
       "status": {
@@ -486,6 +506,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -495,6 +519,7 @@
         "# Requirements",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Scope",
         "## Requirements",
@@ -506,7 +531,7 @@
     },
     {
       "type": "TestReport",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Artifact contract for test execution and validation output.",
       "pathPattern": "agent-output/test-report/*.md",
       "status": {
@@ -524,6 +549,10 @@
           "agentInstance"
         ]
       },
+      "revision": {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -533,6 +562,7 @@
         "# Test Report",
         "## Status",
         "## Provenance",
+        "## Revision",
         "## Summary",
         "## Test Commands",
         "## Test Results",

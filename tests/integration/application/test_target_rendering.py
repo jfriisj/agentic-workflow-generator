@@ -90,6 +90,7 @@ def test_rendered_artifact_headings_are_nested() -> None:
         "  - # Requirements\n"
         "  - ## Status\n"
         "  - ## Provenance\n"
+        "  - ## Revision\n"
         "  - ## Summary\n"
     ) in requirements
     assert (
@@ -179,3 +180,23 @@ def test_rendered_provenance_uses_compiled_production_identity() -> None:
 
         for expected in expected_lines:
             assert expected in content
+
+
+def test_rendered_revision_uses_compiled_artifact_contract() -> None:
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/requirements-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(".github/agents/requirements-worker.agent.md"),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        assert "- revision heading: `## Revision`" in content
+        assert (
+            "- revision entry: `revision: <N>` where `<N>` matches "
+            "`^[1-9][0-9]*$`"
+        ) in content

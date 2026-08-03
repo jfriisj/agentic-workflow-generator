@@ -1,6 +1,6 @@
 {
   "type": "TestReport",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Artifact contract for test execution and validation output.",
   "pathPattern": "agent-output/test-report/*.md",
   "status": {
@@ -18,6 +18,10 @@
       "agentInstance"
     ]
   },
+  "revision": {
+    "heading": "## Revision",
+    "pattern": "^[1-9][0-9]*$"
+  },
   "allowedStatuses": [
     "PASS",
     "FAIL",
@@ -27,6 +31,7 @@
     "# Test Report",
     "## Status",
     "## Provenance",
+    "## Revision",
     "## Summary",
     "## Test Commands",
     "## Test Results",
