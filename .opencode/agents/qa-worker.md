@@ -26,7 +26,7 @@ Checks whether completed work satisfies acceptance criteria and required evidenc
 
 1. Stay inside the assigned role bindings.
 2. Do not invent missing workflow state or evidence.
-3. Missing required evidence must result in `BLOCKED`.
+3. Missing required evidence alone must result in `BLOCKED`; demonstrated nonconformance remains governed by the artifact contract.
 4. Do not override fail-closed workflow gates.
 5. Respect all separation-of-duties constraints.
 
@@ -80,7 +80,7 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `QAReport`
-  - `artifactVersion`: `0.5.0`
+  - `artifactVersion`: `0.6.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `quality-assurance`
@@ -92,6 +92,11 @@ Produced output must satisfy each compiled artifact contract.
   - `passForbidsDemonstratedNonconformance`: `true`
   - `failRequiresDemonstratedNonconformance`: `true`
   - `blockedRequiresUnavailablePrerequisite`: `true`
+- status semantics:
+  - `PASS`: Every required acceptance criterion is satisfied by valid evidence and all required upstream gates pass.
+  - `FAIL`: Valid evidence demonstrates that at least one required acceptance criterion is not satisfied, or a required upstream gate has an applicable `FAIL` result that QA is not permitted to override.
+  - `BLOCKED`: Required evidence, artifacts, revisions, environments, decisions, or upstream gate evidence is unavailable, missing, stale, or unverifiable such that QA cannot establish the complete acceptance claim.
+  - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
 
 
 ## Workflow Authority

@@ -160,7 +160,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.6.0"
+    assert config["schemaVersion"] == "0.7.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -187,7 +187,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.6.0"
+    assert config["schemaVersion"] == "0.7.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -208,7 +208,7 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.6.0"
+    assert config["schemaVersion"] == "0.7.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -224,3 +224,31 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
         cast(dict[str, Any], artifact)["statusInvariants"] == expected
         for artifact in artifacts
     )
+
+def test_active_repository_artifacts_carry_status_semantics() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    assert config["schemaVersion"] == "0.7.0"
+
+    artifacts = cast(list[Any], config["artifacts"])
+    assert artifacts
+
+    for artifact in artifacts:
+        artifact_object = cast(dict[str, Any], artifact)
+        semantics = cast(dict[str, Any], artifact_object["statusSemantics"])
+        assert tuple(semantics) == (
+            "passDefinition",
+            "failDefinition",
+            "blockedDefinition",
+            "mixedConditionRule",
+        )
+        assert all(
+            isinstance(semantics[field], str) and semantics[field]
+            for field in (
+                "passDefinition",
+                "failDefinition",
+                "blockedDefinition",
+            )
+        )
+        assert semantics["mixedConditionRule"] == 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'

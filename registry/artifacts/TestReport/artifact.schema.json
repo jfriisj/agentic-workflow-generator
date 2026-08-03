@@ -12,6 +12,7 @@
     "provenance",
     "revision",
     "statusInvariants",
+    "statusSemantics",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -23,7 +24,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.5.0"
+      "const": "0.6.0"
     },
     "description": {
       "type": "string",
@@ -137,6 +138,34 @@
         },
         "blockedRequiresUnavailablePrerequisite": {
           "const": true
+        }
+      }
+    },
+    "statusSemantics": {
+      "type": "object",
+      "required": [
+        "passDefinition",
+        "failDefinition",
+        "blockedDefinition",
+        "mixedConditionRule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "passDefinition": {
+          "type": "string",
+          "const": "All required validation at the test-execution boundary has executed and passed, and no required test is missing or skipped."
+        },
+        "failDefinition": {
+          "type": "string",
+          "const": "At least one required test or validation command executes and positively demonstrates that the product does not satisfy the tested contract."
+        },
+        "blockedDefinition": {
+          "type": "string",
+          "const": "A required tool, dependency, environment, credential, fixture, or test input is unavailable, missing, or unverifiable such that required validation cannot execute or be established."
+        },
+        "mixedConditionRule": {
+          "type": "string",
+          "const": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
         }
       }
     },

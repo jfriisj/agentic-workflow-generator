@@ -29,7 +29,7 @@ Owns workflow routing, state transitions, gate interpretation, and handoffs.
 
 1. Stay inside the assigned role bindings.
 2. Do not invent missing workflow state or evidence.
-3. Missing required evidence must result in `BLOCKED`.
+3. Missing required evidence alone must result in `BLOCKED`; demonstrated nonconformance remains governed by the artifact contract.
 4. Do not override fail-closed workflow gates.
 5. Respect all separation-of-duties constraints.
 

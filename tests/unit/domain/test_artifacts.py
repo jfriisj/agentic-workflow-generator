@@ -8,6 +8,7 @@ from agentic_workflow_generator.domain import (
     ArtifactRevisionContract,
     ArtifactStatus,
     ArtifactStatusInvariantContract,
+    ArtifactStatusSemanticsContract,
 )
 
 
@@ -41,6 +42,12 @@ def test_artifact_contract_is_immutable() -> None:
             pass_forbids_demonstrated_nonconformance=True,
             fail_requires_demonstrated_nonconformance=True,
             blocked_requires_unavailable_prerequisite=True,
+        ),
+        status_semantics=ArtifactStatusSemanticsContract(
+            pass_definition='Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.',
+            fail_definition='Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.',
+            blocked_definition='A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.',
+            mixed_condition_rule='FAIL_ON_DEMONSTRATED_NONCONFORMANCE',
         ),
         allowed_statuses=("PASS", "FAIL", "BLOCKED"),
         required_headings=(
@@ -106,3 +113,16 @@ def test_artifact_status_invariant_contract_is_immutable() -> None:
 
     with pytest.raises(FrozenInstanceError):
         invariants.pass_requires_complete_evidence = False  # type: ignore[misc]
+
+def test_artifact_status_semantics_contract_is_immutable() -> None:
+    semantics = ArtifactStatusSemanticsContract(
+        pass_definition='Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.',
+        fail_definition='Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.',
+        blocked_definition='A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.',
+        mixed_condition_rule='FAIL_ON_DEMONSTRATED_NONCONFORMANCE',
+    )
+
+    assert semantics.mixed_condition_rule == 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'
+
+    with pytest.raises(FrozenInstanceError):
+        semantics.pass_definition = "Changed"  # type: ignore[misc]

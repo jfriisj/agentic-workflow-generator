@@ -290,6 +290,7 @@ status contract
 provenance contract
 revision contract
 status invariant contract
+artifact-specific status semantics contract
 allowed statuses
 required headings
 schema
@@ -326,9 +327,29 @@ failRequiresDemonstratedNonconformance
 blockedRequiresUnavailablePrerequisite
 ~~~
 
-All four invariants are mandatory and true. They constrain invalid status
-claims without defining artifact-specific acceptance criteria or precedence
-between simultaneous `FAIL` and `BLOCKED` conditions.
+All four invariants are mandatory and true. They remain the shared necessary
+conditions for valid status claims.
+
+The artifact-specific status semantics contract defines the canonical meaning of
+each status for one artifact type:
+
+~~~text
+passDefinition
+failDefinition
+blockedDefinition
+mixedConditionRule
+~~~
+
+The three definitions are declarative contract text, not executable policy. For
+the current governed artifact set, `mixedConditionRule` is exactly
+`FAIL_ON_DEMONSTRATED_NONCONFORMANCE`: demonstrated outcome-determining
+nonconformance remains `FAIL` even when another required prerequisite is
+unavailable. Missing evidence alone does not become `FAIL`, and absence of known
+failure is insufficient for `PASS`.
+
+Artifact contracts own these canonical meanings. The producing role binding
+evaluates evidence and chooses the matching status. Workflow controllers route
+already-produced results and do not gain classification authority.
 
 Artifact production belongs to role bindings. Agent profiles do not own produced
 artifacts.

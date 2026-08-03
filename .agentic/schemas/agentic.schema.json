@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.6.0"
+      "const": "0.7.0"
     },
     "project": {
       "type": "object",
@@ -428,6 +428,7 @@
           "provenance",
           "revision",
           "statusInvariants",
+          "statusSemantics",
           "allowedStatuses",
           "requiredHeadings"
         ],
@@ -531,6 +532,34 @@
               },
               "blockedRequiresUnavailablePrerequisite": {
                 "const": true
+              }
+            }
+          },
+          "statusSemantics": {
+            "type": "object",
+            "required": [
+              "passDefinition",
+              "failDefinition",
+              "blockedDefinition",
+              "mixedConditionRule"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "passDefinition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "failDefinition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "blockedDefinition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mixedConditionRule": {
+                "type": "string",
+                "const": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
               }
             }
           },

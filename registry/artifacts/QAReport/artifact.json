@@ -1,6 +1,6 @@
 {
   "type": "QAReport",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Artifact contract for final QA gate output.",
   "pathPattern": "agent-output/qa-report/*.md",
   "status": {
@@ -27,6 +27,12 @@
     "passForbidsDemonstratedNonconformance": true,
     "failRequiresDemonstratedNonconformance": true,
     "blockedRequiresUnavailablePrerequisite": true
+  },
+  "statusSemantics": {
+    "passDefinition": "Every required acceptance criterion is satisfied by valid evidence and all required upstream gates pass.",
+    "failDefinition": "Valid evidence demonstrates that at least one required acceptance criterion is not satisfied, or a required upstream gate has an applicable `FAIL` result that QA is not permitted to override.",
+    "blockedDefinition": "Required evidence, artifacts, revisions, environments, decisions, or upstream gate evidence is unavailable, missing, stale, or unverifiable such that QA cannot establish the complete acceptance claim.",
+    "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
   },
   "allowedStatuses": [
     "PASS",

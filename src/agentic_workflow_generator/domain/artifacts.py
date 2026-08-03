@@ -40,6 +40,16 @@ class ArtifactStatusInvariantContract:
 
 
 @dataclass(frozen=True, slots=True)
+class ArtifactStatusSemanticsContract:
+    """Immutable artifact-specific status classification semantics."""
+
+    pass_definition: str
+    fail_definition: str
+    blocked_definition: str
+    mixed_condition_rule: str
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactContract:
     """Immutable reusable artifact contract.
 
@@ -56,5 +66,6 @@ class ArtifactContract:
     provenance: ArtifactProvenanceContract
     revision: ArtifactRevisionContract
     status_invariants: ArtifactStatusInvariantContract
+    status_semantics: ArtifactStatusSemanticsContract
     allowed_statuses: tuple[str, ...]
     required_headings: tuple[str, ...]

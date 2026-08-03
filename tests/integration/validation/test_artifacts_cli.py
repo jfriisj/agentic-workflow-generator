@@ -40,7 +40,7 @@ def create_repository(
 
     artifact: JsonObject = {
         "type": artifact_type,
-        "version": "0.5.0",
+        "version": "0.6.0",
         "description": "Requirements contract.",
         "pathPattern": "agent-output/requirements/*.md",
         "status": {
@@ -67,6 +67,12 @@ def create_repository(
             "passForbidsDemonstratedNonconformance": True,
             "failRequiresDemonstratedNonconformance": True,
             "blockedRequiresUnavailablePrerequisite": True,
+        },
+        "statusSemantics": {
+            "passDefinition": 'Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.',
+            "failDefinition": 'Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.',
+            "blockedDefinition": 'A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.',
+            "mixedConditionRule": 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE',
         },
         "allowedStatuses": [
             "PASS",

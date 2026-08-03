@@ -33,7 +33,7 @@ Reviews implementation for maintainability, correctness, tests, and safety.
 
 1. Stay inside the assigned role bindings.
 2. Do not invent missing workflow state or evidence.
-3. Missing required evidence must result in `BLOCKED`.
+3. Missing required evidence alone must result in `BLOCKED`; demonstrated nonconformance remains governed by the artifact contract.
 4. Do not override fail-closed workflow gates.
 5. Respect all separation-of-duties constraints.
 
@@ -89,7 +89,7 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `CodeReview`
-  - `artifactVersion`: `0.5.0`
+  - `artifactVersion`: `0.6.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `code-review`
@@ -101,6 +101,11 @@ Produced output must satisfy each compiled artifact contract.
   - `passForbidsDemonstratedNonconformance`: `true`
   - `failRequiresDemonstratedNonconformance`: `true`
   - `blockedRequiresUnavailablePrerequisite`: `true`
+- status semantics:
+  - `PASS`: Every required review dimension for the producing role binding has been completed with the required evidence, and no unresolved blocking finding or required fix remains within the reviewed scope.
+  - `FAIL`: At least one reviewed dimension positively demonstrates a blocking defect, violated approved requirement or trust boundary, or other required fix that prevents the reviewed implementation from passing the code-review gate.
+  - `BLOCKED`: Required changed scope, code, configuration, test evidence, dependency information, threat context, or other review evidence is unavailable, missing, or unverifiable such that the required review cannot be completed.
+  - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
 
 
 ## Workflow Authority

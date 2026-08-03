@@ -35,6 +35,10 @@ entity "Artifact contract" as ARTIFACT_CONTRACT {
   passForbidsDemonstratedNonconformance : BOOLEAN
   failRequiresDemonstratedNonconformance : BOOLEAN
   blockedRequiresUnavailablePrerequisite : BOOLEAN
+  passDefinition : STRING
+  failDefinition : STRING
+  blockedDefinition : STRING
+  mixedConditionRule : STRING
 }
 
 entity "Permission profile" as PERMISSION_PROFILE {
@@ -140,6 +144,8 @@ MAPS_PERMISSION -(1,N)- PERMISSION_PROFILE
 
 ' - Artifact production belongs to role bindings.
 ' - Every artifact contract enforces all four shared status invariants as true.
+' - Every artifact contract owns declarative artifact-specific status semantics.
+' - Current mixedConditionRule is FAIL_ON_DEMONSTRATED_NONCONFORMANCE.
 
 ' - Every target adapter maps every registered permission profile exactly once.
 ' - Permission settings are immutable typed name-value entries.

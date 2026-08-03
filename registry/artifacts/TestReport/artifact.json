@@ -1,6 +1,6 @@
 {
   "type": "TestReport",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Artifact contract for test execution and validation output.",
   "pathPattern": "agent-output/test-report/*.md",
   "status": {
@@ -27,6 +27,12 @@
     "passForbidsDemonstratedNonconformance": true,
     "failRequiresDemonstratedNonconformance": true,
     "blockedRequiresUnavailablePrerequisite": true
+  },
+  "statusSemantics": {
+    "passDefinition": "All required validation at the test-execution boundary has executed and passed, and no required test is missing or skipped.",
+    "failDefinition": "At least one required test or validation command executes and positively demonstrates that the product does not satisfy the tested contract.",
+    "blockedDefinition": "A required tool, dependency, environment, credential, fixture, or test input is unavailable, missing, or unverifiable such that required validation cannot execute or be established.",
+    "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
   },
   "allowedStatuses": [
     "PASS",

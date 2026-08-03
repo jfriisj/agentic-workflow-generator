@@ -12,6 +12,7 @@
     "provenance",
     "revision",
     "statusInvariants",
+    "statusSemantics",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -23,7 +24,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.5.0"
+      "const": "0.6.0"
     },
     "description": {
       "type": "string",
@@ -137,6 +138,34 @@
         },
         "blockedRequiresUnavailablePrerequisite": {
           "const": true
+        }
+      }
+    },
+    "statusSemantics": {
+      "type": "object",
+      "required": [
+        "passDefinition",
+        "failDefinition",
+        "blockedDefinition",
+        "mixedConditionRule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "passDefinition": {
+          "type": "string",
+          "const": "The decision traces to approved requirements; system boundaries are explicit; material alternatives and tradeoffs are evaluated; consequences and risks are documented; and no unresolved requirement prevents implementation."
+        },
+        "failDefinition": {
+          "type": "string",
+          "const": "The proposed architecture demonstrably violates an approved requirement or constraint."
+        },
+        "blockedDefinition": {
+          "type": "string",
+          "const": "A requirement, quality attribute, constraint, or dependency fact necessary to make the architecture decision is unavailable, missing, or unverifiable."
+        },
+        "mixedConditionRule": {
+          "type": "string",
+          "const": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
         }
       }
     },

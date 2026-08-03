@@ -12,6 +12,7 @@
     "provenance",
     "revision",
     "statusInvariants",
+    "statusSemantics",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -23,7 +24,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.5.0"
+      "const": "0.6.0"
     },
     "description": {
       "type": "string",
@@ -137,6 +138,34 @@
         },
         "blockedRequiresUnavailablePrerequisite": {
           "const": true
+        }
+      }
+    },
+    "statusSemantics": {
+      "type": "object",
+      "required": [
+        "passDefinition",
+        "failDefinition",
+        "blockedDefinition",
+        "mixedConditionRule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "passDefinition": {
+          "type": "string",
+          "const": "The approved change is implemented; required tests owned by the implementation responsibility are updated; required implementation-level validation available at this boundary has been run; and known risks plus validation deliberately owned by later independent gates are disclosed."
+        },
+        "failDefinition": {
+          "type": "string",
+          "const": "The implementation or implementation-level validation positively demonstrates that the approved behavior is not satisfied."
+        },
+        "blockedDefinition": {
+          "type": "string",
+          "const": "An approved input, dependency, tool, credential, environment, or required decision necessary to complete the implementation responsibility is unavailable, missing, or unverifiable."
+        },
+        "mixedConditionRule": {
+          "type": "string",
+          "const": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
         }
       }
     },
