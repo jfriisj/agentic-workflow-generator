@@ -77,6 +77,7 @@ Produced output must satisfy each compiled artifact contract.
   - # Architecture Decision
   - ## Status
   - ## Provenance
+  - ## Revision
   - ## Summary
   - ## Context
   - ## Decision
@@ -86,11 +87,13 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `ArchitectureDecision`
-  - `artifactVersion`: `0.3.0`
+  - `artifactVersion`: `0.4.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `architecture`
   - `agentInstance`: `architecture-worker`
+- revision heading: `## Revision`
+- revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
 
 
 ## Workflow Authority

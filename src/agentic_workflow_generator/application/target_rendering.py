@@ -440,6 +440,14 @@ This agent instance does not own artifact production.
                 ),
                 "- provenance identities:",
                 *provenance_lines,
+                (
+                    "- revision heading: "
+                    f"`{artifact.revision.heading}`"
+                ),
+                (
+                    "- revision entry: `revision: <N>` where `<N>` matches "
+                    f"`{artifact.revision.pattern}`"
+                ),
             ]
         )
 

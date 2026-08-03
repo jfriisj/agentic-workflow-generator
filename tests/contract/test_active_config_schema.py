@@ -160,7 +160,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.4.0"
+    assert config["schemaVersion"] == "0.5.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -179,5 +179,25 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
 
     assert all(
         cast(dict[str, Any], artifact)["provenance"] == expected
+        for artifact in artifacts
+    )
+
+
+def test_active_repository_artifacts_carry_canonical_revision() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    assert config["schemaVersion"] == "0.5.0"
+
+    artifacts = cast(list[Any], config["artifacts"])
+    assert artifacts
+
+    expected = {
+        "heading": "## Revision",
+        "pattern": "^[1-9][0-9]*$",
+    }
+
+    assert all(
+        cast(dict[str, Any], artifact)["revision"] == expected
         for artifact in artifacts
     )

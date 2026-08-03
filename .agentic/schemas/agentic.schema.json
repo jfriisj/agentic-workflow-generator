@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.4.0"
+      "const": "0.5.0"
     },
     "project": {
       "type": "object",
@@ -426,6 +426,7 @@
           "pathPattern",
           "status",
           "provenance",
+          "revision",
           "allowedStatuses",
           "requiredHeadings"
         ],
@@ -487,6 +488,24 @@
                   "roleBinding",
                   "agentInstance"
                 ]
+              }
+            }
+          },
+          "revision": {
+            "type": "object",
+            "required": [
+              "heading",
+              "pattern"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "heading": {
+                "type": "string",
+                "const": "## Revision"
+              },
+              "pattern": {
+                "type": "string",
+                "const": "^[1-9][0-9]*$"
               }
             }
           },

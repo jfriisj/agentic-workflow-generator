@@ -10,6 +10,7 @@
     "pathPattern",
     "status",
     "provenance",
+    "revision",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -21,7 +22,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.3.0"
+      "const": "0.4.0"
     },
     "description": {
       "type": "string",
@@ -96,6 +97,24 @@
         }
       }
     },
+    "revision": {
+      "type": "object",
+      "required": [
+        "heading",
+        "pattern"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "type": "string",
+          "const": "## Revision"
+        },
+        "pattern": {
+          "type": "string",
+          "const": "^[1-9][0-9]*$"
+        }
+      }
+    },
     "allowedStatuses": {
       "type": "array",
       "prefixItems": [
@@ -131,6 +150,10 @@
         {
           "type": "string",
           "const": "## Provenance"
+        },
+        {
+          "type": "string",
+          "const": "## Revision"
         },
         {
           "type": "string",
@@ -174,8 +197,8 @@
         }
       ],
       "items": false,
-      "minItems": 13,
-      "maxItems": 13,
+      "minItems": 14,
+      "maxItems": 14,
       "uniqueItems": true
     }
   }

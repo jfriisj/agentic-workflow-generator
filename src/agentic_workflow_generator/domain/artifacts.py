@@ -22,6 +22,14 @@ class ArtifactProvenanceContract:
 
 
 @dataclass(frozen=True, slots=True)
+class ArtifactRevisionContract:
+    """Immutable revision requirement for produced artifact evidence."""
+
+    heading: str
+    pattern: str
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactContract:
     """Immutable reusable artifact contract.
 
@@ -36,5 +44,6 @@ class ArtifactContract:
     path_pattern: str
     status: ArtifactStatus
     provenance: ArtifactProvenanceContract
+    revision: ArtifactRevisionContract
     allowed_statuses: tuple[str, ...]
     required_headings: tuple[str, ...]

@@ -15,17 +15,17 @@
       "uv.lock"
     ],
     "fileCount": 167,
-    "contentHash": "sha256:757713dea169998aac8c4f26ebd474d3286183d9f21af8aeed66aecfda3ce1ff",
+    "contentHash": "sha256:ccd3b5de49f6bdd0e400207a35559128a4a56ff453a9c2a0e3483f809ef8192d",
     "files": [
       {
         "path": ".agentic/agentic.json",
-        "sha256": "sha256:983cc8cea2e7ed9b11ecc91823ef044f89fa84c9bf43dbbdd511c674dc75ffe4",
-        "sizeBytes": 33363
+        "sha256": "sha256:244504445716fc709172f980e6b739318a6e46839ae72bb0bf41f666f70a1714",
+        "sizeBytes": 34089
       },
       {
         "path": ".agentic/schemas/agentic.schema.json",
-        "sha256": "sha256:fbc84b6df06b5c06852681120e867794190c278fa89ea3564c47f2de4b33d22a",
-        "sizeBytes": 21597
+        "sha256": "sha256:db388fac2b800f324735bb0078e40a4a275b698f206ee9765dafa3080d976de9",
+        "sizeBytes": 22096
       },
       {
         "path": ".agentic/schemas/generated/output-manifest.schema.json",
@@ -39,8 +39,8 @@
       },
       {
         "path": ".agentic/schemas/registry/artifact.schema.json",
-        "sha256": "sha256:bbd65315ba02bb621ccedd4e3fe7b968d105d168e5d0734859c6cd690c4958b3",
-        "sizeBytes": 2009
+        "sha256": "sha256:6401cf3a455008273febfcc1754407d54658c708a3b39a1a4e38196751d166cd",
+        "sizeBytes": 2394
       },
       {
         "path": ".agentic/schemas/registry/bundle.schema.json",
@@ -129,73 +129,73 @@
       },
       {
         "path": "registry/artifacts/AIEvaluationReport/artifact.json",
-        "sha256": "sha256:02263c0a577732fcdd45804bfe97db2643aa8a2c52dbc0a156eca987df29c470",
-        "sizeBytes": 994
+        "sha256": "sha256:fa567e2580993bdd931024af7a8e56024b83b800c62fff5fa6367b309af17304",
+        "sizeBytes": 1095
       },
       {
         "path": "registry/artifacts/AIEvaluationReport/artifact.schema.json",
-        "sha256": "sha256:f5ff648a893a9a286a84a86585ca7216adba320409d598239bcc31600a2df1ad",
-        "sizeBytes": 4100
+        "sha256": "sha256:042158326a5fa3ce6523f90074f05dd88cd38a0366ad9e2d5a091fd160ba2405",
+        "sizeBytes": 4567
       },
       {
         "path": "registry/artifacts/ArchitectureDecision/artifact.json",
-        "sha256": "sha256:223a59cd854950821727f2d5519167d50f561b0accbf4dc4411f739ce32cf9e9",
-        "sizeBytes": 824
+        "sha256": "sha256:98f42b3734313ba30469069cf99597503f4263f75eae4d2d528252ddb002ef38",
+        "sizeBytes": 925
       },
       {
         "path": "registry/artifacts/ArchitectureDecision/artifact.schema.json",
-        "sha256": "sha256:0d575fdb247b57f7b236edcdebdd08313af9891a9999902e30457f325891590c",
-        "sizeBytes": 3678
+        "sha256": "sha256:0286bcd92520dda4bfb717eb25d6c9e80be493c0307441f0f7fb62b77663de9e",
+        "sizeBytes": 4147
       },
       {
         "path": "registry/artifacts/CodeReview/artifact.json",
-        "sha256": "sha256:9c719958673272f75ab8e8b8417694241d816866fd402c82805cd009d0b14b00",
-        "sizeBytes": 738
+        "sha256": "sha256:27fa0fbcd72d85634258afd0f5be3ed2c5fed6a777191e58a3c8a7394c74f60e",
+        "sizeBytes": 839
       },
       {
         "path": "registry/artifacts/CodeReview/artifact.schema.json",
-        "sha256": "sha256:5cc448ae30262039b331077dd85f2e15a8bcc1f4ee7bb5d9034028ec2793560a",
-        "sizeBytes": 3509
+        "sha256": "sha256:6796d77eac560bd9395576447dff54f46ec92c24cc9e1f423835db959a9c5b85",
+        "sizeBytes": 3976
       },
       {
         "path": "registry/artifacts/ImplementationReport/artifact.json",
-        "sha256": "sha256:5d132f038641adb23c534041d32061327c340b6add05e5585b6b4397f7989a1b",
-        "sizeBytes": 826
+        "sha256": "sha256:62f2e84d955471b65d115df67aa7334f717a29dd20a0bf9d2bfda9831676d5f0",
+        "sizeBytes": 927
       },
       {
         "path": "registry/artifacts/ImplementationReport/artifact.schema.json",
-        "sha256": "sha256:b8ff7a65339cdfafee3a8651a0a44cc53849f41c3b93e38ab0dcfd40c9c8b315",
-        "sizeBytes": 3680
+        "sha256": "sha256:78283ba59dd81b68d79e5049385235d318f9af41cd88cd295b50d64bbcae1f4c",
+        "sizeBytes": 4149
       },
       {
         "path": "registry/artifacts/QAReport/artifact.json",
-        "sha256": "sha256:13c5dbffc463b9e3c429805882a8e72982d1dac087507e0b03cf02d1edeb28bd",
-        "sizeBytes": 761
+        "sha256": "sha256:d22fc9bba51c9adcd5a3ac65148f4ef106c9885a74034b03e5c400ba7c73cbab",
+        "sizeBytes": 862
       },
       {
         "path": "registry/artifacts/QAReport/artifact.schema.json",
-        "sha256": "sha256:038f6d6c2a7ae38f0b0df6c9f1fab4852717edc9c2e3681aee9b123abe2b02c3",
-        "sizeBytes": 3592
+        "sha256": "sha256:e62c5669482c38f7f71b33949000e1b7f814d6c3f08dded654c0a3dfef424a86",
+        "sizeBytes": 4061
       },
       {
         "path": "registry/artifacts/Requirements/artifact.json",
-        "sha256": "sha256:49383be002f4b33f8e30128ad08f2e9b425754f785f50d6d306a82248f598e09",
-        "sizeBytes": 811
+        "sha256": "sha256:e9d754d8e5642b5391ee82f191744d0a906972f97e2a783a1231caf70b070717",
+        "sizeBytes": 912
       },
       {
         "path": "registry/artifacts/Requirements/artifact.schema.json",
-        "sha256": "sha256:626c1940b3317ae0271c683096080af4e4d82ead50e6ffedaf47c3f5c3ca9e52",
-        "sizeBytes": 3713
+        "sha256": "sha256:0b47b12e8019b34311975f4072d3a897ad9ad0f7c5a166c9d5bb1e58de80fb2e",
+        "sizeBytes": 4180
       },
       {
         "path": "registry/artifacts/TestReport/artifact.json",
-        "sha256": "sha256:ba4305bd7162890c844bd7d894f0ec2fb0709151aed649f3f54cf0618e0c0cb8",
-        "sizeBytes": 770
+        "sha256": "sha256:736ef5313c9b97bd25d62c7a1b5b5f0d19ff744efb1d8d6928ff2e47090a18fe",
+        "sizeBytes": 871
       },
       {
         "path": "registry/artifacts/TestReport/artifact.schema.json",
-        "sha256": "sha256:bbd2d4da7769632be0b753f8d4bf4b62b2bbf6a04f70ff67f23c2601416c65a4",
-        "sizeBytes": 3604
+        "sha256": "sha256:a22bcd32bebe26df447d693b570438d78677dc0b5ea2e3873dd5bec131ea3714",
+        "sizeBytes": 4073
       },
       {
         "path": "registry/bundles/ai-application.bundle.json",
@@ -474,8 +474,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/application/target_rendering.py",
-        "sha256": "sha256:d0e8d133af45fab56ad2357c47ac5f937e7b2ffaf2328ce3aafb32b693795d9f",
-        "sizeBytes": 21511
+        "sha256": "sha256:40a971dca2b0cb2da6f5af68367dae0b1f740a6621a3220aaa191bd1ebb86769",
+        "sizeBytes": 21811
       },
       {
         "path": "src/agentic_workflow_generator/application/target_runtime_validation.py",
@@ -629,13 +629,13 @@
       },
       {
         "path": "src/agentic_workflow_generator/compiler/serialization.py",
-        "sha256": "sha256:65143ca99af9254c67c093e860e9f326e3b35f5c731af41f8883f066f6075bef",
-        "sizeBytes": 11112
+        "sha256": "sha256:86264ce2bf29013a992b1a28cf50965d6650f5c387d60e7154652fe74a1d28bd",
+        "sizeBytes": 11293
       },
       {
         "path": "src/agentic_workflow_generator/domain/__init__.py",
-        "sha256": "sha256:df9b6503ce83a07d899798516f834e732a385d8e5fb4e6742a48b54aa527b544",
-        "sizeBytes": 1832
+        "sha256": "sha256:3cba4aab433a12996111a405f9b3e84bf5315184d91818eedc0a06bcd8d9c6dc",
+        "sizeBytes": 1894
       },
       {
         "path": "src/agentic_workflow_generator/domain/agents.py",
@@ -644,8 +644,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/domain/artifacts.py",
-        "sha256": "sha256:da68d4087aef2edcee203a29d21f94cb18e82692fc48e860846156897c05752d",
-        "sizeBytes": 963
+        "sha256": "sha256:6d9ce7d3acc00a3d1a8b09bfff0275ee928acdcde013ea52aef9e1ac7f46167a",
+        "sizeBytes": 1180
       },
       {
         "path": "src/agentic_workflow_generator/domain/bundles.py",
@@ -774,8 +774,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/validation/artifacts.py",
-        "sha256": "sha256:996b75d8c467ea6811fa60d200bbc3214b8eef94a72d83677786d24d1f49a59f",
-        "sizeBytes": 18505
+        "sha256": "sha256:0488b650f258a17a691ced1cf31f2ee094c8e85a5cbe6d0348566c0d5dc46c5e",
+        "sizeBytes": 20224
       },
       {
         "path": "src/agentic_workflow_generator/validation/bundles.py",

@@ -3,7 +3,7 @@
   "description": "Deterministic ownership and integrity manifest for generated target output.",
   "composition": {
     "path": ".agentic/agentic.json",
-    "sha256": "983cc8cea2e7ed9b11ecc91823ef044f89fa84c9bf43dbbdd511c674dc75ffe4"
+    "sha256": "244504445716fc709172f980e6b739318a6e46839ae72bb0bf41f666f70a1714"
   },
   "targets": [
     {
@@ -18,33 +18,33 @@
       "generatedFiles": [
         {
           "path": ".opencode/agents/architecture-worker.md",
-          "sha256": "fe08c7629a03dfd213677f918ed11deee4abb8e1a1d747b39d0adf57b74ec9f2",
-          "bytes": 1970
+          "sha256": "a69d991e6b2353be958743019d19c9f2cc9c51d51a704f895626a8dc86e43072",
+          "bytes": 2090
         },
         {
           "path": ".opencode/agents/code-review-worker.md",
-          "sha256": "b2abb9588a98ea24b7ec707a8e3e7cc6dafe49118f5f65ecbf928e47e85613fe",
-          "bytes": 1995
+          "sha256": "ca442c3f4861edaac94c0357ba604e6cf3f3c059af5320d3e27d1ac24c444cda",
+          "bytes": 2115
         },
         {
           "path": ".opencode/agents/implementation-worker.md",
-          "sha256": "4b2c9e51cef404cc2500c610c8bba3d43eb4a3158e477f0ced530831cd6c60a5",
-          "bytes": 1961
+          "sha256": "0603a9f627bf545d5ff5cd7634e2eae504977e87bb55cf4b0953eb873b1416f8",
+          "bytes": 2081
         },
         {
           "path": ".opencode/agents/qa-worker.md",
-          "sha256": "5433e9578427ca097d5fabd6f192b64fa5abbe584c4bb470eb661df397d74d1f",
-          "bytes": 1923
+          "sha256": "182ef2cf63587d8e1c536233e702d764053b9136581f061e82d5234caf8b33f6",
+          "bytes": 2043
         },
         {
           "path": ".opencode/agents/requirements-worker.md",
-          "sha256": "19329ccf03e09b152e43b5d789e835f08defb944d35516ff14e994ca62613301",
-          "bytes": 2013
+          "sha256": "247085d8e65e54899e18acaea9b49ab07b6a33b475c7d68ec62dffca64aceb87",
+          "bytes": 2133
         },
         {
           "path": ".opencode/agents/test-runner.md",
-          "sha256": "210000cefb598db385e0b6309896c47c3775f7b4939915df33c6ec816fd9b927",
-          "bytes": 1740
+          "sha256": "bb1632f8b3c5d612b6293869ce835916b3a35b55e912d6affa8a593582cab593",
+          "bytes": 1860
         },
         {
           "path": ".opencode/agents/workflow-controller.md",
@@ -165,33 +165,33 @@
       "generatedFiles": [
         {
           "path": ".github/agents/architecture-worker.agent.md",
-          "sha256": "d7098f567f160b9401a0d4f9b3a1474b2dca5379a4b300271e239569722ff4fa",
-          "bytes": 2463
+          "sha256": "0df85b06b32fc78bd11aad6066e3d1a25715165ad421edf0757400dbf28e207b",
+          "bytes": 2583
         },
         {
           "path": ".github/agents/code-review-worker.agent.md",
-          "sha256": "cd13b543dc14672886b0eb17896096a86f2fd2c93d67b6873cb74688fd20193f",
-          "bytes": 2455
+          "sha256": "3cd291d5b54a7a57c74e0d6833995fea75d7bc6d76e82081ef1498d1fbefcf7d",
+          "bytes": 2575
         },
         {
           "path": ".github/agents/implementation-worker.agent.md",
-          "sha256": "b3d6f4873eed6710de66b501958dc4d62104407ccf0a10f49450fd63172a3a0d",
-          "bytes": 2503
+          "sha256": "6dca3590abf12e13c8ab0e87341cc452950f9cb80436acf798dc92ccda8130a2",
+          "bytes": 2623
         },
         {
           "path": ".github/agents/qa-worker.agent.md",
-          "sha256": "3b37f22411581dcef2cdee40775408de9a3a240f8e917d1832c5697a98c959ab",
-          "bytes": 2165
+          "sha256": "3d02c0be41fc53cfa7b4197d203167e34f741b3f0281b7440a15332623d0273f",
+          "bytes": 2285
         },
         {
           "path": ".github/agents/requirements-worker.agent.md",
-          "sha256": "0f4f29b6aaedbbf0762262520812c2bf33fb6c6319db611627badd015032b333",
-          "bytes": 2506
+          "sha256": "f711197e3352e9b3c53bc052359b7efe792b08d359b4551285df2ffd4341fa9c",
+          "bytes": 2626
         },
         {
           "path": ".github/agents/test-runner.agent.md",
-          "sha256": "339fedbaa76298c4a8c8f014a2b45417b4baadd1c0f6cc39f7410da3ddc4765b",
-          "bytes": 2263
+          "sha256": "ee07e2ab2ca464634639a32531d7e5bfdc53d3cd0292b2cdb65ca76ead6d968d",
+          "bytes": 2383
         },
         {
           "path": ".github/agents/workflow-controller.agent.md",

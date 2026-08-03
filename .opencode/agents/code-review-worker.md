@@ -73,6 +73,7 @@ Produced output must satisfy each compiled artifact contract.
   - # Code Review
   - ## Status
   - ## Provenance
+  - ## Revision
   - ## Summary
   - ## Evidence Reviewed
   - ## Findings
@@ -81,11 +82,13 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `CodeReview`
-  - `artifactVersion`: `0.3.0`
+  - `artifactVersion`: `0.4.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `code-review`
   - `agentInstance`: `code-review-worker`
+- revision heading: `## Revision`
+- revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
 
 
 ## Workflow Authority

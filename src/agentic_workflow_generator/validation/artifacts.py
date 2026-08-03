@@ -15,6 +15,7 @@ from agentic_workflow_generator.domain import Diagnostic
 from agentic_workflow_generator.domain.artifacts import (
     ArtifactContract,
     ArtifactProvenanceContract,
+    ArtifactRevisionContract,
     ArtifactStatus,
 )
 from agentic_workflow_generator.infrastructure import (
@@ -44,6 +45,7 @@ MISSING_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-008"
 ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-009"
 GENERATED_SCHEMA_DRIFT_DIAGNOSTIC = "AWG-ARTIFACT-010"
 PROVENANCE_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-011"
+REVISION_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-012"
 
 OBSOLETE_ARTIFACT_FIELDS = frozenset(
     {
@@ -200,6 +202,12 @@ def _schema_error_message(
     if error.validator == "const" and field_name == "provenance.heading":
         return "provenance.heading must be exactly '## Provenance'"
 
+    if error.validator == "const" and field_name == "revision.heading":
+        return "revision.heading must be exactly '## Revision'"
+
+    if error.validator == "const" and field_name == "revision.pattern":
+        return "revision.pattern must be exactly '^[1-9][0-9]*$'"
+
     if (
         error.validator == "const"
         and field_name == "provenance.requiredIdentities"
@@ -242,7 +250,7 @@ def _required_field_message(
     }:
         return f"{field_name} must be a non-empty list"
 
-    if field_name in {"status", "provenance"}:
+    if field_name in {"status", "provenance", "revision"}:
         return f"{field_name} must be an object"
 
     return f"{field_name} must be a non-empty string"
@@ -278,6 +286,10 @@ def _parse_artifact(
         JsonObject,
         source.data["provenance"],
     )
+    revision = cast(
+        JsonObject,
+        source.data["revision"],
+    )
 
     return _ParsedArtifact(
         contract=ArtifactContract(
@@ -300,6 +312,10 @@ def _parse_artifact(
                 required_identities=_string_tuple(
                     provenance["requiredIdentities"]
                 ),
+            ),
+            revision=ArtifactRevisionContract(
+                heading=cast(str, revision["heading"]),
+                pattern=cast(str, revision["pattern"]),
             ),
             allowed_statuses=_string_tuple(source.data["allowedStatuses"]),
             required_headings=_string_tuple(source.data["requiredHeadings"]),
@@ -364,6 +380,22 @@ def _validate_artifact_semantics(
                 related_identities=(
                     contract.type,
                     contract.provenance.heading,
+                ),
+            )
+        )
+
+    if contract.revision.heading not in contract.required_headings:
+        diagnostics.append(
+            Diagnostic(
+                code=REVISION_HEADING_DIAGNOSTIC,
+                message=(
+                    "revision.heading must be present in requiredHeadings"
+                ),
+                source_path=source_path.as_posix(),
+                location="revision.heading",
+                related_identities=(
+                    contract.type,
+                    contract.revision.heading,
                 ),
             )
         )
@@ -460,6 +492,7 @@ def _expected_schema(
         "pathPattern",
         "status",
         "provenance",
+        "revision",
         "allowedStatuses",
         "requiredHeadings",
     ]
@@ -514,6 +547,24 @@ def _expected_schema(
                 "requiredIdentities": _constant_string_array(
                     contract.provenance.required_identities
                 ),
+            },
+        },
+        "revision": {
+            "type": "object",
+            "required": [
+                "heading",
+                "pattern",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "heading": {
+                    "type": "string",
+                    "const": contract.revision.heading,
+                },
+                "pattern": {
+                    "type": "string",
+                    "const": contract.revision.pattern,
+                },
             },
         },
         "allowedStatuses": _constant_string_array(contract.allowed_statuses),

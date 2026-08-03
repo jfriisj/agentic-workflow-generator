@@ -4,6 +4,7 @@ from .agents import AgentProfile
 from .artifacts import (
     ArtifactContract,
     ArtifactProvenanceContract,
+    ArtifactRevisionContract,
     ArtifactStatus,
 )
 from .bundles import (
@@ -53,6 +54,7 @@ __all__ = [
     "AgentProfile",
     "ArtifactContract",
     "ArtifactProvenanceContract",
+    "ArtifactRevisionContract",
     "ArtifactStatus",
     "BashPermission",
     "Bundle",
