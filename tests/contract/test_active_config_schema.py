@@ -160,7 +160,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.7.0"
+    assert config["schemaVersion"] == "0.8.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -187,7 +187,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.7.0"
+    assert config["schemaVersion"] == "0.8.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -208,7 +208,7 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.7.0"
+    assert config["schemaVersion"] == "0.8.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -229,7 +229,7 @@ def test_active_repository_artifacts_carry_status_semantics() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.7.0"
+    assert config["schemaVersion"] == "0.8.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -252,3 +252,27 @@ def test_active_repository_artifacts_carry_status_semantics() -> None:
             )
         )
         assert semantics["mixedConditionRule"] == 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'
+
+def test_active_repository_artifacts_carry_canonical_evidence() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    assert config["schemaVersion"] == "0.8.0"
+
+    artifacts = cast(list[Any], config["artifacts"])
+    assert artifacts
+
+    expected = {
+        "heading": "## Evidence",
+        "requiredFields": [
+            "claim",
+            "source",
+            "reproduction",
+            "result",
+        ],
+    }
+
+    assert all(
+        cast(dict[str, Any], artifact)["evidence"] == expected
+        for artifact in artifacts
+    )

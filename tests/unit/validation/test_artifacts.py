@@ -17,6 +17,7 @@ from agentic_workflow_generator.registry import (
 )
 from agentic_workflow_generator.validation.artifacts import (
     DUPLICATE_TYPE_DIAGNOSTIC,
+    EVIDENCE_HEADING_DIAGNOSTIC,
     FOLDER_TYPE_DIAGNOSTIC,
     GENERATED_SCHEMA_DRIFT_DIAGNOSTIC,
     INVALID_STATUS_PATTERN_DIAGNOSTIC,
@@ -47,6 +48,7 @@ def source(
     description: JsonValue = "Requirements contract.",
     path_pattern: JsonValue = ("agent-output/requirements/*.md"),
     status: JsonValue = None,
+    evidence: JsonValue = None,
     status_invariants: JsonValue = None,
     status_semantics: JsonValue = None,
     allowed_statuses: JsonValue = None,
@@ -81,6 +83,19 @@ def source(
             "heading": "## Revision",
             "pattern": "^[1-9][0-9]*$",
         },
+        "evidence": (
+            {
+                "heading": "## Evidence",
+                "requiredFields": [
+                    "claim",
+                    "source",
+                    "reproduction",
+                    "result",
+                ],
+            }
+            if evidence is None
+            else evidence
+        ),
         "statusInvariants": (
             {
                 "passRequiresCompleteEvidence": True,
@@ -112,6 +127,7 @@ def source(
                 "## Status",
                 "## Provenance",
                 "## Revision",
+                "## Evidence",
                 "## Summary",
             ]
             if required_headings is None
@@ -189,6 +205,13 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     )
     assert contract.revision.heading == "## Revision"
     assert contract.revision.pattern == "^[1-9][0-9]*$"
+    assert contract.evidence.heading == "## Evidence"
+    assert contract.evidence.required_fields == (
+        "claim",
+        "source",
+        "reproduction",
+        "result",
+    )
     assert contract.status_invariants.pass_requires_complete_evidence is True
     assert (
         contract.status_invariants
@@ -219,6 +242,7 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         "## Status",
         "## Provenance",
         "## Revision",
+        "## Evidence",
         "## Summary",
     )
 
@@ -234,6 +258,9 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
     assert '"revision": {' in projection.canonical_json
     assert '"const": "## Revision"' in projection.canonical_json
     assert '"const": "^[1-9][0-9]*$"' in projection.canonical_json
+    assert '"evidence": {' in projection.canonical_json
+    assert '"const": "## Evidence"' in projection.canonical_json
+    assert '"requiredFields": {' in projection.canonical_json
     assert '"statusInvariants": {' in projection.canonical_json
     assert '"passRequiresCompleteEvidence": {' in projection.canonical_json
     assert (
@@ -935,5 +962,67 @@ def test_status_semantics_members_cannot_be_renamed() -> None:
     assert result.diagnostics
     assert all(
         diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+def test_missing_evidence_contract_is_rejected() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    data.pop("evidence")
+    source_without_evidence = RegistrySource(
+        kind=artifact_source.kind,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(source_without_evidence, snapshots=())
+
+    assert not result.is_valid
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        and diagnostic.location == "$"
+        and diagnostic.message == "evidence must be an object"
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_noncanonical_evidence_required_fields_are_rejected() -> None:
+    result = validate(
+        source(
+            evidence={
+                "heading": "## Evidence",
+                "requiredFields": ["claim", "source", "result"],
+            }
+        ),
+        snapshots=(),
+    )
+
+    assert not result.is_valid
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        and diagnostic.location == "$.evidence.requiredFields"
+        and diagnostic.message
+        == "evidence.requiredFields must match the canonical field set"
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_evidence_heading_must_be_required() -> None:
+    result = validate(
+        source(
+            required_headings=[
+                "# Requirements",
+                "## Status",
+                "## Provenance",
+                "## Revision",
+                "## Summary",
+            ]
+        )
+    )
+
+    assert not result.is_valid
+    assert any(
+        diagnostic.code == EVIDENCE_HEADING_DIAGNOSTIC
+        and diagnostic.location == "evidence.heading"
         for diagnostic in result.diagnostics
     )

@@ -1,6 +1,6 @@
 {
   "type": "AIEvaluationReport",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Artifact contract for evidence-based AI application quality, safety, and operational evaluation.",
   "pathPattern": "agent-output/ai-evaluation-report/*.md",
   "status": {
@@ -21,6 +21,15 @@
   "revision": {
     "heading": "## Revision",
     "pattern": "^[1-9][0-9]*$"
+  },
+  "evidence": {
+    "heading": "## Evidence",
+    "requiredFields": [
+      "claim",
+      "source",
+      "reproduction",
+      "result"
+    ]
   },
   "statusInvariants": {
     "passRequiresCompleteEvidence": true,
@@ -44,6 +53,7 @@
     "## Status",
     "## Provenance",
     "## Revision",
+    "## Evidence",
     "## Summary",
     "## Evaluation Scope",
     "## Evaluation Data and Scenarios",

@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.7.0"
+      "const": "0.8.0"
     },
     "project": {
       "type": "object",
@@ -427,6 +427,7 @@
           "status",
           "provenance",
           "revision",
+          "evidence",
           "statusInvariants",
           "statusSemantics",
           "allowedStatuses",
@@ -508,6 +509,29 @@
               "pattern": {
                 "type": "string",
                 "const": "^[1-9][0-9]*$"
+              }
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "required": [
+              "heading",
+              "requiredFields"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "heading": {
+                "type": "string",
+                "const": "## Evidence"
+              },
+              "requiredFields": {
+                "type": "array",
+                "const": [
+                  "claim",
+                  "source",
+                  "reproduction",
+                  "result"
+                ]
               }
             }
           },

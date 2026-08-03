@@ -31,6 +31,8 @@ entity "Artifact contract" as ARTIFACT_CONTRACT {
   requiredProvenanceIdentity : STRING <<multi>>
   revisionHeading : STRING
   revisionPattern : STRING
+  evidenceHeading : STRING
+  evidenceRequiredField : STRING <<multi>>
   passRequiresCompleteEvidence : BOOLEAN
   passForbidsDemonstratedNonconformance : BOOLEAN
   failRequiresDemonstratedNonconformance : BOOLEAN
@@ -144,6 +146,8 @@ MAPS_PERMISSION -(1,N)- PERMISSION_PROFILE
 
 ' - Artifact production belongs to role bindings.
 ' - Every artifact contract enforces all four shared status invariants as true.
+' - Every artifact contract requires the canonical reproducible evidence heading and field set.
+' - Evidence records supply observations and do not define artifact status policy.
 ' - Every artifact contract owns declarative artifact-specific status semantics.
 ' - Current mixedConditionRule is FAIL_ON_DEMONSTRATED_NONCONFORMANCE.
 

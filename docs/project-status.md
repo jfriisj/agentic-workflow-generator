@@ -85,7 +85,6 @@ aktuel projektstatus.
 
 Den eksisterende artifact-model mangler fortsat fuld implementation for:
 
-- reproducerbar evidens;
 - input-artifact references.
 
 ### Workflows
@@ -115,26 +114,21 @@ kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 **Artifact contract hardening** er fortsat den accepterede produktprioritet.
 
 Canonical artifact provenance semantics, artifact revision contract, shared
-artifact status-invariant contract og artifact-specifik statussemantik er nu
-implementeret end-to-end. Shared invariants følger ADR-0005, og de syv
-artifact-specifikke klassifikationskontrakter følger ADR-0006.
+artifact status-invariant contract, artifact-specifik statussemantik og
+reproducerbar evidenskontrakt er nu implementeret end-to-end. Shared invariants
+følger ADR-0005, de syv artifact-specifikke klassifikationskontrakter følger
+ADR-0006, og den canonical reproducible-evidence contract følger ADR-0007.
 
-ADR-0006-semantikken bevares deterministisk i artifact contracts, generated
-schemas, active config og begge eksisterende targetrenderere. Producing role
-bindings klassificerer fortsat evidensen; workflow-controlleren ejer fortsat kun
-routing. Der er ikke indført runtime artifact validation, persistence eller et
-generisk policy engine.
+ADR-0007-evidenskontrakten bevares deterministisk i artifact contracts,
+generated schemas, active config og begge eksisterende targetrenderere. Producing
+role bindings evaluerer fortsat evidensen og klassificerer artifact-status under
+ADR-0005/ADR-0006; workflow-controlleren ejer fortsat kun routing. Der er ikke
+indført input-artifact lineage, runtime artifact validation, persistence,
+attestation eller et generisk policy engine.
 
-De resterende accepterede artifact-hardening gaps er reproducerbar evidens og
-input-artifact references.
-
-Reproducerbar evidens er valgt som den aktive decision-slice i issue #19.
-Beslutningen skal definere den mindste canonical evidenskontrakt, dens
-fail-closed relation til ADR-0005/ADR-0006, validation boundary og eksplicitte
-exclusions uden at indføre input-artifact lineage, persistence eller runtime
-artifact validation. Implementation er ikke autoriseret, før beslutningen er
-accepteret i `development`. Input-artifact references forbliver et separat
-efterfølgende hardening-gap.
+Det resterende accepterede artifact-hardening gap er input-artifact references.
+Det skal behandles som en separat decision/implementation-slice og må ikke
+blandes sammen med evidenskontrakten.
 
 ## Autoritativ arkitektur
 

@@ -289,6 +289,7 @@ path pattern
 status contract
 provenance contract
 revision contract
+reproducible evidence contract
 status invariant contract
 artifact-specific status semantics contract
 allowed statuses
@@ -317,6 +318,24 @@ canonical positive-integer lexical form `^[1-9][0-9]*$`. Revision remains
 separate from contract version, status, provenance, timestamps, VCS identity
 and evidence hashes. Revision-history proof is not fabricated when no previous
 edition is available to an existing validation boundary.
+
+The reproducible evidence contract defines the canonical `## Evidence` heading
+and the fixed required field set:
+
+~~~text
+claim
+source
+reproduction
+result
+~~~
+
+The evidence section contains one or more records covering every
+status-determining condition used to classify the artifact. Materially
+independent conditions remain independently reproducible. Evidence records
+supply observations to the status contract and do not become a second status
+classifier. The compiler validates contract shape and deterministic propagation;
+it does not claim to prove arbitrary produced Markdown evidence that it does not
+ingest.
 
 The status invariant contract defines the shared fail-closed evidence policy:
 

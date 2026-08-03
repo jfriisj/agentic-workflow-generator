@@ -30,6 +30,14 @@ class ArtifactRevisionContract:
 
 
 @dataclass(frozen=True, slots=True)
+class ArtifactEvidenceContract:
+    """Immutable reproducible-evidence requirement for produced artifacts."""
+
+    heading: str
+    required_fields: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactStatusInvariantContract:
     """Immutable fail-closed status policy for artifact evidence."""
 
@@ -65,6 +73,7 @@ class ArtifactContract:
     status: ArtifactStatus
     provenance: ArtifactProvenanceContract
     revision: ArtifactRevisionContract
+    evidence: ArtifactEvidenceContract
     status_invariants: ArtifactStatusInvariantContract
     status_semantics: ArtifactStatusSemanticsContract
     allowed_statuses: tuple[str, ...]

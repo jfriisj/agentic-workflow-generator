@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.7.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.8.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -158,6 +158,12 @@ def composition_to_json_object(
                     "revision": {
                         "heading": artifact.revision.heading,
                         "pattern": artifact.revision.pattern,
+                    },
+                    "evidence": {
+                        "heading": artifact.evidence.heading,
+                        "requiredFields": list(
+                            artifact.evidence.required_fields
+                        ),
                     },
                     "statusInvariants": {
                         "passRequiresCompleteEvidence": (

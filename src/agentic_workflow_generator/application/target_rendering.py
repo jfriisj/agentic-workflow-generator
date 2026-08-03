@@ -448,6 +448,32 @@ This agent instance does not own artifact production.
                     "- revision entry: `revision: <N>` where `<N>` matches "
                     f"`{artifact.revision.pattern}`"
                 ),
+                (
+                    "- evidence heading: "
+                    f"`{artifact.evidence.heading}`"
+                ),
+                "- evidence required fields:",
+                _markdown_list(
+                    artifact.evidence.required_fields,
+                    indent="  ",
+                ),
+                "- evidence semantics:",
+                (
+                    "  - record one or more reproducible evidence records "
+                    "for status-determining conditions"
+                ),
+                (
+                    "  - cover every status-determining condition used to "
+                    "classify the artifact"
+                ),
+                (
+                    "  - keep materially independent conditions "
+                    "independently reproducible"
+                ),
+                (
+                    "  - evidence records supply observations; they do not "
+                    "define artifact status policy"
+                ),
                 "- status invariants:",
                 (
                     "  - `passRequiresCompleteEvidence`: `"

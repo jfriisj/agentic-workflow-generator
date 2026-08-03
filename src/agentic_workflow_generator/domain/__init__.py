@@ -3,6 +3,7 @@
 from .agents import AgentProfile
 from .artifacts import (
     ArtifactContract,
+    ArtifactEvidenceContract,
     ArtifactProvenanceContract,
     ArtifactRevisionContract,
     ArtifactStatus,
@@ -55,6 +56,7 @@ __all__ = [
     "AgentInstance",
     "AgentProfile",
     "ArtifactContract",
+    "ArtifactEvidenceContract",
     "ArtifactProvenanceContract",
     "ArtifactRevisionContract",
     "ArtifactStatus",

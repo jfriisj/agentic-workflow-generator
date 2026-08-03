@@ -14,6 +14,7 @@ from jsonschema.exceptions import ValidationError
 from agentic_workflow_generator.domain import Diagnostic
 from agentic_workflow_generator.domain.artifacts import (
     ArtifactContract,
+    ArtifactEvidenceContract,
     ArtifactProvenanceContract,
     ArtifactRevisionContract,
     ArtifactStatus,
@@ -48,6 +49,7 @@ ORPHAN_GENERATED_SCHEMA_DIAGNOSTIC = "AWG-ARTIFACT-009"
 GENERATED_SCHEMA_DRIFT_DIAGNOSTIC = "AWG-ARTIFACT-010"
 PROVENANCE_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-011"
 REVISION_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-012"
+EVIDENCE_HEADING_DIAGNOSTIC = "AWG-ARTIFACT-013"
 
 OBSOLETE_ARTIFACT_FIELDS = frozenset(
     {
@@ -210,6 +212,12 @@ def _schema_error_message(
     if error.validator == "const" and field_name == "revision.pattern":
         return "revision.pattern must be exactly '^[1-9][0-9]*$'"
 
+    if error.validator == "const" and field_name == "evidence.heading":
+        return "evidence.heading must be exactly '## Evidence'"
+
+    if error.validator == "const" and field_name == "evidence.requiredFields":
+        return "evidence.requiredFields must match the canonical field set"
+
     if (
         error.validator == "const"
         and field_name.startswith("statusInvariants.")
@@ -264,6 +272,7 @@ def _required_field_message(
         "allowedStatuses",
         "requiredHeadings",
         "provenance.requiredIdentities",
+        "evidence.requiredFields",
     }:
         return f"{field_name} must be a non-empty list"
 
@@ -271,6 +280,7 @@ def _required_field_message(
         "status",
         "provenance",
         "revision",
+        "evidence",
         "statusInvariants",
         "statusSemantics",
     }:
@@ -316,6 +326,10 @@ def _parse_artifact(
         JsonObject,
         source.data["revision"],
     )
+    evidence = cast(
+        JsonObject,
+        source.data["evidence"],
+    )
     status_invariants = cast(
         JsonObject,
         source.data["statusInvariants"],
@@ -350,6 +364,10 @@ def _parse_artifact(
             revision=ArtifactRevisionContract(
                 heading=cast(str, revision["heading"]),
                 pattern=cast(str, revision["pattern"]),
+            ),
+            evidence=ArtifactEvidenceContract(
+                heading=cast(str, evidence["heading"]),
+                required_fields=_string_tuple(evidence["requiredFields"]),
             ),
             status_invariants=ArtifactStatusInvariantContract(
                 pass_requires_complete_evidence=cast(
@@ -476,6 +494,22 @@ def _validate_artifact_semantics(
             )
         )
 
+    if contract.evidence.heading not in contract.required_headings:
+        diagnostics.append(
+            Diagnostic(
+                code=EVIDENCE_HEADING_DIAGNOSTIC,
+                message=(
+                    "evidence.heading must be present in requiredHeadings"
+                ),
+                source_path=source_path.as_posix(),
+                location="evidence.heading",
+                related_identities=(
+                    contract.type,
+                    contract.evidence.heading,
+                ),
+            )
+        )
+
     try:
         status_pattern = re.compile(contract.status.pattern)
     except re.error as exc:
@@ -569,6 +603,7 @@ def _expected_schema(
         "status",
         "provenance",
         "revision",
+        "evidence",
         "statusInvariants",
         "statusSemantics",
         "allowedStatuses",
@@ -643,6 +678,23 @@ def _expected_schema(
                     "type": "string",
                     "const": contract.revision.pattern,
                 },
+            },
+        },
+        "evidence": {
+            "type": "object",
+            "required": [
+                "heading",
+                "requiredFields",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "heading": {
+                    "type": "string",
+                    "const": contract.evidence.heading,
+                },
+                "requiredFields": _constant_string_array(
+                    contract.evidence.required_fields
+                ),
             },
         },
         "statusInvariants": {
