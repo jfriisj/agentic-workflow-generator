@@ -17,15 +17,21 @@ Changes outside this document require the scope-transition rules defined in
 
 ## Current phase
 
-**Post-migration hardening**
+**V1 completion**
+
+ADR-0008 defines the canonical v1 product outcome, six v1 milestones, controlled
+evolution principle and finite release-readiness exit condition.
 
 The atomic migration to the typed `AgentInstance` / `RoleBinding`,
 `CompiledComposition` and typed top-level CLI architecture is complete.
 
-The current phase is limited to strengthening the already accepted compiler,
-workflow, artifact and registry model and removing known quality gaps.
+The current phase is limited to completing the accepted compiler, workflow,
+artifact, registry, target, architecture-documentation and validation work
+required by ADR-0008.
 
-This phase is not authorization for unrelated product expansion.
+This phase is not authorization for unrelated product expansion. Work must map
+to an ADR-0008 milestone and remain inside the product boundary and hard
+constraints below.
 
 ## Product boundary
 
@@ -58,6 +64,30 @@ The project generates and validates agentic development environments.
 
 It is not an autonomous workflow runtime, a model host or a replacement for the
 target coding-agent frameworks.
+
+## V1 milestone mapping
+
+Accepted work is organized under the ADR-0008 milestones:
+
+1. **Product and architecture clarity** — concise repository authority, one
+   canonical architecture model, non-duplicative current-state documentation
+   and consistent architecture references.
+2. **Complete compiler contracts** — accepted artifact and workflow contract
+   gaps plus fail-closed validation and synchronized canonical
+   representations.
+3. **Honest registry compositions** — profiles, bundles and setups accurately
+   represent the composition they materialize.
+4. **Canonical target preservation** — `vscode-copilot` and `opencode` preserve
+   all applicable canonical compiled semantics.
+5. **Consumer acceptance and release readiness** — version-controlled
+   consumer-oriented acceptance evidence proves deterministic initialization,
+   compilation, materialization and validation.
+6. **Controlled evolution** — current boundaries, contracts and tests make
+   likely bounded changes explicit without introducing speculative extension
+   infrastructure.
+
+The detailed milestone completion criteria remain owned by ADR-0008. This scope
+defines which work is authorized to satisfy them.
 
 ## In scope
 
@@ -136,7 +166,7 @@ This includes maintaining:
 - profile and workflow identity;
 - canonical output ownership and validation.
 
-### 5. Compiler and validation quality
+### 5. Compiler, validation and consumer acceptance quality
 
 Maintenance of the current typed compiler architecture is in scope.
 
@@ -151,24 +181,49 @@ This includes:
 - canonical output-manifest behavior;
 - focused tests;
 - integration and end-to-end validation;
-- removal of duplication that obscures ownership or weakens maintainability.
+- removal of duplication that obscures ownership or weakens maintainability;
+- contract and architecture tests that keep existing bounded extension seams
+  explicit;
+- version-controlled consumer-oriented acceptance coverage.
+
+Consumer acceptance may prove the supported v1 path:
+
+~~~text
+select composition
+    -> compile
+    -> validate
+    -> materialize supported targets
+    -> validate generated state
+    -> repeat
+    -> canonical deterministic result
+~~~
+
+This acceptance work remains inside the compiler boundary. It does not authorize
+runtime workflow orchestration or a new target platform.
 
 The known duplicate-code debt in the test suite may be reduced, but quality
 gates must not be disabled or weakened to make the debt disappear.
 
-### 6. Documentation and governance consistency
+### 6. Documentation, architecture clarity and governance consistency
 
-Changes required to keep repository authority synchronized are in scope,
-including:
+Changes required to keep repository authority synchronized and satisfy
+ADR-0008 Milestone 1 are in scope, including:
 
+- making `docs/architecture.md` a concise current-state architecture narrative;
+- establishing exactly one canonical architecture model through a separately
+  accepted architecture/technology decision;
+- removing or consolidating redundant current-state architecture and setup
+  documentation after its unique authoritative content is preserved elsewhere;
+- research and decision work required before changing architecture-model
+  notation or rendering technology;
 - `docs/scope.md`;
 - `docs/project-status.md`;
 - `docs/governance.md`;
 - `docs/workflow.md`;
 - `docs/architecture.md`;
-- `docs/core-domain-model.md`;
+- `docs/core-domain-model.md` while it remains current authority;
 - relevant ADRs;
-- authoritative PlantUML sources;
+- current authoritative PlantUML sources while ADR-0003 remains accepted;
 - rendered architecture diagrams;
 - registry documentation;
 - workflow and technology documentation;
@@ -176,6 +231,10 @@ including:
 
 Documentation must describe implemented current state accurately and must not
 present exploratory work as current behavior.
+
+This scope does not by itself adopt Structurizr DSL, supersede ADR-0003 or
+authorize an architecture-model migration. Such a migration requires separate
+research and an accepted architecture/technology decision before implementation.
 
 ## Hard architectural constraints
 
@@ -229,6 +288,7 @@ The following work is not currently authorized:
 - retry policy not already represented by the accepted workflow model;
 - escalation policy not already represented by the accepted workflow model;
 - artifact invalidation semantics;
+- architecture-model technology migration without a separate accepted decision;
 - speculative capabilities, abstractions or infrastructure without an accepted
   current requirement.
 
@@ -251,23 +311,31 @@ requirement and decision admit them:
 
 A deferred item must not be implemented indirectly as part of another change.
 
-## Current phase acceptance criteria
+## V1 scope exit criteria
 
-The post-migration hardening phase can be considered complete when:
+The accepted v1 scope is complete only when all six ADR-0008 milestones are
+complete on accepted `development` and repository evidence proves that:
 
-1. accepted artifact-contract gaps have explicit, validated semantics;
-2. accepted workflow-routing gaps have explicit, fail-closed semantics;
-3. existing profiles, bundles and setups accurately represent their
-   materialized compositions;
-4. existing target outputs preserve all accepted compiler semantics;
-5. known test duplicate-code debt has been addressed or explicitly bounded
+1. product and architecture authority is concise, non-duplicative and
+   internally consistent, with exactly one canonical architecture model;
+2. all required v1 artifact and workflow contract gaps have explicit accepted
+   semantics and synchronized fail-closed implementation;
+3. profiles, bundles and setups accurately represent their materialized
+   compositions;
+4. both supported target outputs preserve all applicable canonical compiler
+   semantics without fallback or independent reinterpretation;
+5. version-controlled consumer acceptance proves clean initialization,
+   deterministic compilation, supported-target materialization, generated-state
+   validation and repeat execution without drift;
+6. controlled-evolution boundaries are explicit in architecture, contracts and
+   tests without speculative plugin or runtime infrastructure;
+7. known test duplicate-code debt has been addressed or explicitly bounded
    without weakening quality gates;
-6. authoritative documentation and diagrams describe the implemented model;
-7. all affected registry, schema, compiler and generated representations are
-   synchronized;
-8. the full project validation gate passes on the accepted integration state;
-9. no compatibility path, fallback authority or obsolete orchestration has
-   been reintroduced.
+8. all affected registry, schema, compiler, generated and documentation
+   representations are synchronized;
+9. the full project validation gate passes on the accepted integration state;
+10. every required v1 gap is closed or explicitly removed from v1 through an
+    accepted decision.
 
 Completion of one item does not authorize work on an out-of-scope item.
 
