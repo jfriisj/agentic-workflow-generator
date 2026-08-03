@@ -126,10 +126,15 @@ routing. Der er ikke indført runtime artifact validation, persistence eller et
 generisk policy engine.
 
 De resterende accepterede artifact-hardening gaps er reproducerbar evidens og
-input-artifact references. Næste mindste sammenhængende slice skal vælges mellem
-disse gaps efter en eksplicit afgrænsning af problem, contract/schema-impact,
-invariants, tests og exclusions. Workflow-hardening eller nye capabilities må
-ikke blandes ind uden et separat accepteret behov.
+input-artifact references.
+
+Reproducerbar evidens er valgt som den aktive decision-slice i issue #19.
+Beslutningen skal definere den mindste canonical evidenskontrakt, dens
+fail-closed relation til ADR-0005/ADR-0006, validation boundary og eksplicitte
+exclusions uden at indføre input-artifact lineage, persistence eller runtime
+artifact validation. Implementation er ikke autoriseret, før beslutningen er
+accepteret i `development`. Input-artifact references forbliver et separat
+efterfølgende hardening-gap.
 
 ## Autoritativ arkitektur
 
