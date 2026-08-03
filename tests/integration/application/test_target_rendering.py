@@ -200,3 +200,29 @@ def test_rendered_revision_uses_compiled_artifact_contract() -> None:
             "- revision entry: `revision: <N>` where `<N>` matches "
             "`^[1-9][0-9]*$`"
         ) in content
+
+
+
+def test_rendered_status_invariants_use_compiled_artifact_contract() -> None:
+    expected_lines = (
+        "- status invariants:",
+        "  - `passRequiresCompleteEvidence`: `true`",
+        "  - `passForbidsDemonstratedNonconformance`: `true`",
+        "  - `failRequiresDemonstratedNonconformance`: `true`",
+        "  - `blockedRequiresUnavailablePrerequisite`: `true`",
+    )
+
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/requirements-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(".github/agents/requirements-worker.agent.md"),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        for expected in expected_lines:
+            assert expected in content

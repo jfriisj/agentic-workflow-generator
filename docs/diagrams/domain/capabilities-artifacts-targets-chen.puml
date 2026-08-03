@@ -31,6 +31,10 @@ entity "Artifact contract" as ARTIFACT_CONTRACT {
   requiredProvenanceIdentity : STRING <<multi>>
   revisionHeading : STRING
   revisionPattern : STRING
+  passRequiresCompleteEvidence : BOOLEAN
+  passForbidsDemonstratedNonconformance : BOOLEAN
+  failRequiresDemonstratedNonconformance : BOOLEAN
+  blockedRequiresUnavailablePrerequisite : BOOLEAN
 }
 
 entity "Permission profile" as PERMISSION_PROFILE {
@@ -135,6 +139,7 @@ MAPS_PERMISSION -(1,N)- PERMISSION_PROFILE
 ' - Selected skills provide every required capability.
 
 ' - Artifact production belongs to role bindings.
+' - Every artifact contract enforces all four shared status invariants as true.
 
 ' - Every target adapter maps every registered permission profile exactly once.
 ' - Permission settings are immutable typed name-value entries.

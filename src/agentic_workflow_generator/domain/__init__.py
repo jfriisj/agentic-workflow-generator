@@ -6,6 +6,7 @@ from .artifacts import (
     ArtifactProvenanceContract,
     ArtifactRevisionContract,
     ArtifactStatus,
+    ArtifactStatusInvariantContract,
 )
 from .bundles import (
     AgentInstance,
@@ -56,6 +57,7 @@ __all__ = [
     "ArtifactProvenanceContract",
     "ArtifactRevisionContract",
     "ArtifactStatus",
+    "ArtifactStatusInvariantContract",
     "BashPermission",
     "Bundle",
     "Diagnostic",

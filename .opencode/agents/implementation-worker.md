@@ -79,13 +79,18 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `ImplementationReport`
-  - `artifactVersion`: `0.4.0`
+  - `artifactVersion`: `0.5.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `implementation`
   - `agentInstance`: `implementation-worker`
 - revision heading: `## Revision`
 - revision entry: `revision: <N>` where `<N>` matches `^[1-9][0-9]*$`
+- status invariants:
+  - `passRequiresCompleteEvidence`: `true`
+  - `passForbidsDemonstratedNonconformance`: `true`
+  - `failRequiresDemonstratedNonconformance`: `true`
+  - `blockedRequiresUnavailablePrerequisite`: `true`
 
 
 ## Workflow Authority

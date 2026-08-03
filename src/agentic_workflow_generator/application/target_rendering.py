@@ -448,6 +448,23 @@ This agent instance does not own artifact production.
                     "- revision entry: `revision: <N>` where `<N>` matches "
                     f"`{artifact.revision.pattern}`"
                 ),
+                "- status invariants:",
+                (
+                    "  - `passRequiresCompleteEvidence`: `"
+                    f"{str(artifact.status_invariants.pass_requires_complete_evidence).lower()}`"
+                ),
+                (
+                    "  - `passForbidsDemonstratedNonconformance`: `"
+                    f"{str(artifact.status_invariants.pass_forbids_demonstrated_nonconformance).lower()}`"
+                ),
+                (
+                    "  - `failRequiresDemonstratedNonconformance`: `"
+                    f"{str(artifact.status_invariants.fail_requires_demonstrated_nonconformance).lower()}`"
+                ),
+                (
+                    "  - `blockedRequiresUnavailablePrerequisite`: `"
+                    f"{str(artifact.status_invariants.blocked_requires_unavailable_prerequisite).lower()}`"
+                ),
             ]
         )
 

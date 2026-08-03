@@ -40,7 +40,7 @@ def create_repository(
 
     artifact: JsonObject = {
         "type": artifact_type,
-        "version": "0.4.0",
+        "version": "0.5.0",
         "description": "Requirements contract.",
         "pathPattern": "agent-output/requirements/*.md",
         "status": {
@@ -61,6 +61,12 @@ def create_repository(
         "revision": {
             "heading": "## Revision",
             "pattern": "^[1-9][0-9]*$",
+        },
+        "statusInvariants": {
+            "passRequiresCompleteEvidence": True,
+            "passForbidsDemonstratedNonconformance": True,
+            "failRequiresDemonstratedNonconformance": True,
+            "blockedRequiresUnavailablePrerequisite": True,
         },
         "allowedStatuses": [
             "PASS",

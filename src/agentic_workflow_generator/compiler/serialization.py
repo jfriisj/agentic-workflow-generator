@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.5.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.6.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -158,6 +158,24 @@ def composition_to_json_object(
                     "revision": {
                         "heading": artifact.revision.heading,
                         "pattern": artifact.revision.pattern,
+                    },
+                    "statusInvariants": {
+                        "passRequiresCompleteEvidence": (
+                            artifact.status_invariants
+                            .pass_requires_complete_evidence
+                        ),
+                        "passForbidsDemonstratedNonconformance": (
+                            artifact.status_invariants
+                            .pass_forbids_demonstrated_nonconformance
+                        ),
+                        "failRequiresDemonstratedNonconformance": (
+                            artifact.status_invariants
+                            .fail_requires_demonstrated_nonconformance
+                        ),
+                        "blockedRequiresUnavailablePrerequisite": (
+                            artifact.status_invariants
+                            .blocked_requires_unavailable_prerequisite
+                        ),
                     },
                     "allowedStatuses": list(
                         artifact.allowed_statuses

@@ -11,6 +11,7 @@
     "status",
     "provenance",
     "revision",
+    "statusInvariants",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -91,6 +92,30 @@
         "pattern": {
           "type": "string",
           "const": "^[1-9][0-9]*$"
+        }
+      }
+    },
+    "statusInvariants": {
+      "type": "object",
+      "required": [
+        "passRequiresCompleteEvidence",
+        "passForbidsDemonstratedNonconformance",
+        "failRequiresDemonstratedNonconformance",
+        "blockedRequiresUnavailablePrerequisite"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "passRequiresCompleteEvidence": {
+          "const": true
+        },
+        "passForbidsDemonstratedNonconformance": {
+          "const": true
+        },
+        "failRequiresDemonstratedNonconformance": {
+          "const": true
+        },
+        "blockedRequiresUnavailablePrerequisite": {
+          "const": true
         }
       }
     },

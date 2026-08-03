@@ -1,6 +1,6 @@
 {
   "type": "Requirements",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Artifact contract for requirements output produced by Requirements agents.",
   "pathPattern": "agent-output/requirements/*.md",
   "status": {
@@ -21,6 +21,12 @@
   "revision": {
     "heading": "## Revision",
     "pattern": "^[1-9][0-9]*$"
+  },
+  "statusInvariants": {
+    "passRequiresCompleteEvidence": true,
+    "passForbidsDemonstratedNonconformance": true,
+    "failRequiresDemonstratedNonconformance": true,
+    "blockedRequiresUnavailablePrerequisite": true
   },
   "allowedStatuses": [
     "PASS",
