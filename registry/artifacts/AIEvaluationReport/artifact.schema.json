@@ -12,6 +12,7 @@
     "provenance",
     "revision",
     "statusInvariants",
+    "statusSemantics",
     "allowedStatuses",
     "requiredHeadings"
   ],
@@ -23,7 +24,7 @@
     },
     "version": {
       "type": "string",
-      "const": "0.5.0"
+      "const": "0.6.0"
     },
     "description": {
       "type": "string",
@@ -137,6 +138,34 @@
         },
         "blockedRequiresUnavailablePrerequisite": {
           "const": true
+        }
+      }
+    },
+    "statusSemantics": {
+      "type": "object",
+      "required": [
+        "passDefinition",
+        "failDefinition",
+        "blockedDefinition",
+        "mixedConditionRule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "passDefinition": {
+          "type": "string",
+          "const": "Every required AI evaluation criterion within the declared scope is supported by reproducible evidence and satisfies its declared threshold or acceptance condition; required datasets, scenarios, baselines, safety checks, failure-mode checks, and operational evidence are present when applicable; and no required evaluated scenario demonstrates unacceptable behavior."
+        },
+        "failDefinition": {
+          "type": "string",
+          "const": "Reproducible evidence demonstrates that at least one required quality, safety, failure-mode, or operational criterion or threshold is not satisfied."
+        },
+        "blockedDefinition": {
+          "type": "string",
+          "const": "Required evidence, dataset, scenario, baseline, threshold, evaluation condition, environment, or other prerequisite necessary to evaluate a required criterion is unavailable, missing, or unverifiable."
+        },
+        "mixedConditionRule": {
+          "type": "string",
+          "const": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
         }
       }
     },

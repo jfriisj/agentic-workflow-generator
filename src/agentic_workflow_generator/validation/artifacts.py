@@ -18,6 +18,7 @@ from agentic_workflow_generator.domain.artifacts import (
     ArtifactRevisionContract,
     ArtifactStatus,
     ArtifactStatusInvariantContract,
+    ArtifactStatusSemanticsContract,
 )
 from agentic_workflow_generator.infrastructure import (
     JsonObject,
@@ -217,6 +218,15 @@ def _schema_error_message(
 
     if (
         error.validator == "const"
+        and field_name == "statusSemantics.mixedConditionRule"
+    ):
+        return (
+            "statusSemantics.mixedConditionRule must be exactly "
+            "'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'"
+        )
+
+    if (
+        error.validator == "const"
         and field_name == "provenance.requiredIdentities"
     ):
         return (
@@ -262,6 +272,7 @@ def _required_field_message(
         "provenance",
         "revision",
         "statusInvariants",
+        "statusSemantics",
     }:
         return f"{field_name} must be an object"
 
@@ -308,6 +319,10 @@ def _parse_artifact(
     status_invariants = cast(
         JsonObject,
         source.data["statusInvariants"],
+    )
+    status_semantics = cast(
+        JsonObject,
+        source.data["statusSemantics"],
     )
 
     return _ParsedArtifact(
@@ -358,6 +373,24 @@ def _parse_artifact(
                     status_invariants[
                         "blockedRequiresUnavailablePrerequisite"
                     ],
+                ),
+            ),
+            status_semantics=ArtifactStatusSemanticsContract(
+                pass_definition=cast(
+                    str,
+                    status_semantics["passDefinition"],
+                ),
+                fail_definition=cast(
+                    str,
+                    status_semantics["failDefinition"],
+                ),
+                blocked_definition=cast(
+                    str,
+                    status_semantics["blockedDefinition"],
+                ),
+                mixed_condition_rule=cast(
+                    str,
+                    status_semantics["mixedConditionRule"],
                 ),
             ),
             allowed_statuses=_string_tuple(source.data["allowedStatuses"]),
@@ -537,6 +570,7 @@ def _expected_schema(
         "provenance",
         "revision",
         "statusInvariants",
+        "statusSemantics",
         "allowedStatuses",
         "requiredHeadings",
     ]
@@ -644,6 +678,34 @@ def _expected_schema(
                         contract.status_invariants
                         .blocked_requires_unavailable_prerequisite
                     ),
+                },
+            },
+        },
+        "statusSemantics": {
+            "type": "object",
+            "required": [
+                "passDefinition",
+                "failDefinition",
+                "blockedDefinition",
+                "mixedConditionRule",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "passDefinition": {
+                    "type": "string",
+                    "const": contract.status_semantics.pass_definition,
+                },
+                "failDefinition": {
+                    "type": "string",
+                    "const": contract.status_semantics.fail_definition,
+                },
+                "blockedDefinition": {
+                    "type": "string",
+                    "const": contract.status_semantics.blocked_definition,
+                },
+                "mixedConditionRule": {
+                    "type": "string",
+                    "const": contract.status_semantics.mixed_condition_rule,
                 },
             },
         },

@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.6.0",
+  "schemaVersion": "0.7.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -321,7 +321,7 @@
   "artifacts": [
     {
       "type": "ArchitectureDecision",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for architecture decision output produced by Architect agents.",
       "pathPattern": "agent-output/architecture-decision/*.md",
       "status": {
@@ -349,6 +349,12 @@
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
       },
+      "statusSemantics": {
+        "passDefinition": "The decision traces to approved requirements; system boundaries are explicit; material alternatives and tradeoffs are evaluated; consequences and risks are documented; and no unresolved requirement prevents implementation.",
+        "failDefinition": "The proposed architecture demonstrably violates an approved requirement or constraint.",
+        "blockedDefinition": "A requirement, quality attribute, constraint, or dependency fact necessary to make the architecture decision is unavailable, missing, or unverifiable.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -369,7 +375,7 @@
     },
     {
       "type": "CodeReview",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for code review gate output.",
       "pathPattern": "agent-output/code-review/*.md",
       "status": {
@@ -397,6 +403,12 @@
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
       },
+      "statusSemantics": {
+        "passDefinition": "Every required review dimension for the producing role binding has been completed with the required evidence, and no unresolved blocking finding or required fix remains within the reviewed scope.",
+        "failDefinition": "At least one reviewed dimension positively demonstrates a blocking defect, violated approved requirement or trust boundary, or other required fix that prevents the reviewed implementation from passing the code-review gate.",
+        "blockedDefinition": "Required changed scope, code, configuration, test evidence, dependency information, threat context, or other review evidence is unavailable, missing, or unverifiable such that the required review cannot be completed.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -416,7 +428,7 @@
     },
     {
       "type": "ImplementationReport",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for implementation output produced by Implementer agents.",
       "pathPattern": "agent-output/implementation/*.md",
       "status": {
@@ -444,6 +456,12 @@
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
       },
+      "statusSemantics": {
+        "passDefinition": "The approved change is implemented; required tests owned by the implementation responsibility are updated; required implementation-level validation available at this boundary has been run; and known risks plus validation deliberately owned by later independent gates are disclosed.",
+        "failDefinition": "The implementation or implementation-level validation positively demonstrates that the approved behavior is not satisfied.",
+        "blockedDefinition": "An approved input, dependency, tool, credential, environment, or required decision necessary to complete the implementation responsibility is unavailable, missing, or unverifiable.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -464,7 +482,7 @@
     },
     {
       "type": "QAReport",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for final QA gate output.",
       "pathPattern": "agent-output/qa-report/*.md",
       "status": {
@@ -492,6 +510,12 @@
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
       },
+      "statusSemantics": {
+        "passDefinition": "Every required acceptance criterion is satisfied by valid evidence and all required upstream gates pass.",
+        "failDefinition": "Valid evidence demonstrates that at least one required acceptance criterion is not satisfied, or a required upstream gate has an applicable `FAIL` result that QA is not permitted to override.",
+        "blockedDefinition": "Required evidence, artifacts, revisions, environments, decisions, or upstream gate evidence is unavailable, missing, stale, or unverifiable such that QA cannot establish the complete acceptance claim.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -512,7 +536,7 @@
     },
     {
       "type": "Requirements",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for requirements output produced by Requirements agents.",
       "pathPattern": "agent-output/requirements/*.md",
       "status": {
@@ -540,6 +564,12 @@
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
       },
+      "statusSemantics": {
+        "passDefinition": "Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.",
+        "failDefinition": "Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.",
+        "blockedDefinition": "A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+      },
       "allowedStatuses": [
         "PASS",
         "FAIL",
@@ -561,7 +591,7 @@
     },
     {
       "type": "TestReport",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "description": "Artifact contract for test execution and validation output.",
       "pathPattern": "agent-output/test-report/*.md",
       "status": {
@@ -588,6 +618,12 @@
         "passForbidsDemonstratedNonconformance": true,
         "failRequiresDemonstratedNonconformance": true,
         "blockedRequiresUnavailablePrerequisite": true
+      },
+      "statusSemantics": {
+        "passDefinition": "All required validation at the test-execution boundary has executed and passed, and no required test is missing or skipped.",
+        "failDefinition": "At least one required test or validation command executes and positively demonstrates that the product does not satisfy the tested contract.",
+        "blockedDefinition": "A required tool, dependency, environment, credential, fixture, or test input is unavailable, missing, or unverifiable such that required validation cannot execute or be established.",
+        "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
       },
       "allowedStatuses": [
         "PASS",

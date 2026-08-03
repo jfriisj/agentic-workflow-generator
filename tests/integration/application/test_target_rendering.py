@@ -226,3 +226,43 @@ def test_rendered_status_invariants_use_compiled_artifact_contract() -> None:
 
         for expected in expected_lines:
             assert expected in content
+
+def test_rendered_status_semantics_use_compiled_artifact_contract() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    production = next(
+        item
+        for item in active.composition.artifact_production
+        if item.artifact.type == "Requirements"
+    )
+    semantics = production.artifact.status_semantics
+    expected_lines = (
+        "- status semantics:",
+        f"  - `PASS`: {semantics.pass_definition}",
+        f"  - `FAIL`: {semantics.fail_definition}",
+        f"  - `BLOCKED`: {semantics.blocked_definition}",
+        (
+            "  - `mixedConditionRule`: "
+            f"`{semantics.mixed_condition_rule}`"
+        ),
+    )
+
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/requirements-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(".github/agents/requirements-worker.agent.md"),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        for expected in expected_lines:
+            assert expected in content
+
+        assert (
+            "Missing required evidence alone must result in `BLOCKED`; "
+            "demonstrated nonconformance remains governed by the artifact contract."
+        ) in content

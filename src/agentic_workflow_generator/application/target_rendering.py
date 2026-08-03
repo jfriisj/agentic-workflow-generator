@@ -330,7 +330,7 @@ def _render_agent_body(
 
 1. Stay inside the assigned role bindings.
 2. Do not invent missing workflow state or evidence.
-3. Missing required evidence must result in `BLOCKED`.
+3. Missing required evidence alone must result in `BLOCKED`; demonstrated nonconformance remains governed by the artifact contract.
 4. Do not override fail-closed workflow gates.
 5. Respect all separation-of-duties constraints.
 
@@ -464,6 +464,23 @@ This agent instance does not own artifact production.
                 (
                     "  - `blockedRequiresUnavailablePrerequisite`: `"
                     f"{str(artifact.status_invariants.blocked_requires_unavailable_prerequisite).lower()}`"
+                ),
+                "- status semantics:",
+                (
+                    "  - `PASS`: "
+                    f"{artifact.status_semantics.pass_definition}"
+                ),
+                (
+                    "  - `FAIL`: "
+                    f"{artifact.status_semantics.fail_definition}"
+                ),
+                (
+                    "  - `BLOCKED`: "
+                    f"{artifact.status_semantics.blocked_definition}"
+                ),
+                (
+                    "  - `mixedConditionRule`: `"
+                    f"{artifact.status_semantics.mixed_condition_rule}`"
                 ),
             ]
         )

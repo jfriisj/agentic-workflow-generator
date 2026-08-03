@@ -1,6 +1,6 @@
 {
   "type": "CodeReview",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Artifact contract for code review gate output.",
   "pathPattern": "agent-output/code-review/*.md",
   "status": {
@@ -27,6 +27,12 @@
     "passForbidsDemonstratedNonconformance": true,
     "failRequiresDemonstratedNonconformance": true,
     "blockedRequiresUnavailablePrerequisite": true
+  },
+  "statusSemantics": {
+    "passDefinition": "Every required review dimension for the producing role binding has been completed with the required evidence, and no unresolved blocking finding or required fix remains within the reviewed scope.",
+    "failDefinition": "At least one reviewed dimension positively demonstrates a blocking defect, violated approved requirement or trust boundary, or other required fix that prevents the reviewed implementation from passing the code-review gate.",
+    "blockedDefinition": "Required changed scope, code, configuration, test evidence, dependency information, threat context, or other review evidence is unavailable, missing, or unverifiable such that the required review cannot be completed.",
+    "mixedConditionRule": "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
   },
   "allowedStatuses": [
     "PASS",

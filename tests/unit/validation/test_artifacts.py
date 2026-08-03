@@ -48,6 +48,7 @@ def source(
     path_pattern: JsonValue = ("agent-output/requirements/*.md"),
     status: JsonValue = None,
     status_invariants: JsonValue = None,
+    status_semantics: JsonValue = None,
     allowed_statuses: JsonValue = None,
     required_headings: JsonValue = None,
     extra: tuple[str, JsonValue] | None = None,
@@ -89,6 +90,16 @@ def source(
             }
             if status_invariants is None
             else status_invariants
+        ),
+        "statusSemantics": (
+            {
+                "passDefinition": 'Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.',
+                "failDefinition": 'Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.',
+                "blockedDefinition": 'A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.',
+                "mixedConditionRule": 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE',
+            }
+            if status_semantics is None
+            else status_semantics
         ),
         "allowedStatuses": (
             ["PASS", "FAIL", "BLOCKED"]
@@ -194,6 +205,10 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         .blocked_requires_unavailable_prerequisite
         is True
     )
+    assert contract.status_semantics.pass_definition == 'Scope is explicit; requirements are internally consistent; acceptance criteria are testable; material assumptions and constraints are recorded; and no unresolved issue prevents downstream design.'
+    assert contract.status_semantics.fail_definition == 'Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.'
+    assert contract.status_semantics.blocked_definition == 'A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.'
+    assert contract.status_semantics.mixed_condition_rule == 'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'
     assert contract.allowed_statuses == (
         "PASS",
         "FAIL",
@@ -225,6 +240,9 @@ def test_valid_artifact_is_parsed_and_schema_is_projected() -> None:
         '"blockedRequiresUnavailablePrerequisite": {'
         in projection.canonical_json
     )
+    assert '"statusSemantics": {' in projection.canonical_json
+    assert '"passDefinition": {' in projection.canonical_json
+    assert '"mixedConditionRule": {' in projection.canonical_json
 
 
 @pytest.mark.parametrize(
@@ -305,6 +323,13 @@ def test_obsolete_artifact_fields_are_rejected(
                 "invalid",
             ),
             "statusInvariants must be an object",
+        ),
+        (
+            lambda data: data.__setitem__(
+                "statusSemantics",
+                "invalid",
+            ),
+            "statusSemantics must be an object",
         ),
         (
             lambda data: data.__setitem__(
@@ -521,6 +546,10 @@ def test_string_type_error_preserves_public_message() -> None:
         (
             "statusInvariants",
             "statusInvariants must be an object",
+        ),
+        (
+            "statusSemantics",
+            "statusSemantics must be an object",
         ),
     ],
 )
@@ -817,6 +846,82 @@ def test_status_invariant_members_cannot_be_renamed() -> None:
     assert isinstance(invariants, dict)
     invariants.pop("failRequiresDemonstratedNonconformance")
     invariants["failMayBeInferred"] = True
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    assert result.contracts == ()
+    assert result.schema_projections == ()
+    assert result.diagnostics
+    assert all(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "passDefinition",
+        "failDefinition",
+        "blockedDefinition",
+    ],
+)
+def test_status_semantics_definitions_must_be_non_empty(
+    field: str,
+) -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    semantics = data["statusSemantics"]
+    assert isinstance(semantics, dict)
+    semantics[field] = ""
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == (
+        f"statusSemantics.{field} must be a non-empty string"
+    )
+
+
+def test_status_semantics_mixed_condition_rule_is_canonical() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    semantics = data["statusSemantics"]
+    assert isinstance(semantics, dict)
+    semantics["mixedConditionRule"] = "BLOCKED_FIRST"
+    invalid_source = RegistrySource(
+        kind=RegistryKind.ARTIFACT,
+        source_path=artifact_source.source_path,
+        data=data,
+    )
+
+    result = validate(invalid_source, snapshots=())
+
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.code == SCHEMA_DIAGNOSTIC
+    assert diagnostic.message == (
+        "statusSemantics.mixedConditionRule must be exactly "
+        "'FAIL_ON_DEMONSTRATED_NONCONFORMANCE'"
+    )
+
+
+def test_status_semantics_members_cannot_be_renamed() -> None:
+    artifact_source = source()
+    data = artifact_source.to_json_object()
+    semantics = data["statusSemantics"]
+    assert isinstance(semantics, dict)
+    semantics.pop("failDefinition")
+    semantics["failureDefinition"] = "renamed"
     invalid_source = RegistrySource(
         kind=RegistryKind.ARTIFACT,
         source_path=artifact_source.source_path,

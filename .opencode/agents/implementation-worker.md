@@ -26,7 +26,7 @@ Implements approved work according to requirements, plan, and architecture.
 
 1. Stay inside the assigned role bindings.
 2. Do not invent missing workflow state or evidence.
-3. Missing required evidence must result in `BLOCKED`.
+3. Missing required evidence alone must result in `BLOCKED`; demonstrated nonconformance remains governed by the artifact contract.
 4. Do not override fail-closed workflow gates.
 5. Respect all separation-of-duties constraints.
 
@@ -79,7 +79,7 @@ Produced output must satisfy each compiled artifact contract.
 - provenance heading: `## Provenance`
 - provenance identities:
   - `artifactType`: `ImplementationReport`
-  - `artifactVersion`: `0.5.0`
+  - `artifactVersion`: `0.6.0`
   - `workflow`: `orchestrated-delivery`
   - `workflowVersion`: `0.2.0`
   - `roleBinding`: `implementation`
@@ -91,6 +91,11 @@ Produced output must satisfy each compiled artifact contract.
   - `passForbidsDemonstratedNonconformance`: `true`
   - `failRequiresDemonstratedNonconformance`: `true`
   - `blockedRequiresUnavailablePrerequisite`: `true`
+- status semantics:
+  - `PASS`: The approved change is implemented; required tests owned by the implementation responsibility are updated; required implementation-level validation available at this boundary has been run; and known risks plus validation deliberately owned by later independent gates are disclosed.
+  - `FAIL`: The implementation or implementation-level validation positively demonstrates that the approved behavior is not satisfied.
+  - `BLOCKED`: An approved input, dependency, tool, credential, environment, or required decision necessary to complete the implementation responsibility is unavailable, missing, or unverifiable.
+  - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
 
 
 ## Workflow Authority

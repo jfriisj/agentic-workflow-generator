@@ -86,8 +86,7 @@ aktuel projektstatus.
 Den eksisterende artifact-model mangler fortsat fuld implementation for:
 
 - reproducerbar evidens;
-- input-artifact references;
-- artifact-specifik statussemantik.
+- input-artifact references.
 
 ### Workflows
 
@@ -115,32 +114,22 @@ kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
 **Artifact contract hardening** er fortsat den accepterede produktprioritet.
 
-Canonical artifact provenance semantics, artifact revision contract og shared
-artifact status-invariant contract er implementeret end-to-end. Status-invariant
-semantikken følger ADR-0005.
+Canonical artifact provenance semantics, artifact revision contract, shared
+artifact status-invariant contract og artifact-specifik statussemantik er nu
+implementeret end-to-end. Shared invariants følger ADR-0005, og de syv
+artifact-specifikke klassifikationskontrakter følger ADR-0006.
 
-Artifact-specifik statusklassifikation er nu besluttet i ADR-0006 for de syv
-eksisterende governed artifacts. Beslutningen fastlægger artifact-specifikke
-`PASS`, `FAIL` og `BLOCKED`-definitioner samt mixed-condition-reglen uden at
-indføre workflow-routing, runtime artifact validation eller et generisk policy
-engine.
+ADR-0006-semantikken bevares deterministisk i artifact contracts, generated
+schemas, active config og begge eksisterende targetrenderere. Producing role
+bindings klassificerer fortsat evidensen; workflow-controlleren ejer fortsat kun
+routing. Der er ikke indført runtime artifact validation, persistence eller et
+generisk policy engine.
 
-Næste mindste sammenhængende slice er at implementere ADR-0006 end-to-end i den
-eksisterende artifact-contract boundary. Implementation skal mindst:
-
-- tilføje én typed artifact-specifik status-semantics contract;
-- gøre de canonical semantics obligatoriske for alle syv artifact contracts;
-- bevare semantics deterministisk i generated schemas, active config og begge
-  eksisterende targetrenderere;
-- validere contract shape og canonical projection fail-closed;
-- opdatere producer-facing instruktioner, tests, generated output og lock state
-  hvor den eksisterende compilerpipeline kræver det;
-- evolvere berørte artifact contract versions eksplicit.
-
-Slicen må ikke implementere workflow- eller `BLOCKED`-routing, retry,
-escalation, artifact invalidation, reproducible evidence hashes,
-input-artifact lineage, produced-artifact persistence, execution history,
-runtime artifact validation, configurable policy engines eller nye targets.
+De resterende accepterede artifact-hardening gaps er reproducerbar evidens og
+input-artifact references. Næste mindste sammenhængende slice skal vælges mellem
+disse gaps efter en eksplicit afgrænsning af problem, contract/schema-impact,
+invariants, tests og exclusions. Workflow-hardening eller nye capabilities må
+ikke blandes ind uden et separat accepteret behov.
 
 ## Autoritativ arkitektur
 
