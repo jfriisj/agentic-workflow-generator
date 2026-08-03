@@ -12,19 +12,19 @@ autoritative diagramkilder og accepterede ADRs. Teknologibaselinen dokumenteres 
 
 ## Aktuel fase
 
-**V1 completion planning within post-migration hardening**
+**V1 completion**
 
 Migrationen til den typed `AgentInstance` / `RoleBinding`-arkitektur,
 `CompiledComposition` som canonical compiler-authoritet og typed top-level CLI er
 afsluttet.
 
-ADR-0008 fastlægger nu et endeligt v1-produktmål og seks målbare milestones.
-Projektet arbejder derfor ikke længere ud fra en åben række hardening-slices,
-men mod en finite v1 exit condition.
+ADR-0008 fastlægger v1-produktmål, seks målbare milestones, controlled evolution
+og en finite release-readiness exit condition. `docs/scope.md` er nu alignet med
+den beslutning og autoriserer kun det bounded arbejde, der kræves for at afslutte
+de seks milestones.
 
-Det nuværende accepterede implementation scope i `docs/scope.md` gælder fortsat
-uændret, indtil en separat scope-transition er accepteret. ADR-0008 autoriserer
-ikke implementation uden for dette scope.
+Projektet arbejder derfor mod en repository-verificerbar v1 completion state
+frem for en åben post-migration hardening-fase.
 
 ## V1 outcome
 
@@ -163,20 +163,26 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-**V1 roadmap authority** er næste sammenhængende workstream.
+**Dependency-ordered v1 roadmap derivation** er næste sammenhængende workstream.
 
-Efter ADR-0008 skal en separat scope/planning-slice:
+ADR-0008 og `docs/scope.md` giver nu den nødvendige authority til at oprette
+roadmap issues. Roadmappet skal:
 
-1. sammenholde `docs/scope.md` med det accepterede v1-outcome;
-2. mappe hvert kendt gap til et v1 milestone eller eksplicit deferre det;
-3. oprette et dependency-ordered roadmap;
+1. mappe hvert kendt v1-gap til et ADR-0008 milestone og exit criterion;
+2. oprette research/decision work før implementation, hvor semantics eller
+   technology endnu ikke er accepteret;
+3. gøre dependencies eksplicitte med `Blocked by #...` / `Blocks #...`;
 4. holde implementation issues blocked, indtil deres nødvendige decisions og
-   scope authority er accepteret.
+   prerequisites er resolved;
+5. holde hver implementation som én bounded, validerbar slice.
 
-Structurizr DSL, documentation consolidation, input-artifact references,
-workflow-hardening, registry-audit og consumer acceptance skal derfor behandles
-som separate bounded roadmap-slices frem for at blive blandet sammen i én
-implementation.
+De første separate roadmap-områder er architecture-model research/decision,
+architecture/documentation consolidation, input-artifact references,
+workflow-semantics, registry-audit, target preservation og consumer acceptance.
+
+Structurizr DSL er fortsat kun en kandidat til en senere architecture-model
+decision. Den nuværende PlantUML authority gælder indtil en accepteret beslutning
+erstatter den.
 
 ## Autoritativ arkitektur
 
