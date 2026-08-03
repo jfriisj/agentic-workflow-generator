@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 2. august 2026
+Opdateret: 3. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -117,20 +117,30 @@ kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
 Canonical artifact provenance semantics, artifact revision contract og shared
 artifact status-invariant contract er implementeret end-to-end. Status-invariant
-semantikken følger ADR-0005. Den næste slice skal vælges blandt de resterende
-artifact-gaps og afgrænses som den mindste sammenhængende
-artifact-hardening-ændring.
+semantikken følger ADR-0005.
 
-Før implementation skal slicen definere:
+Artifact-specifik statusklassifikation er nu besluttet i ADR-0006 for de syv
+eksisterende governed artifacts. Beslutningen fastlægger artifact-specifikke
+`PASS`, `FAIL` og `BLOCKED`-definitioner samt mixed-condition-reglen uden at
+indføre workflow-routing, runtime artifact validation eller et generisk policy
+engine.
 
-- hvilket artifact-problem der løses;
-- hvilke contracts og schemas der berøres;
-- hvilke invariants der tilføjes;
-- hvilke tests der beviser semantikken;
-- hvilket relateret arbejde der eksplicit er uden for slicen.
+Næste mindste sammenhængende slice er at implementere ADR-0006 end-to-end i den
+eksisterende artifact-contract boundary. Implementation skal mindst:
 
-Workflow-, setup- og targetarbejde må ikke blandes ind, medmindre det er strengt
-nødvendigt for den valgte artifact-kontrakts accepterede end-to-end-semantik.
+- tilføje én typed artifact-specifik status-semantics contract;
+- gøre de canonical semantics obligatoriske for alle syv artifact contracts;
+- bevare semantics deterministisk i generated schemas, active config og begge
+  eksisterende targetrenderere;
+- validere contract shape og canonical projection fail-closed;
+- opdatere producer-facing instruktioner, tests, generated output og lock state
+  hvor den eksisterende compilerpipeline kræver det;
+- evolvere berørte artifact contract versions eksplicit.
+
+Slicen må ikke implementere workflow- eller `BLOCKED`-routing, retry,
+escalation, artifact invalidation, reproducible evidence hashes,
+input-artifact lineage, produced-artifact persistence, execution history,
+runtime artifact validation, configurable policy engines eller nye targets.
 
 ## Autoritativ arkitektur
 
