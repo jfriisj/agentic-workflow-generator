@@ -1,14 +1,14 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 3. august 2026
+Opdateret: 4. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
 Accepteret scope ejes af `docs/scope.md`. Governance ejes af
 `docs/governance.md`. Den operationelle leveranceproces ejes alene af
-`docs/workflow.md`. Arkitektur ejes af `docs/architecture.md`, de deri udpegede
-autoritative diagramkilder og accepterede ADRs. Teknologibaselinen dokumenteres i
-`docs/tech-stack.md`.
+`docs/workflow.md`. Arkitekturnarrativet ejes af `docs/architecture.md`, den eneste semantiske
+architecture-model ejes af `docs/architecture/workspace.dsl`, og rationale ejes af
+accepterede ADRs. Teknologibaselinen dokumenteres i `docs/tech-stack.md`.
 
 ## Aktuel fase
 
@@ -58,8 +58,8 @@ Følgende er implementeret og accepteret:
 - target adapters for `vscode-copilot` og `opencode`;
 - release-CI-validering på Python 3.11 og 3.13 for pull requests til
   `production`;
-- reproducerbar domain-diagram-rendering med pinned PlantUML, Smetana og pinned
-  DejaVu-fontinput.
+- canonical Structurizr DSL architecture-model med pinned Structurizr/Docker
+  validation og reproducible derived SVG via pinned PlantUML, Smetana og DejaVu.
 
 Der findes ingen separat resolution-authoritet, compatibility projection eller
 silent fallback-path.
@@ -95,8 +95,8 @@ Følgende repository-foundation er etableret på `development`:
 - shared og artifact-specifik statussemantik;
 - reproducible artifact evidence contract;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
-- canonical domain-diagram-rendering med PlantUML 1.2026.6, Smetana og isoleret
-  DejaVu 2.37 font-resolution.
+- canonical Structurizr DSL architecture-model med repository-owned validation
+  og reproducible stakeholder-SVG rendering.
 
 Historisk test- og migrationsstatistik bevares i Git-historikken og er ikke
 aktuel projektstatus.
@@ -141,16 +141,18 @@ den composition, der faktisk materialiseres.
 
 ### Architecture and documentation
 
-Den nuværende architecture/documentation authority er mere kompleks end det
-ønskede v1-niveau. Et separat roadmap skal beslutte og gennemføre:
+ADR-0009 architecture-model migrationen er gennemført i den nuværende
+integration-target state:
 
-- én kort og præcis architecture narrative;
-- én canonical architecture model;
-- fjernelse af redundant current-state documentation;
-- en separat teknologibeslutning før en eventuel migration fra PlantUML til
-  Structurizr DSL.
+- `docs/architecture/workspace.dsl` er den eneste semantiske architecture-model;
+- stakeholder-visninger er derived SVG under `docs/architecture/diagrams/`;
+- Structurizr-validering/export er pinned og repository-owned;
+- de tidligere authoritative PlantUML-domainkilder er fjernet;
+- PlantUML er kun retained som ephemeral derived rendering-input.
 
-ADR-0008 vælger ikke diagramteknologi.
+Den efterfølgende architecture/documentation consolidation er fortsat et separat
+bounded Milestone 1-arbejde. Den må reducere redundant current-state
+documentation, men må ikke udvide produkt- eller compiler-scope.
 
 ### Testkvalitet og consumer acceptance
 
@@ -163,81 +165,59 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-**Architecture-model migration** er næste sammenhængende architecture workstream.
+**Architecture/documentation consolidation** er den næste bounded
+architecture-kandidat efter architecture-model migrationen.
 
-ADR-0008, `docs/scope.md` og ADR-0009 giver nu authority til at fortsætte det
-dependency-ordered v1 roadmap. Roadmappet skal:
-
-1. mappe hvert kendt v1-gap til et ADR-0008 milestone og exit criterion;
-2. oprette research/decision work før implementation, hvor semantics eller
-   technology endnu ikke er accepteret;
-3. gøre dependencies eksplicitte med `Blocked by #...` / `Blocks #...`;
-4. holde implementation issues blocked, indtil deres nødvendige decisions og
-   prerequisites er resolved;
-5. holde hver implementation som én bounded, validerbar slice.
-
-Architecture-model research og technology selection er nu afsluttet. Den næste
-bounded architecture-slice er migrationen til den ADR-0009-valgte Structurizr
-DSL-model. Architecture/documentation consolidation følger separat efter
-migrationen.
+Den skal kun reducere redundant current-state architecture/documentation og
+bevare de nye authority-grænser. Den må ikke genåbne architecture-model
+technology selection eller indføre nye compiler capabilities.
 
 De øvrige roadmap-områder omfatter input-artifact references,
 workflow-semantics, registry-audit, target preservation og consumer acceptance.
 
-Indtil migrationens atomiske authority-cutover er merged, gælder den nuværende
-PlantUML authority fortsat operationelt.
-
 ## Accepted architecture-model decision
 
 ADR-0009 selects Structurizr DSL as the v1 canonical architecture-model
-technology.
-
-The accepted target authority is:
+technology, and the migration cutover has established:
 
 ```text
 docs/architecture/workspace.dsl
 ```
 
-with local included `.dsl` fragments as part of the same workspace.
+as the sole semantic architecture model.
 
-The decision does not itself perform the migration. Until a migration PR creates
-and validates that workspace and updates authority references atomically, the
-current ADR-0003 PlantUML sources remain the operational architecture authority.
+The accepted documentation toolchain is:
 
-The migration will use pinned Structurizr vNext validation through an official
-Docker image pinned by digest. Docker is admitted only as documentation
-build/validation tooling and does not enter the compiler/runtime dependency
-boundary.
+- Structurizr vNext `2026.06.28`;
+- official image tag `structurizr/structurizr:2026.06.28-noble`;
+- accepted content digest
+  `sha256:b5140a2a783b0cc780fe4b54dcfeecb565ddd5fce5a578e7ff600b78ad0cc03a`;
+- Linux amd64;
+- Docker as a development/documentation toolchain prerequisite only;
+- PlantUML `1.2026.6`, Smetana and DejaVu `2.37` only for the retained
+  reproducible derived SVG stage.
 
-Native Structurizr browser/Playwright image export is not part of the accepted v1
-rendering boundary. If committed SVG remains required, PlantUML may remain only
-as a derived, reproducible rendering stage.
+Normal architecture validation uses the content-addressed local Structurizr
+image with networking disabled. Explicit preparation is the only acquisition
+step. No Structurizr, Docker or Java dependency enters the product/compiler
+runtime boundary.
 
-The next architecture action is therefore a bounded implementation issue for
-the architecture-model migration. General architecture/documentation
-consolidation remains a separate subsequent slice.
+Native Structurizr browser/Playwright rendering remains excluded.
 
 ## Autoritativ arkitektur
 
-ADR-0009 er accepteret, men architecture-model migrationen er endnu ikke
-gennemført. Indtil migrationens atomiske authority-cutover etablerer og
-validerer `docs/architecture/workspace.dsl`, er den operationelle architecture
-authority fortsat:
+Den aktuelle authority efter ADR-0009 cutover er:
 
-- `docs/architecture.md`
-- `docs/core-domain-model.md`
-- `docs/adr/`
-- `docs/diagrams/domain/agentic-domain-overview.puml`
-- `docs/diagrams/domain/setup-selection-chen.puml`
-- `docs/diagrams/domain/workflow-control-chen.puml`
-- `docs/diagrams/domain/agent-composition-chen.puml`
-- `docs/diagrams/domain/capabilities-artifacts-targets-chen.puml`
+- `docs/architecture.md` — current-state architecture narrative;
+- `docs/architecture/workspace.dsl` — sole semantic architecture model;
+- `docs/core-domain-model.md` — detailed textual core-domain semantics;
+- `docs/adr/` — architecture rationale and accepted decisions.
 
-De detaljerede PlantUML-kilder er fortsat operationelt autoritative for deres
-respektive bounded contexts frem til cutover. Ved cutover bliver den validerede
-Structurizr-workspace den eneste semantiske architecture-model authority, og
-PlantUML kan kun bevares som afledt rendering-input.
+Stakeholder-facing derived architecture output er:
 
-Committed SVG-filer er stakeholder-facing derived output og skal forblive
-canonical med de accepterede pinnede rendering-inputs, så længe den nuværende
-afledte rendering-pipeline anvendes.
+- `docs/architecture/diagrams/system-context.svg`;
+- `docs/architecture/diagrams/compiler-responsibilities.svg`.
+
+De committed SVG-filer er ikke semantic authority. Deres ephemeral PlantUML
+input genereres deterministisk fra Structurizr-workspacet og renderes med den
+retained ADR-0003 PlantUML/Smetana/DejaVu-kontrakt.

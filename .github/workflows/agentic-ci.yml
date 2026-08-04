@@ -77,11 +77,17 @@ jobs:
           uv run agentic-workflow-generator validate-environment
           uv run agentic-workflow-generator doctor-strict
 
-      - name: Verify domain diagrams
+      - name: Prepare architecture model toolchain
         shell: bash
         run: |
           set -euo pipefail
-          uv run render-domain-diagrams --check
+          uv run architecture-model prepare
+
+      - name: Verify architecture model
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run architecture-model check
 
       - name: Verify clean working tree
         shell: bash

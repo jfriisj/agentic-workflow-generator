@@ -2,31 +2,25 @@
 
 ## Purpose
 
-This document defines the platform-neutral core domain used by
-`agentic-workflow-generator`.
+This document defines and owns the detailed platform-neutral core-domain
+semantics used by `agentic-workflow-generator`.
 
-The conceptual model is divided by bounded context.
+It records the stable domain concepts, ownership rules and invariants that the
+registry schemas, typed models, semantic validators, compiler and target
+renderers must preserve.
 
-The navigation overview is:
-
-~~~text
-docs/diagrams/domain/agentic-domain-overview.puml
-~~~
-
-The authoritative detailed Chen diagrams are:
+The sole semantic architecture model is separate:
 
 ~~~text
-docs/diagrams/domain/setup-selection-chen.puml
-docs/diagrams/domain/workflow-control-chen.puml
-docs/diagrams/domain/agent-composition-chen.puml
-docs/diagrams/domain/capabilities-artifacts-targets-chen.puml
+docs/architecture/workspace.dsl
 ~~~
 
-Each detailed diagram owns the complete definitions and cardinalities for its
-bounded context. Entities marked `<<reference>>` are defined authoritatively in
-another detailed diagram.
+That workspace owns system boundaries, architectural responsibilities and
+dependency directions. It intentionally does not duplicate the detailed entity
+attributes, domain relationships and workflow/artifact semantics documented
+here and enforced by contracts, source and tests.
 
-The compiler pipeline and implementation boundaries are authoritative in:
+The compiler pipeline and current architecture narrative are authoritative in:
 
 ~~~text
 docs/architecture.md
