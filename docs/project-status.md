@@ -219,8 +219,10 @@ consolidation remains a separate subsequent slice.
 
 ## Autoritativ arkitektur
 
-Indtil en separat architecture-model decision er accepteret, er den eksisterende
-architecture authority uændret:
+ADR-0009 er accepteret, men architecture-model migrationen er endnu ikke
+gennemført. Indtil migrationens atomiske authority-cutover etablerer og
+validerer `docs/architecture/workspace.dsl`, er den operationelle architecture
+authority fortsat:
 
 - `docs/architecture.md`
 - `docs/core-domain-model.md`
@@ -231,7 +233,11 @@ architecture authority uændret:
 - `docs/diagrams/domain/agent-composition-chen.puml`
 - `docs/diagrams/domain/capabilities-artifacts-targets-chen.puml`
 
-De detaljerede PlantUML-kilder er fortsat autoritative for deres respektive
-bounded contexts, og committed SVG-filer skal forblive canonical med de pinnede
-rendering-inputs, indtil en senere accepteret beslutning erstatter denne
-authority.
+De detaljerede PlantUML-kilder er fortsat operationelt autoritative for deres
+respektive bounded contexts frem til cutover. Ved cutover bliver den validerede
+Structurizr-workspace den eneste semantiske architecture-model authority, og
+PlantUML kan kun bevares som afledt rendering-input.
+
+Committed SVG-filer er stakeholder-facing derived output og skal forblive
+canonical med de accepterede pinnede rendering-inputs, så længe den nuværende
+afledte rendering-pipeline anvendes.
