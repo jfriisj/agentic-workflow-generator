@@ -141,18 +141,22 @@ den composition, der faktisk materialiseres.
 
 ### Architecture and documentation
 
-ADR-0009 architecture-model migrationen er gennemført i den nuværende
+ADR-0009 architecture-model migrationen og den efterfølgende bounded
+architecture/documentation consolidation er gennemført i den nuværende
 integration-target state:
 
 - `docs/architecture/workspace.dsl` er den eneste semantiske architecture-model;
+- `docs/architecture.md` er reduceret til den concise current-state
+  architecture narrative;
+- `docs/core-domain-model.md` ejer fortsat detailed platform-neutral
+  core-domain semantics;
 - stakeholder-visninger er derived SVG under `docs/architecture/diagrams/`;
 - Structurizr-validering/export er pinned og repository-owned;
 - de tidligere authoritative PlantUML-domainkilder er fjernet;
 - PlantUML er kun retained som ephemeral derived rendering-input.
 
-Den efterfølgende architecture/documentation consolidation er fortsat et separat
-bounded Milestone 1-arbejde. Den må reducere redundant current-state
-documentation, men må ikke udvide produkt- eller compiler-scope.
+Konsolideringen ændrer ikke produkt-, compiler-, registry-, workflow-, artifact-
+eller target-scope.
 
 ### Testkvalitet og consumer acceptance
 
@@ -165,14 +169,11 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-**Architecture/documentation consolidation** er den næste bounded
-architecture-kandidat efter architecture-model migrationen.
+Architecture/documentation consolidation er afsluttet. Denne ændring vælger ikke
+en ny workstream. Næste konkrete prioritet skal vælges fra de resterende
+accepterede v1-gaps gennem repository issue/readiness-flowet.
 
-Den skal kun reducere redundant current-state architecture/documentation og
-bevare de nye authority-grænser. Den må ikke genåbne architecture-model
-technology selection eller indføre nye compiler capabilities.
-
-De øvrige roadmap-områder omfatter input-artifact references,
+De resterende roadmap-områder omfatter input-artifact references,
 workflow-semantics, registry-audit, target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
