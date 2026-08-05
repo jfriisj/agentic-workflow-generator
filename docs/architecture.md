@@ -12,7 +12,7 @@ The current implementation and deployment model is a modular monolith with a det
 
 The deterministic compiler core is the stable center of the system. Delivery interfaces, input acquisition, validation, target rendering and filesystem/process effects remain outside canonical compiler semantics.
 
-Significant changes to long-lived boundaries, dependency direction, canonical representations, persistence responsibilities, external contracts or deployment topology require an ADR. ADRs preserve rationale; this document remains authoritative for the current architecture.
+Significant changes to long-lived boundaries, dependency direction, canonical representations, persistence responsibilities, external contracts or deployment topology require an ADR. ADRs preserve rationale; this document remains the authoritative current-state architecture narrative, while `docs/architecture/workspace.dsl` is the sole semantic architecture model.
 
 The rationale for the current architecture style is recorded in `docs/adr/0001-modular-monolith-deterministic-compiler-core.md`.
 
@@ -105,40 +105,31 @@ The current workflow invariants — including one controller per workflow and ex
 
 ## Conceptual domain model
 
-The conceptual model is divided into bounded contexts to avoid one abstract,
-densely connected domain diagram.
-
-The navigation overview is:
+The sole semantic architecture model is:
 
 ~~~text
-docs/diagrams/domain/agentic-domain-overview.puml
+docs/architecture/workspace.dsl
 ~~~
 
-The overview is not authoritative for attributes or cardinalities.
+It owns the stable v1 system boundary, architectural responsibility boundaries,
+supported external target frameworks and important dependency directions. The
+workspace uses explicit stable view keys and DSL-owned `autoLayout`.
 
-The detailed Chen diagrams are:
+Stakeholder-facing derived views are committed as:
 
 ~~~text
-docs/diagrams/domain/setup-selection-chen.puml
-docs/diagrams/domain/workflow-control-chen.puml
-docs/diagrams/domain/agent-composition-chen.puml
-docs/diagrams/domain/capabilities-artifacts-targets-chen.puml
+docs/architecture/diagrams/system-context.svg
+docs/architecture/diagrams/compiler-responsibilities.svg
 ~~~
 
-Each detailed diagram is authoritative for the full entities, relationships and
-cardinalities owned by its bounded context. Cross-context entities are marked
-as references and remain authoritative in the diagram that owns their complete
-definition.
+Those SVG files are reproducible derived output. Structurizr-exported PlantUML
+is ephemeral rendering input; neither PlantUML nor SVG is semantic architecture
+authority.
 
-JSON schemas, typed domain models, registry validators, compilation and target
-generation must remain consistent with these boundaries.
-
-Rendered SVG files are maintained beside every PlantUML source. Diagram
-navigation and authority rules are documented in:
-
-~~~text
-docs/diagrams/domain/README.md
-~~~
+Detailed platform-neutral domain semantics remain owned by
+`docs/core-domain-model.md`, registry/schema contracts, source and tests. The
+architecture model intentionally does not duplicate detailed entity attributes,
+artifact fields, workflow gate contracts or registry content.
 
 The central composition chain is:
 
@@ -149,7 +140,10 @@ Agent profile
   -> Workflow state and gate
 ~~~
 
-Agent profiles and skill recommendations are reusable defaults. The active bundle owns concrete agent instances, role bindings, capabilities, selected skills, instance-level permissions, artifacts, guardrails, controller authority, and separation policies.
+Agent profiles and skill recommendations are reusable defaults. The active bundle
+owns concrete agent instances, role bindings, capabilities, selected skills,
+instance-level permissions, artifacts, guardrails, controller authority, and
+separation policies.
 
 ## High-level flow
 
@@ -208,23 +202,24 @@ source code
 tests and validation gates
 JSON schemas and registry contracts
 docs/scope.md
-project-status.md
+docs/project-status.md
 docs/governance.md
 docs/workflow.md
 docs/tech-stack.md
 docs/architecture.md
 docs/core-domain-model.md
 docs/adr/
-docs/diagrams/domain/README.md
-docs/diagrams/domain/*.puml
-docs/diagrams/domain/*.svg
+docs/architecture/workspace.dsl
+docs/architecture/diagrams/*.svg
 ~~~
 
 Only affected authority files should change. Scope and governance must not be
 rewritten merely because implementation changed.
 
-The detailed PlantUML sources are authoritative for their respective bounded
-contexts. Every affected rendered SVG must be regenerated in the same change.
+`docs/architecture/workspace.dsl` is the sole semantic architecture model.
+`docs/core-domain-model.md` remains the detailed textual domain authority.
+Committed architecture SVG files are stakeholder-facing derived output and must
+be regenerated in the same change whenever the canonical workspace changes.
 
 Superseded proposals and migration history are preserved in Git history rather
 than maintained as parallel current-state authority.

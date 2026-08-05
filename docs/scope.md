@@ -223,8 +223,8 @@ ADR-0008 Milestone 1 are in scope, including:
 - `docs/architecture.md`;
 - `docs/core-domain-model.md` while it remains current authority;
 - relevant ADRs;
-- current authoritative PlantUML sources while ADR-0003 remains accepted;
-- rendered architecture diagrams;
+- the canonical `docs/architecture/workspace.dsl` architecture model;
+- reproducible derived architecture diagrams;
 - registry documentation;
 - workflow and technology documentation;
 - CI and pull-request workflow configuration.
@@ -232,9 +232,10 @@ ADR-0008 Milestone 1 are in scope, including:
 Documentation must describe implemented current state accurately and must not
 present exploratory work as current behavior.
 
-This scope does not by itself adopt Structurizr DSL, supersede ADR-0003 or
-authorize an architecture-model migration. Such a migration requires separate
-research and an accepted architecture/technology decision before implementation.
+ADR-0009 separately admits Structurizr DSL and the pinned documentation-tool
+boundary used by the canonical architecture model. Maintenance of that accepted
+model, its validation and its derived rendering is therefore in scope. A future
+architecture-model technology change still requires a separate accepted decision.
 
 ## Hard architectural constraints
 
@@ -288,7 +289,7 @@ The following work is not currently authorized:
 - retry policy not already represented by the accepted workflow model;
 - escalation policy not already represented by the accepted workflow model;
 - artifact invalidation semantics;
-- architecture-model technology migration without a separate accepted decision;
+- architecture-model technology change without a separate accepted decision;
 - speculative capabilities, abstractions or infrastructure without an accepted
   current requirement.
 

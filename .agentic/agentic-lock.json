@@ -14,8 +14,8 @@
       "src/agentic_workflow_generator/**/*.py",
       "uv.lock"
     ],
-    "fileCount": 167,
-    "contentHash": "sha256:f4a70dfed65207dea7899b352aef7d141bc7b37e14385c7080cdfd3a9be87885",
+    "fileCount": 168,
+    "contentHash": "sha256:7fe97226fd2876208e2b6b145fb88503323555a701278148983f0b57bff4d343",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -84,8 +84,8 @@
       },
       {
         "path": "pyproject.toml",
-        "sha256": "sha256:3c162c04dca7965f7b88fb9398b31b3cc23ba01802fd4e09f1e459a21737fd65",
-        "sizeBytes": 1560
+        "sha256": "sha256:41abb15c27f6d64622899a089218080593a81a4c1321e5d42d79cbd7a75ff9bb",
+        "sizeBytes": 1559
       },
       {
         "path": "registry/agents/AIEvaluator/agent.json",
@@ -756,6 +756,11 @@
         "path": "src/agentic_workflow_generator/tooling/__init__.py",
         "sha256": "sha256:d14a830883ea4f9d379e3c7652b48f7cd0febae1bc1ed904b9c441b68e86c2cd",
         "sizeBytes": 40
+      },
+      {
+        "path": "src/agentic_workflow_generator/tooling/architecture_model.py",
+        "sha256": "sha256:de619756a9eaa125c8db832db18b6e36c82c953787c18f2cd0a9711df12f1458",
+        "sizeBytes": 21946
       },
       {
         "path": "src/agentic_workflow_generator/tooling/domain_diagrams.py",

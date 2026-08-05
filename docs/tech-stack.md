@@ -20,9 +20,12 @@ not a technology wishlist and does not list transitive dependencies.
 | CI | GitHub Actions | Required remote validation for pull requests targeting `production` | `.github/workflows/agentic-ci.yml` |
 | CI | `actions/checkout@v6` | Repository checkout for the production remote gate | `.github/workflows/agentic-ci.yml` |
 | CI | `actions/setup-python@v6` | Python 3.11 and 3.13 production validation environments | `.github/workflows/agentic-ci.yml` |
-| Documentation rendering | PlantUML `1.2026.6` native Linux amd64 | Authoritative domain-diagram SVG rendering | ADR-0003 and `tooling/domain_diagrams.py` |
-| Documentation font input | DejaVu Fonts `2.37` | Canonical diagram font metrics | ADR-0003 and `tooling/domain_diagrams.py` |
-| Diagram layout | Smetana | PlantUML layout without Graphviz | ADR-0003 and `tooling/domain_diagrams.py` |
+| Documentation model | Structurizr DSL | Sole semantic architecture model | ADR-0009 and `docs/architecture/workspace.dsl` |
+| Documentation validation/export | Structurizr vNext `2026.06.28` | Validate canonical DSL and produce deterministic textual exports | ADR-0009 and `tooling/architecture_model.py` |
+| Documentation execution | Docker | Development/documentation prerequisite for the pinned Structurizr image; not product/runtime | ADR-0009 and `tooling/architecture_model.py` |
+| Documentation rendering | PlantUML `1.2026.6` native Linux amd64 | Derived architecture SVG rendering only | ADR-0003, ADR-0009 and `tooling/architecture_model.py` |
+| Documentation font input | DejaVu Fonts `2.37` | Canonical derived-diagram font metrics | ADR-0003 and `tooling/domain_diagrams.py` |
+| Diagram layout | Smetana | Derived PlantUML layout without Graphviz | ADR-0003 and `tooling/domain_diagrams.py` |
 
 ## Python support
 
@@ -33,19 +36,37 @@ run GitHub Actions. The remote `Agentic CI` release gate validates both Python
 3.11 and Python 3.13 in the required `Validate generator` job for pull requests
 targeting `production`.
 
-## Diagram rendering
+## Architecture model and rendering
 
-Canonical domain rendering is intentionally platform-bounded to Linux amd64.
+The canonical semantic architecture model is:
 
-The renderer downloads checksum-pinned PlantUML and DejaVu distributions,
-isolates Fontconfig to the pinned font set, uses `DejaVu Sans` explicitly and
-renders with Smetana.
+```text
+docs/architecture/workspace.dsl
+```
 
-The exact versions and checksums are defined by ADR-0003 and enforced by
-`src/agentic_workflow_generator/tooling/domain_diagrams.py`.
+Repository-owned validation/export uses Structurizr vNext `2026.06.28` through
+the official image identity:
 
-Java, Graphviz, Docker, Node.js and npm are not mandatory project technologies
-for the accepted implementation or diagram-rendering contract.
+```text
+tag:    structurizr/structurizr:2026.06.28-noble
+digest: structurizr/structurizr@sha256:b5140a2a783b0cc780fe4b54dcfeecb565ddd5fce5a578e7ff600b78ad0cc03a
+os:     linux
+arch:   amd64
+```
+
+`uv run architecture-model prepare` explicitly acquires the exact
+content-addressed image and the retained pinned PlantUML/DejaVu renderer inputs.
+`uv run architecture-model check` validates with Docker networking disabled and
+does not implicitly resolve another image or remote architecture dependency.
+
+Docker and Structurizr are development/documentation toolchain dependencies for
+this architecture-model workflow. They are not compiler-core, product-runtime
+or generated-target dependencies. Java is contained inside the accepted
+Structurizr image and is not a required host/compiler dependency.
+
+Stakeholder SVGs are derived through deterministic Structurizr PlantUML export
+and the retained PlantUML `1.2026.6`/Smetana/DejaVu `2.37` renderer contract.
+Exported `.puml` files are ephemeral and are not repository authority.
 
 ## Generated targets
 
