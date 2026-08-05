@@ -7,7 +7,8 @@ commands used to execute it.
 Mandatory rules are defined in `docs/governance.md`. Accepted work is defined in
 `docs/scope.md`. Current state and priority are defined in
 `docs/project-status.md`. Architecture and technology authority remain in
-`docs/architecture.md`, `docs/adr/` and `docs/tech-stack.md`.
+`docs/architecture.md`, `docs/architecture/workspace.dsl`, `docs/adr/` and
+`docs/tech-stack.md`.
 
 ## 1. Start from repository truth
 
@@ -25,7 +26,47 @@ authority relevant to the work:
 Open pull requests, topic branches and chat history are proposals or
 coordination, not accepted truth.
 
-## 2. Classify the work
+## 2. Verify issue planning and readiness
+
+Before creating or continuing a topic branch, verify the active issue from
+GitHub:
+
+- issue category/label;
+- planning priority;
+- `Blocked by #...` and `Blocks #...` dependencies;
+- any explicit readiness blocker;
+- the accepted repository authority named by the issue.
+
+For a subgoal, also verify:
+
+- `Goal: #...`;
+- the parent Goal outcome and acceptance state;
+- direct execution dependencies;
+- whether sibling work shares an authority or dependency that must be read.
+
+Do not read every sibling by default. Goal membership is planning hierarchy and
+does not itself block execution.
+
+Apply progressive decomposition:
+
+- `priority: later` remains outcome-level and must not be pre-designed;
+- `priority: next` is re-read against current `development` and decomposed only
+  enough to establish required research, decisions, dependencies, ownership and
+  scope;
+- `priority: now` is executable only when the issue is ready.
+
+An implementation issue is ready only when its outcome is concrete, accepted
+scope authorizes it, required decisions are accepted, ownership and exclusions
+are explicit, validation is defined and direct dependencies are resolved.
+
+Do not implement `state: blocked` work. Do not rely on a governance-defined
+label until that label exists in GitHub.
+
+Normally keep one active Goal or coherent workstream at `priority: now`. Several
+ready child issues may be active only when they are genuinely parallel-safe
+under `docs/governance.md`.
+
+## 3. Classify the work
 
 Proceed directly only when the requested outcome is already inside
 `docs/scope.md`.
@@ -37,7 +78,7 @@ constraint or other behavior not already accepted.
 Create or supersede an ADR when a significant architecture or technology
 decision needs durable rationale.
 
-## 3. Define one coherent outcome
+## 4. Define one coherent outcome
 
 Before implementation, state:
 
@@ -51,9 +92,10 @@ Before implementation, state:
 Do not bundle unrelated cleanup, speculative abstractions or neighboring
 capabilities.
 
-## 4. Synchronize `development`
+## 5. Synchronize `development`
 
-Use Bash for fail-fast command blocks:
+The interactive shell may be fish. Use Bash only for fail-fast multi-command
+gates; do not set `set -euo pipefail` globally.
 
 ```bash
 bash -lc '
@@ -69,7 +111,7 @@ test -z "$(git status --porcelain=v1 -uall)"
 After a squash merge, synchronize from `origin/development`; do not merge the
 old topic branch back into local `development`.
 
-## 5. Create a topic branch
+## 6. Create a topic branch
 
 Branch from synchronized `development`.
 
@@ -84,7 +126,7 @@ test/<purpose>
 
 Use `hotfix/<purpose>` only for an accepted production hotfix.
 
-## 6. Implement inside the accepted boundary
+## 7. Implement inside the accepted boundary
 
 Preserve the hard constraints in `docs/scope.md` and
 `docs/architecture.md`.
@@ -96,7 +138,25 @@ first.
 Prepared transformations or patches must be inspectable and fail closed when
 their expected preimage does not match repository state.
 
-## 7. Focused validation while developing
+### Agent gate discipline
+
+Work with one coherent change and one concrete gate at a time.
+
+For multi-command gates use:
+
+```bash
+bash -lc 'set -euo pipefail; ...'
+```
+
+Negative `grep` checks must distinguish an expected absence from a command
+failure. When a gate is expected to be green, `done` is sufficient
+acknowledgement. Request command output only for a failure, a required concrete
+value or local state that cannot otherwise be verified.
+
+When a gate fails, stop at the failure, identify the cause and give the next
+corrective action. Do not hide a failed command behind a later `PASS`.
+
+## 8. Focused validation while developing
 
 Use the strongest relevant focused checks.
 
@@ -117,16 +177,25 @@ uv run agentic-workflow-generator validate-generated
 uv run agentic-workflow-generator coverage
 ```
 
-For domain diagrams:
+For the canonical architecture model and derived diagrams:
 
 ```bash
-uv run render-domain-diagrams
-uv run render-domain-diagrams --check
+uv run architecture-model check
 ```
+
+If the pinned Structurizr image is not yet locally available, preparation is an
+explicit prerequisite acquisition step:
+
+```bash
+uv run architecture-model prepare
+```
+
+Normal architecture validation must not silently prepare, pull or fall back to a
+different tool version.
 
 Focused checks supplement the full project gates.
 
-## 8. Review repository hygiene
+## 9. Review repository hygiene
 
 Before staging:
 
@@ -139,9 +208,10 @@ git diff
 Verify every changed file belongs to the branch purpose and that generated or
 lockfile changes are understood.
 
-## 9. Full pre-commit validation
+## 10. Pre-commit validation
 
-For a normal repository change, run:
+For implementation or other build-affecting changes, run the full repository
+gate:
 
 ```bash
 bash -lc '
@@ -155,10 +225,15 @@ git diff --check
 '
 ```
 
-When authoritative domain diagrams are affected, also run:
+For documentation-only changes that do not affect executable build state, run
+the relevant documentation/structure checks and `git diff --check`; the full
+Python gate is not automatic.
+
+When the semantic architecture model or committed derived architecture diagrams
+are affected, also run:
 
 ```bash
-uv run render-domain-diagrams --check
+uv run architecture-model check
 ```
 
 If tracked compiler inputs changed, ensure `.agentic/agentic-lock.json` is
@@ -168,7 +243,7 @@ output and the output manifest are canonical.
 Do not run `doctor-strict` before committing an intentional tracked change;
 `doctor-strict` requires a clean working tree.
 
-## 10. Stage and commit
+## 11. Stage and commit
 
 Stage explicit intended paths when practical.
 
@@ -183,7 +258,7 @@ git status --short --untracked-files=all
 
 Commit only the coherent outcome.
 
-## 11. Clean-tree validation
+## 12. Clean-tree validation
 
 After commit:
 
@@ -199,7 +274,7 @@ test -z "$(git status --porcelain=v1 -uall)"
 A failure blocks push until its cause is understood. Do not weaken validation to
 make the gate pass.
 
-## 12. Push and open the pull request
+## 13. Push and open the pull request
 
 Push the topic branch:
 
@@ -216,7 +291,7 @@ The PR must accurately describe scope, architecture, ownership, technology,
 deliberately excluded work, validation, generated-output impact and lockfile
 impact.
 
-## 13. Verify remote state
+## 14. Verify remote state
 
 Before merge, verify the actual GitHub state:
 
@@ -231,7 +306,7 @@ Before merge, verify the actual GitHub state:
 
 If the PR head changes, review and validate the new head.
 
-## 14. Squash merge and synchronize
+## 15. Squash merge and synchronize
 
 Normal topic branches are squash-merged:
 
@@ -258,17 +333,28 @@ integration commit.
 Delete a remaining local topic branch only after verifying the merge and
 preserving any unique work. Squash merges may require `git branch -D`.
 
-## 15. Stop at the next scope gate
+## 16. Re-read accepted state and planning
 
 After every merge:
 
-1. re-read `docs/scope.md`;
-2. re-read `docs/project-status.md`;
-3. inspect the accepted `development` state;
-4. choose the next authorized outcome;
-5. perform a scope transition first if required.
+1. re-read remote `development`;
+2. verify the merge commit and merged issue state;
+3. read changed authoritative artifacts;
+4. re-read direct dependent issues;
+5. re-read the parent Goal when relevant;
+6. update Goal checklists, dependencies or readiness when accepted state changed
+   the plan;
+7. re-read `docs/scope.md` and `docs/project-status.md` as relevant to the next
+   action;
+8. only then choose the next authorized outcome;
+9. perform a scope transition first if required.
 
-Completion of one change does not authorize the next deferred capability.
+Completion of one change does not authorize the next deferred capability or an
+unresolved dependent issue.
+
+A Goal is complete only when its required subgoals are complete, objective
+end-to-end acceptance evidence is satisfied on `development`, relevant project
+status is synchronized and required dependencies are resolved.
 
 ## Scope-transition workflow
 
