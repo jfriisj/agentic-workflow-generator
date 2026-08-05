@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 4. august 2026
+Opdateret: 5. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -94,6 +94,7 @@ Følgende repository-foundation er etableret på `development`:
 - artifact revision contract semantics og end-to-end contractimplementation;
 - shared og artifact-specifik statussemantik;
 - reproducible artifact evidence contract;
+- canonical input-artifact reference semantics via ADR-0010;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
   og reproducible stakeholder-SVG rendering.
@@ -117,9 +118,9 @@ issues skal angive hvilket milestone og hvilket exit criterion de fremmer.
 
 ### Artifact contracts
 
-Den eksisterende artifact-model mangler fortsat fuld implementation for:
-
-- input-artifact references.
+ADR-0010 definerer de canonical input-artifact reference semantics. Den
+resterende artifact-contract gap er den bounded end-to-end implementation af
+den beslutning.
 
 ### Workflows
 
@@ -169,12 +170,13 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-Architecture/documentation consolidation er afsluttet. Denne ændring vælger ikke
-en ny workstream. Næste konkrete prioritet skal vælges fra de resterende
-accepterede v1-gaps gennem repository issue/readiness-flowet.
+ADR-0010 input-artifact reference semantics er accepteret. Den efterfølgende
+implementation skal fortsat leveres som en separat bounded implementation issue
+og PR.
 
-De resterende roadmap-områder omfatter input-artifact references,
-workflow-semantics, registry-audit, target preservation og consumer acceptance.
+Næste konkrete prioritet vælges gennem repository issue/readiness-flowet. De
+resterende v1-områder omfatter input-artifact implementation, workflow-semantics,
+registry-audit, target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
 
