@@ -95,6 +95,7 @@ Følgende repository-foundation er etableret på `development`:
 - shared og artifact-specifik statussemantik;
 - reproducible artifact evidence contract;
 - canonical input-artifact reference semantics via ADR-0010 og bounded end-to-end implementation i registry, validation, canonical compilation, active configuration og begge nuværende targets;
+- canonical workflow routing semantics via ADR-0011;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
   og reproducible stakeholder-SVG rendering.
@@ -128,10 +129,15 @@ Der er ikke et kendt resterende v1-gap i den bounded ADR-0010 implementation.
 
 ### Workflows
 
-Den eksisterende workflow-model mangler fortsat hardening omkring:
+ADR-0011 definerer canonical workflow routing semantics: `PASS`, `FAIL` og
+`BLOCKED` er de eneste routable gate results, hver ikke-terminal state skal have
+én eksplicit route for hvert resultat, `BLOCKED` routes eksplicit til
+`defaultFailureState`, og workflow-controlleren er den eneste route-selector.
 
-- eksplicit `BLOCKED`-routing;
-- entydig controller- og routingsemantik;
+Den resterende routing-gap er den bounded end-to-end implementation af ADR-0011.
+
+Workflow-modellen mangler derudover fortsat hardening omkring:
+
 - klar test-evidens i eksisterende flows;
 - klar execution-semantik for det eksisterende AI-evalueringsflow.
 
@@ -174,12 +180,13 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0010 input-artifact reference semantics og den bounded end-to-end
-implementation er afsluttet i den aktuelle integration-target state.
+ADR-0011 canonical workflow routing semantics er accepteret. Den efterfølgende
+routing-implementation skal leveres som en separat bounded implementation issue
+og PR.
 
-Næste konkrete prioritet vælges gennem repository issue/readiness-flowet. De
-resterende v1-områder omfatter workflow-semantics, registry-audit, bredere target
-preservation og consumer acceptance.
+Derefter fortsætter de resterende v1-områder gennem repository
+issue/readiness-flowet, herunder workflow test-evidence, AI-evaluation execution,
+registry-audit, bredere target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
 
