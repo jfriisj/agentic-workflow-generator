@@ -149,7 +149,7 @@ def test_direct_bundle_init_writes_typed_active_config(
     assert config["selection"] == {
         "bundle": {
             "name": "lean-delivery",
-            "version": "0.2.0",
+            "version": "0.3.0",
         },
         "profile": {
             "name": "lean-delivery",

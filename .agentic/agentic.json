@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.8.0",
+  "schemaVersion": "0.9.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -22,7 +22,7 @@
   "selection": {
     "bundle": {
       "name": "orchestrated-delivery",
-      "version": "0.2.0"
+      "version": "0.3.0"
     },
     "profile": {
       "name": "microservice-platform",
@@ -993,6 +993,7 @@
       "produces": [
         "Requirements"
       ],
+      "inputArtifacts": [],
       "responsibilities": [
         "Clarify the problem statement",
         "Identify explicit and implicit requirements",
@@ -1026,6 +1027,13 @@
       ],
       "produces": [
         "ArchitectureDecision"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements",
+          "agentInstance": "requirements-worker"
+        }
       ],
       "responsibilities": [
         "Define system boundaries",
@@ -1063,6 +1071,18 @@
       "produces": [
         "ImplementationReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture",
+          "agentInstance": "architecture-worker"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements",
+          "agentInstance": "requirements-worker"
+        }
+      ],
       "responsibilities": [
         "Modify product code",
         "Update tests",
@@ -1096,6 +1116,18 @@
       ],
       "produces": [
         "TestReport"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation",
+          "agentInstance": "implementation-worker"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements",
+          "agentInstance": "requirements-worker"
+        }
       ],
       "responsibilities": [
         "Run relevant tests",
@@ -1133,6 +1165,23 @@
       "produces": [
         "CodeReview"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture",
+          "agentInstance": "architecture-worker"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements",
+          "agentInstance": "requirements-worker"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution",
+          "agentInstance": "test-runner"
+        }
+      ],
       "responsibilities": [
         "Review changed code",
         "Check maintainability and readability",
@@ -1166,6 +1215,33 @@
       ],
       "produces": [
         "QAReport"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture",
+          "agentInstance": "architecture-worker"
+        },
+        {
+          "artifactType": "CodeReview",
+          "roleBinding": "code-review",
+          "agentInstance": "code-review-worker"
+        },
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation",
+          "agentInstance": "implementation-worker"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements",
+          "agentInstance": "requirements-worker"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution",
+          "agentInstance": "test-runner"
+        }
       ],
       "responsibilities": [
         "Verify acceptance criteria",
@@ -1201,6 +1277,7 @@
         "workflow.handoff"
       ],
       "produces": [],
+      "inputArtifacts": [],
       "responsibilities": [
         "Read workflow state",
         "Interpret gate results",

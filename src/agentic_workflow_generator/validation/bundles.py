@@ -14,6 +14,7 @@ from agentic_workflow_generator.domain import Diagnostic
 from agentic_workflow_generator.domain.bundles import (
     AgentInstance,
     Bundle,
+    InputArtifactReference,
     RoleBinding,
     RoleBindingType,
     SeparationMode,
@@ -66,6 +67,13 @@ UNKNOWN_SEPARATION_BINDING_DIAGNOSTIC = "AWG-BUNDLE-030"
 SEPARATION_INSTANCE_DIAGNOSTIC = "AWG-BUNDLE-031"
 UNPRODUCED_BUNDLE_ARTIFACT_DIAGNOSTIC = "AWG-BUNDLE-032"
 UNPRODUCED_CONTRACT_DIAGNOSTIC = "AWG-BUNDLE-033"
+UNKNOWN_INPUT_ARTIFACT_DIAGNOSTIC = "AWG-BUNDLE-034"
+INPUT_ARTIFACT_OUTSIDE_BUNDLE_DIAGNOSTIC = "AWG-BUNDLE-035"
+UNKNOWN_INPUT_ROLE_BINDING_DIAGNOSTIC = "AWG-BUNDLE-036"
+INPUT_ARTIFACT_CONTROLLER_DIAGNOSTIC = "AWG-BUNDLE-037"
+INPUT_ARTIFACT_PRODUCER_MISMATCH_DIAGNOSTIC = "AWG-BUNDLE-038"
+INPUT_ARTIFACT_SELF_REFERENCE_DIAGNOSTIC = "AWG-BUNDLE-039"
+INPUT_ARTIFACT_CYCLE_DIAGNOSTIC = "AWG-BUNDLE-040"
 
 OBSOLETE_BUNDLE_FIELDS = frozenset(
     {
@@ -696,6 +704,9 @@ def _parse_role_binding(
         required_capabilities=_string_tuple(raw_binding["requiredCapabilities"]),
         selected_skills=_string_tuple(raw_binding["selectedSkills"]),
         produces=_string_tuple(raw_binding["produces"]),
+        input_artifacts=_parse_input_artifact_references(
+            raw_binding["inputArtifacts"]
+        ),
         responsibilities=_string_tuple(raw_binding["responsibilities"]),
         guardrails=_string_tuple(raw_binding["guardrails"]),
         workflow_state=cast(
@@ -706,6 +717,37 @@ def _parse_role_binding(
             str | None,
             raw_binding.get("workflowGate"),
         ),
+    )
+
+
+def _parse_input_artifact_references(
+    value: JsonValue,
+) -> tuple[InputArtifactReference, ...]:
+    raw_references = cast(
+        list[JsonObject],
+        value,
+    )
+    references = tuple(
+        InputArtifactReference(
+            artifact_type=cast(
+                str,
+                raw_reference["artifactType"],
+            ),
+            role_binding=cast(
+                str,
+                raw_reference["roleBinding"],
+            ),
+        )
+        for raw_reference in raw_references
+    )
+    return tuple(
+        sorted(
+            references,
+            key=lambda reference: (
+                reference.artifact_type,
+                reference.role_binding,
+            ),
+        )
     )
 
 
@@ -908,6 +950,14 @@ def _validate_composition(
         artifact_types,
     )
     diagnostics.extend(binding_diagnostics)
+    diagnostics.extend(
+        _validate_input_artifacts(
+            bundle,
+            path,
+            bindings,
+            artifact_types,
+        )
+    )
 
     for instance_id in sorted(set(instances) - assigned_instances):
         diagnostics.append(
@@ -1176,6 +1226,191 @@ def _validate_role_bindings(
         assigned_instances,
         produced_artifacts,
     )
+
+
+def _validate_input_artifacts(
+    bundle: Bundle,
+    path: Path,
+    bindings: Mapping[str, RoleBinding],
+    artifact_types: set[str],
+) -> tuple[Diagnostic, ...]:
+    diagnostics: list[Diagnostic] = []
+    bundle_artifacts = set(bundle.artifacts)
+    dependency_edges: set[tuple[str, str]] = set()
+
+    for binding_index, binding in enumerate(bundle.role_bindings):
+        location = f"roleBindings[{binding_index}].inputArtifacts"
+
+        for input_index, reference in enumerate(binding.input_artifacts):
+            input_location = f"{location}[{input_index}]"
+
+            if reference.artifact_type not in artifact_types:
+                diagnostics.append(
+                    _diagnostic(
+                        UNKNOWN_INPUT_ARTIFACT_DIAGNOSTIC,
+                        (
+                            "input artifact "
+                            f"{reference.artifact_type!r} "
+                            "is not registered"
+                        ),
+                        path,
+                        f"{input_location}.artifactType",
+                        binding.role_name,
+                        reference.artifact_type,
+                    )
+                )
+
+            if reference.artifact_type not in bundle_artifacts:
+                diagnostics.append(
+                    _diagnostic(
+                        INPUT_ARTIFACT_OUTSIDE_BUNDLE_DIAGNOSTIC,
+                        (
+                            "input artifact "
+                            f"{reference.artifact_type!r} "
+                            "is not included in bundle artifacts"
+                        ),
+                        path,
+                        f"{input_location}.artifactType",
+                        binding.role_name,
+                        reference.artifact_type,
+                    )
+                )
+
+            producer = bindings.get(reference.role_binding)
+
+            if producer is None:
+                diagnostics.append(
+                    _diagnostic(
+                        UNKNOWN_INPUT_ROLE_BINDING_DIAGNOSTIC,
+                        (
+                            "input artifact references missing "
+                            "role binding "
+                            f"{reference.role_binding!r}"
+                        ),
+                        path,
+                        f"{input_location}.roleBinding",
+                        binding.role_name,
+                        reference.role_binding,
+                    )
+                )
+                continue
+
+            if producer.role_name == binding.role_name:
+                diagnostics.append(
+                    _diagnostic(
+                        INPUT_ARTIFACT_SELF_REFERENCE_DIAGNOSTIC,
+                        (
+                            "input artifact must not reference "
+                            "the consuming role binding itself"
+                        ),
+                        path,
+                        f"{input_location}.roleBinding",
+                        binding.role_name,
+                        reference.artifact_type,
+                    )
+                )
+
+            if producer.binding_type is RoleBindingType.WORKFLOW_CONTROLLER:
+                diagnostics.append(
+                    _diagnostic(
+                        INPUT_ARTIFACT_CONTROLLER_DIAGNOSTIC,
+                        (
+                            "input artifact producer must be a "
+                            "state-owner role binding"
+                        ),
+                        path,
+                        f"{input_location}.roleBinding",
+                        binding.role_name,
+                        producer.role_name,
+                    )
+                )
+
+            if reference.artifact_type not in producer.produces:
+                diagnostics.append(
+                    _diagnostic(
+                        INPUT_ARTIFACT_PRODUCER_MISMATCH_DIAGNOSTIC,
+                        (
+                            f"role binding {producer.role_name!r} "
+                            "does not produce input artifact "
+                            f"{reference.artifact_type!r}"
+                        ),
+                        path,
+                        input_location,
+                        binding.role_name,
+                        producer.role_name,
+                        reference.artifact_type,
+                    )
+                )
+
+            if (
+                producer.binding_type is RoleBindingType.STATE_OWNER
+                and producer.role_name != binding.role_name
+                and reference.artifact_type in producer.produces
+            ):
+                dependency_edges.add(
+                    (producer.role_name, binding.role_name)
+                )
+
+    cycle = _find_input_artifact_cycle(bindings, dependency_edges)
+    if cycle is not None:
+        diagnostics.append(
+            _diagnostic(
+                INPUT_ARTIFACT_CYCLE_DIAGNOSTIC,
+                (
+                    "input-artifact dependency cycle detected: "
+                    + " -> ".join(cycle)
+                ),
+                path,
+                "roleBindings",
+                *cycle,
+            )
+        )
+
+    return tuple(diagnostics)
+
+
+def _find_input_artifact_cycle(
+    bindings: Mapping[str, RoleBinding],
+    edges: set[tuple[str, str]],
+) -> tuple[str, ...] | None:
+    graph: dict[str, tuple[str, ...]] = {
+        role_name: tuple(
+            sorted(
+                consumer
+                for producer, consumer in edges
+                if producer == role_name
+            )
+        )
+        for role_name in sorted(bindings)
+    }
+    state = {role_name: 0 for role_name in graph}
+    stack: list[str] = []
+
+    def visit(role_name: str) -> tuple[str, ...] | None:
+        state[role_name] = 1
+        stack.append(role_name)
+
+        for consumer in graph[role_name]:
+            if state[consumer] == 0:
+                cycle = visit(consumer)
+                if cycle is not None:
+                    return cycle
+            elif state[consumer] == 1:
+                start = stack.index(consumer)
+                return tuple([*stack[start:], consumer])
+
+        stack.pop()
+        state[role_name] = 2
+        return None
+
+    for role_name in sorted(graph):
+        if state[role_name] != 0:
+            continue
+        cycle = visit(role_name)
+        if cycle is not None:
+            return cycle
+
+    return None
 
 
 def _validate_state_owner(

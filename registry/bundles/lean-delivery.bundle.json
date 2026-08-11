@@ -1,7 +1,7 @@
 {
   "name": "lean-delivery",
   "description": "Compact delivery bundle for focused changes with requirements, implementation, testing, code review, and fail-closed routing.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "profile": "lean-delivery",
   "workflow": "lean-delivery",
   "agentInstances": [
@@ -57,6 +57,7 @@
       "produces": [
         "Requirements"
       ],
+      "inputArtifacts": [],
       "responsibilities": [
         "Clarify the problem statement",
         "Identify explicit and implicit requirements",
@@ -88,6 +89,12 @@
       "produces": [
         "ImplementationReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
+      ],
       "responsibilities": [
         "Modify product code",
         "Update tests",
@@ -116,6 +123,16 @@
       ],
       "produces": [
         "TestReport"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
       ],
       "responsibilities": [
         "Run relevant tests",
@@ -148,6 +165,16 @@
       "produces": [
         "CodeReview"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution"
+        }
+      ],
       "responsibilities": [
         "Review changed code",
         "Check maintainability and readability",
@@ -176,6 +203,7 @@
         "workflow-routing"
       ],
       "produces": [],
+      "inputArtifacts": [],
       "responsibilities": [
         "Read workflow state",
         "Interpret gate results",

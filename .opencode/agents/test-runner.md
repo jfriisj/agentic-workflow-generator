@@ -57,6 +57,16 @@ Runs tests and produces validation evidence.
 - Change requirements
 - Hide failing validation
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### test-execution
+
+- `artifactType`: `ImplementationReport`; producer `roleBinding`: `implementation`; resolved `agentInstance`: `implementation-worker`
+- `artifactType`: `Requirements`; producer `roleBinding`: `requirements`; resolved `agentInstance`: `requirements-worker`
+
+
 ## Produced Artifacts
 
 Produced output must satisfy each compiled artifact contract.

@@ -84,6 +84,7 @@
           "requiredCapabilities",
           "selectedSkills",
           "produces",
+          "inputArtifacts",
           "responsibilities",
           "guardrails"
         ],
@@ -131,6 +132,28 @@
             "items": {
               "type": "string",
               "minLength": 1
+            }
+          },
+          "inputArtifacts": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "artifactType",
+                "roleBinding"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "artifactType": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "roleBinding": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
           },
           "responsibilities": {
@@ -200,6 +223,13 @@
                     "required": [
                       "workflowGate"
                     ]
+                  }
+                },
+                {
+                  "properties": {
+                    "inputArtifacts": {
+                      "maxItems": 0
+                    }
                   }
                 }
               ]

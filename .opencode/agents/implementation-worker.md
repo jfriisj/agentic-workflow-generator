@@ -57,6 +57,16 @@ Implements approved work according to requirements, plan, and architecture.
 - Self-approve implementation
 - Skip validation evidence
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### implementation
+
+- `artifactType`: `ArchitectureDecision`; producer `roleBinding`: `architecture`; resolved `agentInstance`: `architecture-worker`
+- `artifactType`: `Requirements`; producer `roleBinding`: `requirements`; resolved `agentInstance`: `requirements-worker`
+
+
 ## Produced Artifacts
 
 Produced output must satisfy each compiled artifact contract.

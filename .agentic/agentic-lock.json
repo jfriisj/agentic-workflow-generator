@@ -15,17 +15,17 @@
       "uv.lock"
     ],
     "fileCount": 168,
-    "contentHash": "sha256:7fe97226fd2876208e2b6b145fb88503323555a701278148983f0b57bff4d343",
+    "contentHash": "sha256:10f7c96f26647261c701a73bbc120dde098cec4e090cd7b7c369a3d3caef7ce3",
     "files": [
       {
         "path": ".agentic/agentic.json",
-        "sha256": "sha256:582f07b5ec7b4a2c115f2ed6a9fa59d7a4968673726903bfe5608f4996821fda",
-        "sizeBytes": 41106
+        "sha256": "sha256:80022f1100e352323cf02ec47b5972eeaf76c8a957c2f3c28930b84572b0975a",
+        "sizeBytes": 43349
       },
       {
         "path": ".agentic/schemas/agentic.schema.json",
-        "sha256": "sha256:147e67c001d46bd22e7ab0ee105c9002b04428f64e47cdbae7406752c5628830",
-        "sizeBytes": 24444
+        "sha256": "sha256:b8f9b7146673066520a572d012a5d67512b9c8825797eafa252610f623bfa74d",
+        "sizeBytes": 25691
       },
       {
         "path": ".agentic/schemas/generated/output-manifest.schema.json",
@@ -44,8 +44,8 @@
       },
       {
         "path": ".agentic/schemas/registry/bundle.schema.json",
-        "sha256": "sha256:f2ec23f3c1cf41d557cf474d136925829cf82b2747d18c56a95f1c4b961b9530",
-        "sizeBytes": 6216
+        "sha256": "sha256:c3324081de44ec2f3ebfeed6dfa33221e3f552af997e99edb1a8f36660a5bc38",
+        "sizeBytes": 7047
       },
       {
         "path": ".agentic/schemas/registry/permission-profile.schema.json",
@@ -199,23 +199,23 @@
       },
       {
         "path": "registry/bundles/ai-application.bundle.json",
-        "sha256": "sha256:88bc1113fd741653cdcf34d74a2106bc76c7873fb05d09966fc51b5e9750963f",
-        "sizeBytes": 10300
+        "sha256": "sha256:7f234421af2172e2b99b523881bd005cb411db990645588bf38932ac8b4d023e",
+        "sizeBytes": 12266
       },
       {
         "path": "registry/bundles/lean-delivery.bundle.json",
-        "sha256": "sha256:b1e76245e66f9a810565373e3a728258be7f98bfecf665471bc8ab8d72808b5b",
-        "sizeBytes": 6505
+        "sha256": "sha256:583912e75551d5c6885d4518b4901d4679339ef6c35be2622aa8d648479c947d",
+        "sizeBytes": 7188
       },
       {
         "path": "registry/bundles/orchestrated-delivery.bundle.json",
-        "sha256": "sha256:7a4a9ca462d7440d1cb36443ce8080fd93695899e136865b1274e7553f7a29e8",
-        "sizeBytes": 8744
+        "sha256": "sha256:567f825ae9fecc40bf89d19ca7be8046c8430ee415b2b2c0ba92c2b6b3dc6e2f",
+        "sizeBytes": 10350
       },
       {
         "path": "registry/bundles/review-heavy-delivery.bundle.json",
-        "sha256": "sha256:393a1a11ca2ff2753579cc80cbbf1da36a6c0fc20c92c96dce898226af83302f",
-        "sizeBytes": 8769
+        "sha256": "sha256:a5719efeda62aa1c5ed6809b2978ee4e7767e0eaea180e70d5f67eb774e4a76e",
+        "sizeBytes": 10385
       },
       {
         "path": "registry/permission-profiles/implementation/permission-profile.json",
@@ -474,8 +474,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/application/target_rendering.py",
-        "sha256": "sha256:bb49bba920b6f045199ae8aab76d0de6d243429242a3f4fe499b1312c0ea457a",
-        "sizeBytes": 24392
+        "sha256": "sha256:e16eafdf72d085229d42d4acb2f02e699d907da70bc1d4ab65013894fb31c621",
+        "sizeBytes": 26018
       },
       {
         "path": "src/agentic_workflow_generator/application/target_runtime_validation.py",
@@ -624,18 +624,18 @@
       },
       {
         "path": "src/agentic_workflow_generator/compiler/composition.py",
-        "sha256": "sha256:5e130927ee1dde279346b7015666fa40e10ec4d3c808fe62dd0afbda6b5ae1b6",
-        "sizeBytes": 15649
+        "sha256": "sha256:cdc1520622893bcd4849c24b5d5c9b9129b53be0eee75e395fac35962f850a59",
+        "sizeBytes": 17236
       },
       {
         "path": "src/agentic_workflow_generator/compiler/serialization.py",
-        "sha256": "sha256:ab11b5ccf08b952e46972594abc531619564b1877f8335073218dbcfa6b35ac3",
-        "sizeBytes": 13119
+        "sha256": "sha256:f38f265bb722a266d095b86da0b953ca2b3924bd49ab626dafda3351ac01ac93",
+        "sizeBytes": 13283
       },
       {
         "path": "src/agentic_workflow_generator/domain/__init__.py",
-        "sha256": "sha256:7172ec8bc3e51c412d0c7ee58c53d74726dafffcc503ea229cf571508d0750a2",
-        "sizeBytes": 2108
+        "sha256": "sha256:24050765fbbbc987b818a883c5550e27254365647f2792a11f98cb0a9855ed07",
+        "sizeBytes": 2166
       },
       {
         "path": "src/agentic_workflow_generator/domain/agents.py",
@@ -649,8 +649,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/domain/bundles.py",
-        "sha256": "sha256:d524cd637c143d457821a8a9514d0df9bf963f738d2643cccc9b477782bdfcd4",
-        "sizeBytes": 2218
+        "sha256": "sha256:66f904b876406ee418b0df14488b421fede8563a60e292ae08ce0b8f553fa38e",
+        "sizeBytes": 2469
       },
       {
         "path": "src/agentic_workflow_generator/domain/diagnostics.py",
@@ -784,8 +784,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/validation/bundles.py",
-        "sha256": "sha256:441e4cdda3701c1d85cc6f40ea29fb7d9cd3fe42a17737f5ef730d674aa4dac7",
-        "sizeBytes": 42597
+        "sha256": "sha256:b61564e96b09d4fbccab10b2c786be38f0aa57233ee33ee192ccefb5cb92fc45",
+        "sizeBytes": 50454
       },
       {
         "path": "src/agentic_workflow_generator/validation/capability_coverage.py",

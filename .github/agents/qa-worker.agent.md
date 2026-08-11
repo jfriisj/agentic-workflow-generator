@@ -61,6 +61,19 @@ Checks whether completed work satisfies acceptance criteria and required evidenc
 - Approve missing evidence
 - Change requirements
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### quality-assurance
+
+- `artifactType`: `ArchitectureDecision`; producer `roleBinding`: `architecture`; resolved `agentInstance`: `architecture-worker`
+- `artifactType`: `CodeReview`; producer `roleBinding`: `code-review`; resolved `agentInstance`: `code-review-worker`
+- `artifactType`: `ImplementationReport`; producer `roleBinding`: `implementation`; resolved `agentInstance`: `implementation-worker`
+- `artifactType`: `Requirements`; producer `roleBinding`: `requirements`; resolved `agentInstance`: `requirements-worker`
+- `artifactType`: `TestReport`; producer `roleBinding`: `test-execution`; resolved `agentInstance`: `test-runner`
+
+
 ## Produced Artifacts
 
 Produced output must satisfy each compiled artifact contract.

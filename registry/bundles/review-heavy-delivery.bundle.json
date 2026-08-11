@@ -1,7 +1,7 @@
 {
   "name": "review-heavy-delivery",
   "description": "Review-heavy bundle with architecture, pre-test code review, test execution, final QA, and fail-closed orchestration.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "profile": "review-heavy-delivery",
   "workflow": "review-heavy-delivery",
   "agentInstances": [
@@ -71,6 +71,7 @@
       "produces": [
         "Requirements"
       ],
+      "inputArtifacts": [],
       "responsibilities": [
         "Clarify the problem statement",
         "Identify explicit and implicit requirements",
@@ -100,6 +101,12 @@
       ],
       "produces": [
         "ArchitectureDecision"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
       ],
       "responsibilities": [
         "Define system boundaries",
@@ -132,6 +139,16 @@
       "produces": [
         "ImplementationReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
+      ],
       "responsibilities": [
         "Modify product code",
         "Update tests",
@@ -162,6 +179,20 @@
       ],
       "produces": [
         "CodeReview"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
       ],
       "responsibilities": [
         "Review changed code",
@@ -194,6 +225,16 @@
       "produces": [
         "TestReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
+      ],
       "responsibilities": [
         "Run relevant tests",
         "Collect validation output",
@@ -221,6 +262,28 @@
       ],
       "produces": [
         "QAReport"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "CodeReview",
+          "roleBinding": "code-review"
+        },
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution"
+        }
       ],
       "responsibilities": [
         "Verify acceptance criteria",
@@ -250,6 +313,7 @@
         "workflow-routing"
       ],
       "produces": [],
+      "inputArtifacts": [],
       "responsibilities": [
         "Read workflow state",
         "Interpret gate results",

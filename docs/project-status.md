@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 5. august 2026
+Opdateret: 11. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -94,7 +94,7 @@ Følgende repository-foundation er etableret på `development`:
 - artifact revision contract semantics og end-to-end contractimplementation;
 - shared og artifact-specifik statussemantik;
 - reproducible artifact evidence contract;
-- canonical input-artifact reference semantics via ADR-0010;
+- canonical input-artifact reference semantics via ADR-0010 og bounded end-to-end implementation i registry, validation, canonical compilation, active configuration og begge nuværende targets;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
   og reproducible stakeholder-SVG rendering.
@@ -118,9 +118,13 @@ issues skal angive hvilket milestone og hvilket exit criterion de fremmer.
 
 ### Artifact contracts
 
-ADR-0010 definerer de canonical input-artifact reference semantics. Den
-resterende artifact-contract gap er den bounded end-to-end implementation af
-den beslutning.
+ADR-0010 input-artifact reference semantics er implementeret end to end som en
+statisk compiler-ejet kontrakt. Role bindings deklarerer eksplicitte governed
+inputs, validering fejler lukket, `CompiledComposition` bevarer resolved producer
+identity, active configuration serialiserer den canonical relation, og begge
+nuværende targets bevarer samme semantics.
+
+Der er ikke et kendt resterende v1-gap i den bounded ADR-0010 implementation.
 
 ### Workflows
 
@@ -170,13 +174,12 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0010 input-artifact reference semantics er accepteret. Den efterfølgende
-implementation skal fortsat leveres som en separat bounded implementation issue
-og PR.
+ADR-0010 input-artifact reference semantics og den bounded end-to-end
+implementation er afsluttet i den aktuelle integration-target state.
 
 Næste konkrete prioritet vælges gennem repository issue/readiness-flowet. De
-resterende v1-områder omfatter input-artifact implementation, workflow-semantics,
-registry-audit, target preservation og consumer acceptance.
+resterende v1-områder omfatter workflow-semantics, registry-audit, bredere target
+preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
 

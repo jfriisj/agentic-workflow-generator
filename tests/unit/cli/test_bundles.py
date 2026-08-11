@@ -73,6 +73,7 @@ def bundle_data(
                 "produces": [
                     "Requirements",
                 ],
+                "inputArtifacts": [],
                 "responsibilities": [
                     "Clarify requirements",
                 ],
@@ -91,6 +92,7 @@ def bundle_data(
                     "workflow-routing",
                 ],
                 "produces": [],
+                "inputArtifacts": [],
                 "responsibilities": [
                     "Route work",
                 ],

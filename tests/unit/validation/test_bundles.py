@@ -21,6 +21,11 @@ from agentic_workflow_generator.validation.bundles import (
     DUPLICATE_SEPARATION_POLICY_DIAGNOSTIC,
     DUPLICATE_STATE_OWNER_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
+    INPUT_ARTIFACT_CONTROLLER_DIAGNOSTIC,
+    INPUT_ARTIFACT_CYCLE_DIAGNOSTIC,
+    INPUT_ARTIFACT_OUTSIDE_BUNDLE_DIAGNOSTIC,
+    INPUT_ARTIFACT_PRODUCER_MISMATCH_DIAGNOSTIC,
+    INPUT_ARTIFACT_SELF_REFERENCE_DIAGNOSTIC,
     MISSING_GATE_ARTIFACT_DIAGNOSTIC,
     MISSING_GATE_CAPABILITY_DIAGNOSTIC,
     MISSING_STATE_OWNER_DIAGNOSTIC,
@@ -31,6 +36,8 @@ from agentic_workflow_generator.validation.bundles import (
     UNASSIGNED_INSTANCE_DIAGNOSTIC,
     UNKNOWN_AGENT_PROFILE_DIAGNOSTIC,
     UNKNOWN_ARTIFACT_DIAGNOSTIC,
+    UNKNOWN_INPUT_ARTIFACT_DIAGNOSTIC,
+    UNKNOWN_INPUT_ROLE_BINDING_DIAGNOSTIC,
     UNKNOWN_INSTANCE_DIAGNOSTIC,
     UNKNOWN_PERMISSION_PROFILE_DIAGNOSTIC,
     UNKNOWN_PRODUCED_ARTIFACT_DIAGNOSTIC,
@@ -100,6 +107,7 @@ def bundle_data() -> JsonObject:
                 "produces": [
                     "Requirements",
                 ],
+                "inputArtifacts": [],
                 "responsibilities": [
                     "Clarify requirements",
                 ],
@@ -118,6 +126,7 @@ def bundle_data() -> JsonObject:
                     "workflow-routing",
                 ],
                 "produces": [],
+                "inputArtifacts": [],
                 "responsibilities": [
                     "Route work",
                 ],
@@ -313,12 +322,178 @@ def test_valid_bundle_is_parsed() -> None:
     assert bundle.role_bindings[0].workflow_state == "Requirements"
     assert bundle.role_bindings[0].workflow_gate == "requirements-review"
     assert bundle.role_bindings[0].produces == ("Requirements",)
+    assert bundle.role_bindings[0].input_artifacts == ()
+    assert bundle.role_bindings[1].input_artifacts == ()
     assert bundle.role_bindings[1].workflow_state is None
     assert bundle.separation_policies[0].role_bindings == (
         "requirements",
         "workflow-controller",
     )
 
+
+
+
+def test_missing_input_artifacts_fails_schema_validation() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    del binding["inputArtifacts"]
+    result = validate(source(data=data))
+    assert result.bundles == ()
+    assert SCHEMA_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_duplicate_input_artifact_reference_fails_schema_validation() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    reference: JsonObject = {
+        "artifactType": "Requirements",
+        "roleBinding": "requirements",
+    }
+    binding["inputArtifacts"] = [reference, dict(reference)]
+    result = validate(source(data=data))
+    assert result.bundles == ()
+    assert SCHEMA_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_controller_input_artifacts_must_be_empty() -> None:
+    data = bundle_data()
+    controller = _object_entry(data, "roleBindings", 1)
+    controller["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "requirements",
+        }
+    ]
+    result = validate(source(data=data))
+    assert result.bundles == ()
+    assert SCHEMA_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_input_artifact_unknown_artifact_fails_closed() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    binding["inputArtifacts"] = [
+        {
+            "artifactType": "MissingArtifact",
+            "roleBinding": "workflow-controller",
+        }
+    ]
+    result = validate(source(data=data))
+    codes = diagnostic_codes(result)
+    assert UNKNOWN_INPUT_ARTIFACT_DIAGNOSTIC in codes
+    assert INPUT_ARTIFACT_OUTSIDE_BUNDLE_DIAGNOSTIC in codes
+
+
+def test_input_artifact_unknown_role_binding_fails_closed() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    binding["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "missing-producer",
+        }
+    ]
+    result = validate(source(data=data))
+    assert UNKNOWN_INPUT_ROLE_BINDING_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_input_artifact_self_reference_fails_closed() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    binding["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "requirements",
+        }
+    ]
+    result = validate(source(data=data))
+    assert INPUT_ARTIFACT_SELF_REFERENCE_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_input_artifact_controller_and_mismatch_fail_closed() -> None:
+    data = bundle_data()
+    binding = _object_entry(data, "roleBindings", 0)
+    binding["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "workflow-controller",
+        }
+    ]
+    result = validate(source(data=data))
+    codes = diagnostic_codes(result)
+    assert INPUT_ARTIFACT_CONTROLLER_DIAGNOSTIC in codes
+    assert INPUT_ARTIFACT_PRODUCER_MISMATCH_DIAGNOSTIC in codes
+
+
+def test_input_artifact_dependency_cycle_fails_closed() -> None:
+    data = bundle_data()
+    requirements = _object_entry(data, "roleBindings", 0)
+    requirements["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "peer",
+        }
+    ]
+    instances = data["agentInstances"]
+    assert isinstance(instances, list)
+    instances.append(
+        {
+            "id": "peer-worker",
+            "profile": "Requirements",
+            "displayName": "Peer",
+            "permissionProfile": "read-only",
+            "sharedContextPolicy": "shared-with-assigned-bindings",
+        }
+    )
+    bindings = data["roleBindings"]
+    assert isinstance(bindings, list)
+    bindings.insert(
+        1,
+        {
+            "roleName": "peer",
+            "bindingType": "state-owner",
+            "agentInstance": "peer-worker",
+            "workflowState": "Peer",
+            "workflowGate": "peer-review",
+            "requiredCapabilities": ["requirements.elicit"],
+            "selectedSkills": ["requirements-analysis"],
+            "produces": ["Requirements"],
+            "inputArtifacts": [
+                {
+                    "artifactType": "Requirements",
+                    "roleBinding": "requirements",
+                }
+            ],
+            "responsibilities": ["Peer review requirements"],
+            "guardrails": ["Do not implement"],
+        },
+    )
+    base_references = references()
+    workflow = base_references.workflows[0]
+    peer_state = ProjectedWorkflowState(
+        name="Peer",
+        terminal=False,
+        gate=ProjectedWorkflowGate(
+            name="peer-review",
+            required_capabilities=frozenset({"requirements.elicit"}),
+            required_artifacts=frozenset({"Requirements"}),
+        ),
+    )
+    reference_data = replace(
+        base_references,
+        workflows=(
+            replace(
+                workflow,
+                states=(
+                    workflow.states[0],
+                    peer_state,
+                    *workflow.states[1:],
+                ),
+            ),
+        ),
+    )
+    result = validate(source(data=data), reference_data=reference_data)
+    assert INPUT_ARTIFACT_CYCLE_DIAGNOSTIC in diagnostic_codes(result)
 
 def test_file_name_must_match_bundle_name() -> None:
     result = validate(
