@@ -28,6 +28,7 @@ def binding(
         required_capabilities=capabilities,
         selected_skills=(),
         produces=(),
+        input_artifacts=(),
         responsibilities=("Own the assigned role.",),
         guardrails=("Remain within the assigned role.",),
         workflow_state="State",

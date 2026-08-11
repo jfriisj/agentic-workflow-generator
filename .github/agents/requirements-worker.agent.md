@@ -65,6 +65,15 @@ Clarifies scope, requirements, constraints, assumptions, and acceptance criteria
 - Skip unresolved assumptions
 - Change workflow routing
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### requirements
+
+This role binding has no required static input artifacts.
+
+
 ## Produced Artifacts
 
 Produced output must satisfy each compiled artifact contract.

@@ -68,6 +68,17 @@ Reviews implementation for maintainability, correctness, tests, and safety.
 - Change workflow routing
 - Perform workflow transitions
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### code-review
+
+- `artifactType`: `ArchitectureDecision`; producer `roleBinding`: `architecture`; resolved `agentInstance`: `architecture-worker`
+- `artifactType`: `Requirements`; producer `roleBinding`: `requirements`; resolved `agentInstance`: `requirements-worker`
+- `artifactType`: `TestReport`; producer `roleBinding`: `test-execution`; resolved `agentInstance`: `test-runner`
+
+
 ## Produced Artifacts
 
 Produced output must satisfy each compiled artifact contract.

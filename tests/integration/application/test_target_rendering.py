@@ -79,6 +79,92 @@ def test_vscode_handoffs_use_agent_instance_identity() -> None:
     assert "resolution.json" not in controller
 
 
+
+
+def test_rendered_required_inputs_use_compiled_production_identity() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    implementation = next(
+        binding
+        for binding in active.composition.role_bindings
+        if binding.role_name == "implementation"
+    )
+
+    assert tuple(
+        (
+            production.artifact.type,
+            production.role_binding,
+            production.agent_instance,
+        )
+        for production in implementation.input_artifacts
+    ) == (
+        (
+            "ArchitectureDecision",
+            "architecture",
+            "architecture-worker",
+        ),
+        (
+            "Requirements",
+            "requirements",
+            "requirements-worker",
+        ),
+    )
+
+    expected_lines = tuple(
+        (
+            f"`artifactType`: `{production.artifact.type}`; "
+            f"producer `roleBinding`: `{production.role_binding}`; "
+            f"resolved `agentInstance`: `{production.agent_instance}`"
+        )
+        for production in implementation.input_artifacts
+    )
+
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/implementation-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(
+                ".github/agents/"
+                "implementation-worker.agent.md"
+            ),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        assert "## Required Input Artifacts" in content
+        assert "### implementation" in content
+        for expected in expected_lines:
+            assert expected in content
+
+
+def test_rendered_controller_has_no_governed_inputs() -> None:
+    expected = (
+        "### workflow-controller\n\n"
+        "This role binding has no required static input artifacts."
+    )
+
+    for target_name, path in (
+        (
+            "opencode",
+            Path(".opencode/agents/workflow-controller.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(
+                ".github/agents/"
+                "workflow-controller.agent.md"
+            ),
+        ),
+    ):
+        content = rendered_files(target_name)[path].decode("utf-8")
+
+        assert "## Required Input Artifacts" in content
+        assert expected in content
+
+
 def test_rendered_artifact_headings_are_nested() -> None:
     files = rendered_files("opencode")
     requirements = files[

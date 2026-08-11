@@ -1,7 +1,7 @@
 {
   "name": "ai-application",
   "description": "Fail-closed AI application delivery bundle with explicit AI quality, safety, and operational evaluation.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "profile": "ai-application",
   "workflow": "ai-application-delivery",
   "agentInstances": [
@@ -78,6 +78,7 @@
       "produces": [
         "Requirements"
       ],
+      "inputArtifacts": [],
       "responsibilities": [
         "Clarify the problem statement",
         "Identify explicit and implicit requirements",
@@ -107,6 +108,12 @@
       ],
       "produces": [
         "ArchitectureDecision"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
       ],
       "responsibilities": [
         "Define system boundaries",
@@ -139,6 +146,16 @@
       "produces": [
         "ImplementationReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
+      ],
       "responsibilities": [
         "Modify product code",
         "Update tests",
@@ -167,6 +184,16 @@
       ],
       "produces": [
         "AIEvaluationReport"
+      ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
       ],
       "responsibilities": [
         "Review the declared AI use case and evaluation scope",
@@ -203,6 +230,16 @@
       "produces": [
         "TestReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        }
+      ],
       "responsibilities": [
         "Run relevant tests",
         "Collect validation output",
@@ -234,6 +271,20 @@
       "produces": [
         "CodeReview"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution"
+        }
+      ],
       "responsibilities": [
         "Review changed code",
         "Check maintainability and readability",
@@ -264,6 +315,32 @@
       "produces": [
         "QAReport"
       ],
+      "inputArtifacts": [
+        {
+          "artifactType": "AIEvaluationReport",
+          "roleBinding": "ai-evaluation"
+        },
+        {
+          "artifactType": "ArchitectureDecision",
+          "roleBinding": "architecture"
+        },
+        {
+          "artifactType": "CodeReview",
+          "roleBinding": "code-review"
+        },
+        {
+          "artifactType": "ImplementationReport",
+          "roleBinding": "implementation"
+        },
+        {
+          "artifactType": "Requirements",
+          "roleBinding": "requirements"
+        },
+        {
+          "artifactType": "TestReport",
+          "roleBinding": "test-execution"
+        }
+      ],
       "responsibilities": [
         "Verify acceptance criteria",
         "Validate evidence from tests and reviews",
@@ -292,6 +369,7 @@
         "workflow-routing"
       ],
       "produces": [],
+      "inputArtifacts": [],
       "responsibilities": [
         "Read workflow state",
         "Interpret gate results",

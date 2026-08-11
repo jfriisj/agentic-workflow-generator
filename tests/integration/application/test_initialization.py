@@ -58,7 +58,7 @@ def test_direct_bundle_plan_preserves_project_metadata() -> None:
     assert plan.active_config["selection"] == {
         "bundle": {
             "name": "orchestrated-delivery",
-            "version": "0.2.0",
+            "version": "0.3.0",
         },
         "profile": {
             "name": "microservice-platform",

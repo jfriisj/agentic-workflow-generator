@@ -129,6 +129,40 @@ def test_orchestrated_bundle_preserves_authoritative_binding_semantics() -> None
         artifact.type
         for artifact in requirements_binding.produces
     ) == ("Requirements",)
+    assert requirements_binding.input_artifacts == ()
+
+    implementation_binding = next(
+        binding
+        for binding in composition.role_bindings
+        if binding.role_name == "implementation"
+    )
+    assert tuple(
+        (
+            production.artifact.type,
+            production.role_binding,
+            production.agent_instance,
+        )
+        for production in implementation_binding.input_artifacts
+    ) == (
+        (
+            "ArchitectureDecision",
+            "architecture",
+            "architecture-worker",
+        ),
+        (
+            "Requirements",
+            "requirements",
+            "requirements-worker",
+        ),
+    )
+    assert all(
+        any(
+            production is canonical_production
+            for canonical_production
+            in composition.artifact_production
+        )
+        for production in implementation_binding.input_artifacts
+    )
     assert requirements_instance.profile.name == "Requirements"
     assert requirements_instance.role_bindings == ("requirements",)
     assert requirements_instance.required_capabilities == (

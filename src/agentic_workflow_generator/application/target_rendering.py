@@ -354,6 +354,7 @@ def _render_agent_body(
 
 {_markdown_list(instance.guardrails)}
 
+{_render_required_input_artifacts(composition, instance)}
 {_render_produced_artifacts(composition, instance)}
 ## Workflow Authority
 
@@ -365,6 +366,63 @@ The canonical active composition is:
 
 Workflow: `{composition.workflow.name}`
 """
+
+
+
+def _render_required_input_artifacts(
+    composition: CompiledComposition,
+    instance: CompiledAgentInstance,
+) -> str:
+    bindings_by_name = {
+        binding.role_name: binding
+        for binding in composition.role_bindings
+    }
+    assigned_bindings = []
+
+    for role_name in instance.role_bindings:
+        try:
+            assigned_bindings.append(
+                bindings_by_name[role_name]
+            )
+        except KeyError as exc:
+            raise TargetRenderingError(
+                "Compiled agent instance references missing role binding "
+                f"{role_name!r}: {instance.id!r}"
+            ) from exc
+
+    lines = [
+        "## Required Input Artifacts",
+        "",
+        (
+            "Static governed inputs are resolved from the canonical "
+            "compiled composition."
+        ),
+    ]
+
+    for binding in assigned_bindings:
+        lines.extend(
+            [
+                "",
+                f"### {binding.role_name}",
+                "",
+            ]
+        )
+
+        if not binding.input_artifacts:
+            lines.append(
+                "This role binding has no required static input artifacts."
+            )
+            continue
+
+        for production in binding.input_artifacts:
+            lines.append(
+                "- "
+                f"`artifactType`: `{production.artifact.type}`; "
+                f"producer `roleBinding`: `{production.role_binding}`; "
+                f"resolved `agentInstance`: `{production.agent_instance}`"
+            )
+
+    return "\n".join(lines) + "\n\n"
 
 
 def _render_produced_artifacts(

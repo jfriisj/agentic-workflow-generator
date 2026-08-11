@@ -13,6 +13,7 @@ from .artifacts import (
 from .bundles import (
     AgentInstance,
     Bundle,
+    InputArtifactReference,
     RoleBinding,
     RoleBindingType,
     SeparationMode,
@@ -65,6 +66,7 @@ __all__ = [
     "BashPermission",
     "Bundle",
     "Diagnostic",
+    "InputArtifactReference",
     "PermissionProfile",
     "Profile",
     "RoleBinding",

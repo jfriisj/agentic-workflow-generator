@@ -75,6 +75,106 @@ def test_all_real_bundles_serialize_against_schema() -> None:
     assert errors == []
 
 
+def test_compiled_role_bindings_serialize_canonical_input_artifacts() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    config = composition_to_json_object(
+        compile_bundle_composition(
+            snapshot,
+            project,
+            "orchestrated-delivery",
+        )
+    )
+
+    assert config["schemaVersion"] == "0.9.0"
+
+    role_bindings = cast(
+        list[Any],
+        config["roleBindings"],
+    )
+    by_name = {
+        cast(dict[str, Any], binding)["roleName"]: cast(
+            dict[str, Any],
+            binding,
+        )
+        for binding in role_bindings
+    }
+
+    assert by_name["requirements"]["inputArtifacts"] == []
+    assert by_name["workflow-controller"]["inputArtifacts"] == []
+    assert by_name["implementation"]["inputArtifacts"] == [
+        {
+            "artifactType": "ArchitectureDecision",
+            "roleBinding": "architecture",
+            "agentInstance": "architecture-worker",
+        },
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "requirements",
+            "agentInstance": "requirements-worker",
+        },
+    ]
+
+
+def test_active_schema_rejects_controller_input_artifacts() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    config = composition_to_json_object(
+        compile_bundle_composition(
+            snapshot,
+            project,
+            "lean-delivery",
+        )
+    )
+    role_bindings = cast(
+        list[Any],
+        config["roleBindings"],
+    )
+    controller = next(
+        cast(dict[str, Any], binding)
+        for binding in role_bindings
+        if cast(dict[str, Any], binding)["bindingType"]
+        == "workflow-controller"
+    )
+    controller["inputArtifacts"] = [
+        {
+            "artifactType": "Requirements",
+            "roleBinding": "requirements",
+            "agentInstance": "requirements-worker",
+        }
+    ]
+
+    errors = list(
+        Draft202012Validator(
+            active_config_schema()
+        ).iter_errors(config)
+    )
+
+    assert any(
+        error.validator == "maxItems"
+        and error.json_path.endswith(".inputArtifacts")
+        for error in errors
+    )
+
+
 def test_active_repository_config_matches_schema() -> None:
     validator = Draft202012Validator(
         active_config_schema()
@@ -160,7 +260,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.8.0"
+    assert config["schemaVersion"] == "0.9.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -187,7 +287,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.8.0"
+    assert config["schemaVersion"] == "0.9.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -208,7 +308,7 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.8.0"
+    assert config["schemaVersion"] == "0.9.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -229,7 +329,7 @@ def test_active_repository_artifacts_carry_status_semantics() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.8.0"
+    assert config["schemaVersion"] == "0.9.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -257,7 +357,7 @@ def test_active_repository_artifacts_carry_canonical_evidence() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.8.0"
+    assert config["schemaVersion"] == "0.9.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts

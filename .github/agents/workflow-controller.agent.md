@@ -64,6 +64,15 @@ Owns workflow routing, state transitions, gate interpretation, and handoffs.
 - Invent workflow transitions
 - Route work without a unique validated transition
 
+## Required Input Artifacts
+
+Static governed inputs are resolved from the canonical compiled composition.
+
+### workflow-controller
+
+This role binding has no required static input artifacts.
+
+
 ## Produced Artifacts
 
 This agent instance does not own artifact production.

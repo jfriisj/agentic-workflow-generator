@@ -37,6 +37,14 @@ class AgentInstance:
 
 
 @dataclass(frozen=True, slots=True)
+class InputArtifactReference:
+    """Immutable governed dependency on one artifact-production relationship."""
+
+    artifact_type: str
+    role_binding: str
+
+
+@dataclass(frozen=True, slots=True)
 class RoleBinding:
     """Immutable authoritative workflow assignment.
 
@@ -50,6 +58,7 @@ class RoleBinding:
     required_capabilities: tuple[str, ...]
     selected_skills: tuple[str, ...]
     produces: tuple[str, ...]
+    input_artifacts: tuple[InputArtifactReference, ...]
     responsibilities: tuple[str, ...]
     guardrails: tuple[str, ...]
     workflow_state: str | None

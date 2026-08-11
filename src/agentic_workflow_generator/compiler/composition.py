@@ -87,6 +87,7 @@ class CompiledRoleBinding:
     selected_skills: tuple[Skill, ...]
     provided_capabilities: tuple[str, ...]
     produces: tuple[ArtifactContract, ...]
+    input_artifacts: tuple[CompiledArtifactProduction, ...]
     responsibilities: tuple[str, ...]
     guardrails: tuple[str, ...]
 
@@ -200,8 +201,22 @@ def compile_bundle_composition(
         registry.artifact_by_type(artifact_type)
         for artifact_type in bundle.artifacts
     )
+    artifact_production = tuple(
+        CompiledArtifactProduction(
+            artifact=registry.artifact_by_type(artifact_type),
+            role_binding=binding.role_name,
+            agent_instance=binding.agent_instance,
+        )
+        for binding in bundle.role_bindings
+        if binding.binding_type is RoleBindingType.STATE_OWNER
+        for artifact_type in binding.produces
+    )
     bindings = tuple(
-        _compile_binding(registry, binding)
+        _compile_binding(
+            registry,
+            binding,
+            artifact_production,
+        )
         for binding in bundle.role_bindings
     )
     instances = tuple(
@@ -241,15 +256,6 @@ def compile_bundle_composition(
         registry,
         workflow,
         bindings,
-    )
-    artifact_production = tuple(
-        CompiledArtifactProduction(
-            artifact=artifact,
-            role_binding=binding.role_name,
-            agent_instance=binding.agent_instance,
-        )
-        for binding in bindings
-        for artifact in binding.produces
     )
     separation_constraints = tuple(
         _compile_separation_constraint(
@@ -345,6 +351,7 @@ def _compile_targets(
 def _compile_binding(
     registry: CompositionRegistry,
     binding: RoleBinding,
+    artifact_production: tuple[CompiledArtifactProduction, ...],
 ) -> CompiledRoleBinding:
     selected_skills = tuple(
         registry.skill_by_name(name)
@@ -371,9 +378,51 @@ def _compile_binding(
             for capability in skill.provides
         ),
         produces=produces,
+        input_artifacts=_resolve_input_artifact_productions(
+            binding,
+            artifact_production,
+        ),
         responsibilities=binding.responsibilities,
         guardrails=binding.guardrails,
     )
+
+
+
+def _resolve_input_artifact_productions(
+    binding: RoleBinding,
+    artifact_production: tuple[CompiledArtifactProduction, ...],
+) -> tuple[CompiledArtifactProduction, ...]:
+    resolved: list[CompiledArtifactProduction] = []
+
+    for reference in sorted(
+        binding.input_artifacts,
+        key=lambda item: (
+            item.artifact_type,
+            item.role_binding,
+        ),
+    ):
+        matches = tuple(
+            production
+            for production in artifact_production
+            if (
+                production.artifact.type == reference.artifact_type
+                and production.role_binding == reference.role_binding
+            )
+        )
+
+        if len(matches) != 1:
+            raise CompositionError(
+                "input artifact reference must resolve to exactly one "
+                "compiled artifact production: "
+                f"consumer={binding.role_name!r}, "
+                f"artifact={reference.artifact_type!r}, "
+                f"producer={reference.role_binding!r}, "
+                f"matches={len(matches)}"
+            )
+
+        resolved.append(matches[0])
+
+    return tuple(resolved)
 
 
 def _compile_instance(

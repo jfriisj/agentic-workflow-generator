@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.8.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.9.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -304,6 +304,10 @@ def _serialize_role_binding(
             "produces": [
                 artifact.type
                 for artifact in binding.produces
+            ],
+            "inputArtifacts": [
+                _serialize_artifact_production(production)
+                for production in binding.input_artifacts
             ],
             "responsibilities": list(
                 binding.responsibilities

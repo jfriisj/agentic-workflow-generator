@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.8.0"
+      "const": "0.9.0"
     },
     "project": {
       "type": "object",
@@ -740,6 +740,7 @@
           "selectedSkills",
           "providedCapabilities",
           "produces",
+          "inputArtifacts",
           "responsibilities",
           "guardrails"
         ],
@@ -802,6 +803,33 @@
             },
             "uniqueItems": true
           },
+          "inputArtifacts": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "required": [
+                "artifactType",
+                "roleBinding",
+                "agentInstance"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "artifactType": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "roleBinding": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "agentInstance": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
           "responsibilities": {
             "type": "array",
             "items": {
@@ -850,6 +878,25 @@
                     ]
                   }
                 ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "bindingType": {
+                  "const": "workflow-controller"
+                }
+              },
+              "required": [
+                "bindingType"
+              ]
+            },
+            "then": {
+              "properties": {
+                "inputArtifacts": {
+                  "maxItems": 0
+                }
               }
             }
           }
