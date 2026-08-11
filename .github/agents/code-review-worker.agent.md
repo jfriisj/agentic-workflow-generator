@@ -2,15 +2,6 @@
 name: "code-review-worker"
 description: "Reviews implementation for maintainability, correctness, tests, and safety."
 tools: ["search", "read/readFile"]
-handoffs:
-  - label: "PASS to qa-worker"
-    agent: "qa-worker"
-    prompt: "Continue after state CodeReviewer returned pass. Enter state QA and follow its compiled gate and artifact requirements."
-    send: false
-  - label: "FAIL to implementation-worker"
-    agent: "implementation-worker"
-    prompt: "Continue after state CodeReviewer returned fail. Enter state Implementer and follow its compiled gate and artifact requirements."
-    send: false
 ---
 
 # CodeReviewer
@@ -103,7 +94,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `CodeReview`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.2.0`
+  - `workflowVersion`: `0.3.0`
   - `roleBinding`: `code-review`
   - `agentInstance`: `code-review-worker`
 - revision heading: `## Revision`
@@ -140,3 +131,7 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### State-Owner Routing Boundary
+
+Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.

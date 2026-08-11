@@ -95,7 +95,7 @@ def test_compiled_role_bindings_serialize_canonical_input_artifacts() -> None:
         )
     )
 
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     role_bindings = cast(
         list[Any],
@@ -188,6 +188,157 @@ def test_active_repository_config_matches_schema() -> None:
     assert list(validator.iter_errors(config)) == []
 
 
+def test_all_workflows_preserve_total_canonical_routing() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+
+    assert {workflow.version for workflow in snapshot.workflows} == {
+        "0.3.0"
+    }
+
+    for workflow in snapshot.workflows:
+        non_terminal_states = {
+            state.name for state in workflow.states if not state.terminal
+        }
+        routes = {
+            (transition.source, transition.result.value): transition.target
+            for transition in workflow.transitions
+        }
+
+        assert len(routes) == len(non_terminal_states) * 3
+
+        for state in non_terminal_states:
+            assert routes[(state, "blocked")] == workflow.default_failure_state
+            assert (state, "fail") in routes
+            assert routes[(state, "pass")] != workflow.default_failure_state
+
+
+def test_workflow_pass_and_fail_targets_are_preserved() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    expected = {
+        "lean-delivery": {
+            ("Requirements", "pass"): "Implementer",
+            ("Requirements", "fail"): "Blocked",
+            ("Implementer", "pass"): "TestRunner",
+            ("Implementer", "fail"): "Blocked",
+            ("TestRunner", "pass"): "CodeReviewer",
+            ("TestRunner", "fail"): "Implementer",
+            ("CodeReviewer", "pass"): "Done",
+            ("CodeReviewer", "fail"): "Implementer",
+        },
+        "orchestrated-delivery": {
+            ("Requirements", "pass"): "Architect",
+            ("Requirements", "fail"): "Blocked",
+            ("Architect", "pass"): "Implementer",
+            ("Architect", "fail"): "Blocked",
+            ("Implementer", "pass"): "TestRunner",
+            ("Implementer", "fail"): "Blocked",
+            ("TestRunner", "pass"): "CodeReviewer",
+            ("TestRunner", "fail"): "Implementer",
+            ("CodeReviewer", "pass"): "QA",
+            ("CodeReviewer", "fail"): "Implementer",
+            ("QA", "pass"): "Done",
+            ("QA", "fail"): "Blocked",
+        },
+        "review-heavy-delivery": {
+            ("Requirements", "pass"): "Architect",
+            ("Requirements", "fail"): "Blocked",
+            ("Architect", "pass"): "Implementer",
+            ("Architect", "fail"): "Blocked",
+            ("Implementer", "pass"): "CodeReviewer",
+            ("Implementer", "fail"): "Blocked",
+            ("CodeReviewer", "pass"): "TestRunner",
+            ("CodeReviewer", "fail"): "Implementer",
+            ("TestRunner", "pass"): "QA",
+            ("TestRunner", "fail"): "Implementer",
+            ("QA", "pass"): "Done",
+            ("QA", "fail"): "Implementer",
+        },
+        "ai-application-delivery": {
+            ("Requirements", "pass"): "Architect",
+            ("Requirements", "fail"): "Blocked",
+            ("Architect", "pass"): "Implementer",
+            ("Architect", "fail"): "Blocked",
+            ("Implementer", "pass"): "AIEvaluator",
+            ("Implementer", "fail"): "Blocked",
+            ("AIEvaluator", "pass"): "TestRunner",
+            ("AIEvaluator", "fail"): "Implementer",
+            ("TestRunner", "pass"): "CodeReviewer",
+            ("TestRunner", "fail"): "Implementer",
+            ("CodeReviewer", "pass"): "QA",
+            ("CodeReviewer", "fail"): "Implementer",
+            ("QA", "pass"): "Done",
+            ("QA", "fail"): "Blocked",
+        },
+    }
+
+    for workflow in snapshot.workflows:
+        actual = {
+            (transition.source, transition.result.value): transition.target
+            for transition in workflow.transitions
+            if transition.result.value in {"pass", "fail"}
+        }
+        assert actual == expected[workflow.name]
+
+
+def test_active_transition_serialization_is_canonical() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    config = composition_to_json_object(
+        compile_bundle_composition(
+            snapshot,
+            project,
+            "orchestrated-delivery",
+        )
+    )
+    workflow = cast(dict[str, Any], config["workflow"])
+    transitions = cast(list[dict[str, str]], workflow["transitions"])
+    routing_keys = [
+        (transition["from"], transition["on"], transition["to"])
+        for transition in transitions
+    ]
+
+    assert routing_keys == sorted(routing_keys)
+    assert {transition["on"] for transition in transitions} == {
+        "pass",
+        "fail",
+        "blocked",
+    }
+
+
+def test_active_schema_rejects_unsupported_routing_result() -> None:
+    config = read_json_object(
+        REPOSITORY_ROOT / ".agentic" / "agentic.json"
+    )
+    workflow = cast(dict[str, Any], config["workflow"])
+    transitions = cast(list[dict[str, str]], workflow["transitions"])
+    transitions[0]["on"] = "approve"
+
+    errors = list(
+        Draft202012Validator(
+            active_config_schema()
+        ).iter_errors(config)
+    )
+
+    assert any(
+        error.validator == "enum"
+        and error.json_path == "$.workflow.transitions[0].on"
+        for error in errors
+    )
+
+
 def test_schema_rejects_obsolete_runtime_authority() -> None:
     config = read_json_object(
         REPOSITORY_ROOT
@@ -260,7 +411,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -287,7 +438,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -308,7 +459,7 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -329,7 +480,7 @@ def test_active_repository_artifacts_carry_status_semantics() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -357,7 +508,7 @@ def test_active_repository_artifacts_carry_canonical_evidence() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.9.0"
+    assert config["schemaVersion"] == "0.10.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts

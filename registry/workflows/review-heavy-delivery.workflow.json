@@ -1,6 +1,6 @@
 {
   "name": "review-heavy-delivery",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A fail-closed delivery workflow that performs independent code review before test execution and finishes with QA acceptance.",
   "startState": "Requirements",
   "terminalStates": [
@@ -118,6 +118,11 @@
       "on": "fail"
     },
     {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "Architect",
       "to": "Implementer",
       "on": "pass"
@@ -126,6 +131,11 @@
       "from": "Architect",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "Implementer",
@@ -138,6 +148,11 @@
       "on": "fail"
     },
     {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "CodeReviewer",
       "to": "TestRunner",
       "on": "pass"
@@ -146,6 +161,11 @@
       "from": "CodeReviewer",
       "to": "Implementer",
       "on": "fail"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "TestRunner",
@@ -158,6 +178,11 @@
       "on": "fail"
     },
     {
+      "from": "TestRunner",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "QA",
       "to": "Done",
       "on": "pass"
@@ -166,6 +191,11 @@
       "from": "QA",
       "to": "Implementer",
       "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Blocked",
+      "on": "blocked"
     }
   ]
 }

@@ -49,6 +49,7 @@ from .targets import (
 from .workflows import (
     Workflow,
     WorkflowGate,
+    WorkflowRoutingResult,
     WorkflowState,
     WorkflowTransition,
 )
@@ -94,6 +95,7 @@ __all__ = [
     "TargetPermissionSetting",
     "Workflow",
     "WorkflowGate",
+    "WorkflowRoutingResult",
     "WorkflowState",
     "WorkflowTransition",
 ]

@@ -1,6 +1,6 @@
 {
   "name": "ai-application-delivery",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A fail-closed delivery workflow for AI applications with explicit AI quality, safety, and operational evaluation.",
   "startState": "Requirements",
   "terminalStates": [
@@ -133,6 +133,11 @@
       "on": "fail"
     },
     {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "Architect",
       "to": "Implementer",
       "on": "pass"
@@ -141,6 +146,11 @@
       "from": "Architect",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "Implementer",
@@ -153,6 +163,11 @@
       "on": "fail"
     },
     {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "AIEvaluator",
       "to": "TestRunner",
       "on": "pass"
@@ -161,6 +176,11 @@
       "from": "AIEvaluator",
       "to": "Implementer",
       "on": "fail"
+    },
+    {
+      "from": "AIEvaluator",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "TestRunner",
@@ -173,6 +193,11 @@
       "on": "fail"
     },
     {
+      "from": "TestRunner",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "CodeReviewer",
       "to": "QA",
       "on": "pass"
@@ -183,6 +208,11 @@
       "on": "fail"
     },
     {
+      "from": "CodeReviewer",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "QA",
       "to": "Done",
       "on": "pass"
@@ -191,6 +221,11 @@
       "from": "QA",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Blocked",
+      "on": "blocked"
     }
   ]
 }

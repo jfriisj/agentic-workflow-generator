@@ -2,11 +2,6 @@
 name: "qa-worker"
 description: "Checks whether completed work satisfies acceptance criteria and required evidence."
 tools: ["search", "read/readFile"]
-handoffs:
-  - label: "FAIL to workflow-controller"
-    agent: "workflow-controller"
-    prompt: "State QA returned fail and routed to terminal state Blocked. Review the blocked outcome and decide the next fail-closed action."
-    send: false
 ---
 
 # QA
@@ -99,7 +94,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `QAReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.2.0`
+  - `workflowVersion`: `0.3.0`
   - `roleBinding`: `quality-assurance`
   - `agentInstance`: `qa-worker`
 - revision heading: `## Revision`
@@ -136,3 +131,7 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### State-Owner Routing Boundary
+
+Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.

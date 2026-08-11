@@ -2,15 +2,6 @@
 name: "implementation-worker"
 description: "Implements approved work according to requirements, plan, and architecture."
 tools: ["search", "read/readFile", "edit/editFiles", "execute/runInTerminal", "execute/testFailure"]
-handoffs:
-  - label: "PASS to test-runner"
-    agent: "test-runner"
-    prompt: "Continue after state Implementer returned pass. Enter state TestRunner and follow its compiled gate and artifact requirements."
-    send: false
-  - label: "FAIL to workflow-controller"
-    agent: "workflow-controller"
-    prompt: "State Implementer returned fail and routed to terminal state Blocked. Review the blocked outcome and decide the next fail-closed action."
-    send: false
 ---
 
 # Implementer
@@ -99,7 +90,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `ImplementationReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.2.0`
+  - `workflowVersion`: `0.3.0`
   - `roleBinding`: `implementation`
   - `agentInstance`: `implementation-worker`
 - revision heading: `## Revision`
@@ -136,3 +127,7 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### State-Owner Routing Boundary
+
+Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.

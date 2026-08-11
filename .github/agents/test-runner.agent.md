@@ -2,15 +2,6 @@
 name: "test-runner"
 description: "Runs tests and produces validation evidence."
 tools: ["search", "read/readFile", "execute/runInTerminal", "execute/testFailure"]
-handoffs:
-  - label: "PASS to code-review-worker"
-    agent: "code-review-worker"
-    prompt: "Continue after state TestRunner returned pass. Enter state CodeReviewer and follow its compiled gate and artifact requirements."
-    send: false
-  - label: "FAIL to implementation-worker"
-    agent: "implementation-worker"
-    prompt: "Continue after state TestRunner returned fail. Enter state Implementer and follow its compiled gate and artifact requirements."
-    send: false
 ---
 
 # TestRunner
@@ -99,7 +90,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `TestReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.2.0`
+  - `workflowVersion`: `0.3.0`
   - `roleBinding`: `test-execution`
   - `agentInstance`: `test-runner`
 - revision heading: `## Revision`
@@ -136,3 +127,7 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### State-Owner Routing Boundary
+
+Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.

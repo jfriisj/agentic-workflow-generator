@@ -14,6 +14,7 @@ from agentic_workflow_generator.domain import Diagnostic
 from agentic_workflow_generator.domain.workflows import (
     Workflow,
     WorkflowGate,
+    WorkflowRoutingResult,
     WorkflowState,
     WorkflowTransition,
 )
@@ -47,11 +48,13 @@ UNKNOWN_CAPABILITY_DIAGNOSTIC = "AWG-WORKFLOW-011"
 UNKNOWN_ARTIFACT_DIAGNOSTIC = "AWG-WORKFLOW-012"
 TRANSITION_ENDPOINT_DIAGNOSTIC = "AWG-WORKFLOW-013"
 TERMINAL_OUTGOING_DIAGNOSTIC = "AWG-WORKFLOW-014"
-DUPLICATE_EVENT_DIAGNOSTIC = "AWG-WORKFLOW-015"
-MISSING_OUTGOING_DIAGNOSTIC = "AWG-WORKFLOW-016"
+DUPLICATE_RESULT_DIAGNOSTIC = "AWG-WORKFLOW-015"
+MISSING_RESULT_DIAGNOSTIC = "AWG-WORKFLOW-016"
 UNREACHABLE_STATE_DIAGNOSTIC = "AWG-WORKFLOW-017"
 NO_TERMINAL_PATH_DIAGNOSTIC = "AWG-WORKFLOW-018"
 ARTIFACT_STATUS_EVENT_DIAGNOSTIC = "AWG-WORKFLOW-019"
+BLOCKED_TARGET_DIAGNOSTIC = "AWG-WORKFLOW-020"
+PASS_FAILURE_TARGET_DIAGNOSTIC = "AWG-WORKFLOW-021"
 
 OBSOLETE_WORKFLOW_FIELDS = frozenset(
     {
@@ -314,7 +317,7 @@ def _parse_workflow(
         WorkflowTransition(
             source=cast(str, raw_transition["from"]),
             target=cast(str, raw_transition["to"]),
-            event=cast(str, raw_transition["on"]),
+            result=WorkflowRoutingResult(cast(str, raw_transition["on"])),
         )
         for raw_transition in raw_transitions
     )
@@ -610,13 +613,26 @@ def _validate_transition_graph(
     diagnostics: list[Diagnostic] = []
     outgoing: dict[str, set[str]] = {}
     reverse_edges: dict[str, set[str]] = {}
-    outgoing_events: dict[str, set[str]] = {}
-    seen_events: set[tuple[str, str]] = set()
+    outgoing_results: dict[str, set[WorkflowRoutingResult]] = {}
+    routes_by_source_result: dict[
+        tuple[str, WorkflowRoutingResult],
+        list[int],
+    ] = {}
 
-    for index, transition in enumerate(workflow.transitions):
+    indexed_transitions = sorted(
+        enumerate(workflow.transitions),
+        key=lambda item: (
+            item[1].source,
+            item[1].result.value,
+            item[1].target,
+            item[0],
+        ),
+    )
+
+    for index, transition in indexed_transitions:
         source_valid = transition.source in state_by_name
         target_valid = transition.target in state_by_name
-        event = transition.event.casefold()
+        result = transition.result
 
         if not source_valid:
             diagnostics.append(
@@ -659,29 +675,62 @@ def _validate_transition_graph(
                 )
             )
 
-        source_event = (
+        source_result = (
             transition.source,
-            event,
+            result,
         )
+        routes_by_source_result.setdefault(source_result, []).append(index)
 
-        if source_event in seen_events:
+        if source_valid and transition.source not in terminal_state_names:
+            outgoing_results.setdefault(
+                transition.source,
+                set(),
+            ).add(result)
+
+        if (
+            result is WorkflowRoutingResult.BLOCKED
+            and transition.target != workflow.default_failure_state
+        ):
             diagnostics.append(
                 Diagnostic(
-                    code=DUPLICATE_EVENT_DIAGNOSTIC,
+                    code=BLOCKED_TARGET_DIAGNOSTIC,
                     message=(
-                        f"transition event {event!r} from state "
-                        f"{transition.source!r} is duplicated"
+                        f"blocked transition from state {transition.source!r} "
+                        f"must target defaultFailureState "
+                        f"{workflow.default_failure_state!r}"
                     ),
                     source_path=source_path.as_posix(),
-                    location=f"transitions[{index}].on",
-                    related_identities=(
+                    location=f"transitions[{index}].to",
+                    related_identities=_unique_identities(
                         transition.source,
-                        event,
+                        result.value,
+                        transition.target,
+                        workflow.default_failure_state,
                     ),
                 )
             )
-        else:
-            seen_events.add(source_event)
+
+        if (
+            result is WorkflowRoutingResult.PASS
+            and transition.target == workflow.default_failure_state
+        ):
+            diagnostics.append(
+                Diagnostic(
+                    code=PASS_FAILURE_TARGET_DIAGNOSTIC,
+                    message=(
+                        f"pass transition from state {transition.source!r} "
+                        "must not target defaultFailureState "
+                        f"{workflow.default_failure_state!r}"
+                    ),
+                    source_path=source_path.as_posix(),
+                    location=f"transitions[{index}].to",
+                    related_identities=(
+                        transition.source,
+                        result.value,
+                        transition.target,
+                    ),
+                )
+            )
 
         if (
             source_valid
@@ -696,28 +745,50 @@ def _validate_transition_graph(
                 transition.target,
                 set(),
             ).add(transition.source)
-            outgoing_events.setdefault(
-                transition.source,
-                set(),
-            ).add(event)
-
-    non_terminal_names = {state.name for state in workflow.states if not state.terminal}
-
-    for state_name in sorted(non_terminal_names):
-        if state_name in outgoing:
+    for (state_name, result), indexes in sorted(
+        routes_by_source_result.items(),
+        key=lambda item: (item[0][0], item[0][1].value),
+    ):
+        if len(indexes) < 2:
             continue
 
         diagnostics.append(
             Diagnostic(
-                code=MISSING_OUTGOING_DIAGNOSTIC,
+                code=DUPLICATE_RESULT_DIAGNOSTIC,
                 message=(
-                    f"non-terminal state {state_name!r} has no outgoing transition"
+                    f"transition result {result.value!r} from state "
+                    f"{state_name!r} is duplicated"
                 ),
                 source_path=source_path.as_posix(),
                 location="transitions",
-                related_identities=(state_name,),
+                related_identities=(state_name, result.value),
             )
         )
+
+    non_terminal_names = {state.name for state in workflow.states if not state.terminal}
+
+    for state_name in sorted(non_terminal_names):
+        declared_results = outgoing_results.get(state_name, set())
+
+        for result in sorted(
+            WorkflowRoutingResult,
+            key=lambda item: item.value,
+        ):
+            if result in declared_results:
+                continue
+
+            diagnostics.append(
+                Diagnostic(
+                    code=MISSING_RESULT_DIAGNOSTIC,
+                    message=(
+                        f"non-terminal state {state_name!r} is missing "
+                        f"canonical transition result {result.value!r}"
+                    ),
+                    source_path=source_path.as_posix(),
+                    location="transitions",
+                    related_identities=(state_name, result.value),
+                )
+            )
 
     for state in workflow.states:
         gate = state.gate
@@ -725,7 +796,7 @@ def _validate_transition_graph(
         if gate is None:
             continue
 
-        events = outgoing_events.get(
+        results = outgoing_results.get(
             state.name,
             set(),
         )
@@ -736,7 +807,13 @@ def _validate_transition_graph(
             if allowed_statuses is None:
                 continue
 
-            for event in sorted(events - allowed_statuses):
+            unsupported_results = {
+                result.value
+                for result in results
+                if result.value not in allowed_statuses
+            }
+
+            for event in sorted(unsupported_results):
                 diagnostics.append(
                     Diagnostic(
                         code=ARTIFACT_STATUS_EVENT_DIAGNOSTIC,
