@@ -31,7 +31,7 @@ def create_repository(
 
     workflow: JsonObject = {
         "name": "lean-delivery",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "description": "Lean workflow.",
         "startState": "Requirements",
         "terminalStates": [
@@ -73,6 +73,11 @@ def create_repository(
                 "from": "Requirements",
                 "to": "Blocked",
                 "on": "fail",
+            },
+            {
+                "from": "Requirements",
+                "to": "Blocked",
+                "on": "blocked",
             },
         ],
     }

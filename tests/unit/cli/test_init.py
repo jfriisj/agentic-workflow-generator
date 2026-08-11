@@ -157,7 +157,7 @@ def test_direct_bundle_init_writes_typed_active_config(
         },
         "workflow": {
             "name": "lean-delivery",
-            "version": "0.2.0",
+            "version": "0.3.0",
         },
     }
     assert "agentInstances" in config

@@ -2,15 +2,6 @@
 name: "requirements-worker"
 description: "Clarifies scope, requirements, constraints, assumptions, and acceptance criteria."
 tools: ["search", "read/readFile"]
-handoffs:
-  - label: "PASS to architecture-worker"
-    agent: "architecture-worker"
-    prompt: "Continue after state Requirements returned pass. Enter state Architect and follow its compiled gate and artifact requirements."
-    send: false
-  - label: "FAIL to workflow-controller"
-    agent: "workflow-controller"
-    prompt: "State Requirements returned fail and routed to terminal state Blocked. Review the blocked outcome and decide the next fail-closed action."
-    send: false
 ---
 
 # Requirements
@@ -100,7 +91,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `Requirements`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.2.0`
+  - `workflowVersion`: `0.3.0`
   - `roleBinding`: `requirements`
   - `agentInstance`: `requirements-worker`
 - revision heading: `## Revision`
@@ -137,3 +128,7 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### State-Owner Routing Boundary
+
+Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.

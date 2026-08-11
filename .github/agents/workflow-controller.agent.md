@@ -7,6 +7,34 @@ handoffs:
     agent: "requirements-worker"
     prompt: "Begin the workflow at state Requirements. Follow its compiled gate and artifact requirements."
     send: false
+  - label: "Route Architect + PASS (pass) -> Implementer"
+    agent: "implementation-worker"
+    prompt: "Current state: Architect. Canonical result: PASS (pass). Dispatch the owner of selected target state Implementer; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route CodeReviewer + FAIL (fail) -> Implementer"
+    agent: "implementation-worker"
+    prompt: "Current state: CodeReviewer. Canonical result: FAIL (fail). Dispatch the owner of selected target state Implementer; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route CodeReviewer + PASS (pass) -> QA"
+    agent: "qa-worker"
+    prompt: "Current state: CodeReviewer. Canonical result: PASS (pass). Dispatch the owner of selected target state QA; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route Implementer + PASS (pass) -> TestRunner"
+    agent: "test-runner"
+    prompt: "Current state: Implementer. Canonical result: PASS (pass). Dispatch the owner of selected target state TestRunner; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route Requirements + PASS (pass) -> Architect"
+    agent: "architecture-worker"
+    prompt: "Current state: Requirements. Canonical result: PASS (pass). Dispatch the owner of selected target state Architect; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route TestRunner + FAIL (fail) -> Implementer"
+    agent: "implementation-worker"
+    prompt: "Current state: TestRunner. Canonical result: FAIL (fail). Dispatch the owner of selected target state Implementer; do not infer, prioritize, or reclassify the route."
+    send: false
+  - label: "Route TestRunner + PASS (pass) -> CodeReviewer"
+    agent: "code-review-worker"
+    prompt: "Current state: TestRunner. Canonical result: PASS (pass). Dispatch the owner of selected target state CodeReviewer; do not infer, prioritize, or reclassify the route."
+    send: false
 ---
 
 # Orchestrator
@@ -87,3 +115,35 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### Controller-Owned Routing
+
+This controller is the sole routing authority.
+
+- start state: `Requirements`
+- terminal states: `Done`, `Blocked`
+- default failure state: `Blocked`
+- canonical gate results: `PASS` (`pass`), `FAIL` (`fail`), `BLOCKED` (`blocked`)
+
+Canonical routing table:
+
+- `Architect` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Architect` + `FAIL` (`fail`) -> `Blocked`
+- `Architect` + `PASS` (`pass`) -> `Implementer`
+- `CodeReviewer` + `BLOCKED` (`blocked`) -> `Blocked`
+- `CodeReviewer` + `FAIL` (`fail`) -> `Implementer`
+- `CodeReviewer` + `PASS` (`pass`) -> `QA`
+- `Implementer` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Implementer` + `FAIL` (`fail`) -> `Blocked`
+- `Implementer` + `PASS` (`pass`) -> `TestRunner`
+- `QA` + `BLOCKED` (`blocked`) -> `Blocked`
+- `QA` + `FAIL` (`fail`) -> `Blocked`
+- `QA` + `PASS` (`pass`) -> `Done`
+- `Requirements` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Requirements` + `FAIL` (`fail`) -> `Blocked`
+- `Requirements` + `PASS` (`pass`) -> `Architect`
+- `TestRunner` + `BLOCKED` (`blocked`) -> `Blocked`
+- `TestRunner` + `FAIL` (`fail`) -> `Implementer`
+- `TestRunner` + `PASS` (`pass`) -> `CodeReviewer`
+
+Receive the state owner's already-classified canonical result, select only the unique matching route, and stop without transition if routing is unavailable or inconsistent. Do not reinterpret results or use declaration order as priority.

@@ -1,6 +1,6 @@
 {
   "name": "lean-delivery",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A compact fail-closed delivery workflow for focused changes that require explicit requirements, implementation, testing, and code review without a separate architecture or QA phase.",
   "startState": "Requirements",
   "terminalStates": [
@@ -90,6 +90,11 @@
       "on": "fail"
     },
     {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "Implementer",
       "to": "TestRunner",
       "on": "pass"
@@ -98,6 +103,11 @@
       "from": "Implementer",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "TestRunner",
@@ -110,6 +120,11 @@
       "on": "fail"
     },
     {
+      "from": "TestRunner",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "CodeReviewer",
       "to": "Done",
       "on": "pass"
@@ -118,6 +133,11 @@
       "from": "CodeReviewer",
       "to": "Implementer",
       "on": "fail"
+    },
+    {
+      "from": "CodeReviewer",
+      "to": "Blocked",
+      "on": "blocked"
     }
   ]
 }

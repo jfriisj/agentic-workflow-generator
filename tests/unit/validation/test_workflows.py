@@ -12,12 +12,14 @@ from agentic_workflow_generator.registry import (
     RegistrySource,
 )
 from agentic_workflow_generator.validation.workflows import (
-    ARTIFACT_STATUS_EVENT_DIAGNOSTIC,
-    DUPLICATE_EVENT_DIAGNOSTIC,
+    BLOCKED_TARGET_DIAGNOSTIC,
+    DUPLICATE_RESULT_DIAGNOSTIC,
     FAIL_CLOSED_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
-    MISSING_OUTGOING_DIAGNOSTIC,
+    MISSING_RESULT_DIAGNOSTIC,
     OBSOLETE_FIELD_DIAGNOSTIC,
+    PASS_FAILURE_TARGET_DIAGNOSTIC,
+    SCHEMA_DIAGNOSTIC,
     UNKNOWN_ARTIFACT_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
     WorkflowReferenceData,
@@ -34,7 +36,7 @@ SCHEMA = read_json_object(
 def workflow_data() -> JsonObject:
     return {
         "name": "lean-delivery",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "description": "Lean workflow.",
         "startState": "Requirements",
         "terminalStates": [
@@ -76,6 +78,11 @@ def workflow_data() -> JsonObject:
                 "from": "Requirements",
                 "to": "Blocked",
                 "on": "fail",
+            },
+            {
+                "from": "Requirements",
+                "to": "Blocked",
+                "on": "blocked",
             },
         ],
     }
@@ -142,7 +149,7 @@ def test_valid_workflow_is_parsed() -> None:
     assert workflow.fail_closed is True
     assert workflow.states[0].gate is not None
     assert workflow.states[0].gate.required_artifacts == ("Requirements",)
-    assert workflow.transitions[0].event == "pass"
+    assert workflow.transitions[0].result.value == "pass"
 
 
 def test_file_name_must_match_workflow_name() -> None:
@@ -197,7 +204,7 @@ def test_unknown_gate_references_are_rejected() -> None:
     assert UNKNOWN_ARTIFACT_DIAGNOSTIC in codes
 
 
-def test_transition_events_are_case_insensitive_for_duplicates() -> None:
+def test_duplicate_source_result_route_is_rejected() -> None:
     data = workflow_data()
     transitions = data["transitions"]
     assert isinstance(transitions, list)
@@ -205,19 +212,19 @@ def test_transition_events_are_case_insensitive_for_duplicates() -> None:
         {
             "from": "Requirements",
             "to": "Done",
-            "on": "PASS",
+            "on": "pass",
         }
     )
 
     result = validate(source(data=data))
 
     assert any(
-        diagnostic.code == DUPLICATE_EVENT_DIAGNOSTIC
+        diagnostic.code == DUPLICATE_RESULT_DIAGNOSTIC
         for diagnostic in result.diagnostics
     )
 
 
-def test_non_terminal_state_requires_outgoing_transition() -> None:
+def test_non_terminal_state_requires_every_canonical_result() -> None:
     data = workflow_data()
     data["transitions"] = [
         {
@@ -230,12 +237,12 @@ def test_non_terminal_state_requires_outgoing_transition() -> None:
     result = validate(source(data=data))
 
     assert any(
-        diagnostic.code == MISSING_OUTGOING_DIAGNOSTIC
+        diagnostic.code == MISSING_RESULT_DIAGNOSTIC
         for diagnostic in result.diagnostics
     )
 
 
-def test_transition_event_must_match_required_artifact_status() -> None:
+def test_unsupported_transition_result_is_rejected_by_schema() -> None:
     data = workflow_data()
     transitions = data["transitions"]
     assert isinstance(transitions, list)
@@ -246,7 +253,39 @@ def test_transition_event_must_match_required_artifact_status() -> None:
     result = validate(source(data=data))
 
     assert any(
-        diagnostic.code == ARTIFACT_STATUS_EVENT_DIAGNOSTIC
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_blocked_route_must_target_default_failure_state() -> None:
+    data = workflow_data()
+    transitions = data["transitions"]
+    assert isinstance(transitions, list)
+    blocked = transitions[2]
+    assert isinstance(blocked, dict)
+    blocked["to"] = "Done"
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == BLOCKED_TARGET_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_pass_route_must_not_target_default_failure_state() -> None:
+    data = workflow_data()
+    transitions = data["transitions"]
+    assert isinstance(transitions, list)
+    passed = transitions[0]
+    assert isinstance(passed, dict)
+    passed["to"] = "Blocked"
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == PASS_FAILURE_TARGET_DIAGNOSTIC
         for diagnostic in result.diagnostics
     )
 

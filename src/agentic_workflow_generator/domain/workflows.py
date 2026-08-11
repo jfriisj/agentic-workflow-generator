@@ -3,6 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
+
+
+class WorkflowRoutingResult(StrEnum):
+    """Closed canonical result vocabulary used to select a transition."""
+
+    PASS = "pass"
+    FAIL = "fail"
+    BLOCKED = "blocked"
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,11 +39,11 @@ class WorkflowState:
 
 @dataclass(frozen=True, slots=True)
 class WorkflowTransition:
-    """Immutable event-driven transition between workflow states."""
+    """Immutable result-driven transition between workflow states."""
 
     source: str
     target: str
-    event: str
+    result: WorkflowRoutingResult
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.9.0",
+  "schemaVersion": "0.10.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -30,7 +30,7 @@
     },
     "workflow": {
       "name": "orchestrated-delivery",
-      "version": "0.2.0"
+      "version": "0.3.0"
     }
   },
   "targets": [
@@ -47,7 +47,7 @@
   ],
   "workflow": {
     "name": "orchestrated-delivery",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
     "startState": "Requirements",
     "terminalStates": [
@@ -100,12 +100,12 @@
     ],
     "transitions": [
       {
-        "from": "Requirements",
-        "to": "Architect",
-        "on": "pass"
+        "from": "Architect",
+        "to": "Blocked",
+        "on": "blocked"
       },
       {
-        "from": "Requirements",
+        "from": "Architect",
         "to": "Blocked",
         "on": "fail"
       },
@@ -115,27 +115,12 @@
         "on": "pass"
       },
       {
-        "from": "Architect",
+        "from": "CodeReviewer",
         "to": "Blocked",
-        "on": "fail"
+        "on": "blocked"
       },
       {
-        "from": "Implementer",
-        "to": "TestRunner",
-        "on": "pass"
-      },
-      {
-        "from": "Implementer",
-        "to": "Blocked",
-        "on": "fail"
-      },
-      {
-        "from": "TestRunner",
-        "to": "CodeReviewer",
-        "on": "pass"
-      },
-      {
-        "from": "TestRunner",
+        "from": "CodeReviewer",
         "to": "Implementer",
         "on": "fail"
       },
@@ -145,8 +130,28 @@
         "on": "pass"
       },
       {
-        "from": "CodeReviewer",
-        "to": "Implementer",
+        "from": "Implementer",
+        "to": "Blocked",
+        "on": "blocked"
+      },
+      {
+        "from": "Implementer",
+        "to": "Blocked",
+        "on": "fail"
+      },
+      {
+        "from": "Implementer",
+        "to": "TestRunner",
+        "on": "pass"
+      },
+      {
+        "from": "QA",
+        "to": "Blocked",
+        "on": "blocked"
+      },
+      {
+        "from": "QA",
+        "to": "Blocked",
         "on": "fail"
       },
       {
@@ -155,9 +160,34 @@
         "on": "pass"
       },
       {
-        "from": "QA",
+        "from": "Requirements",
+        "to": "Blocked",
+        "on": "blocked"
+      },
+      {
+        "from": "Requirements",
         "to": "Blocked",
         "on": "fail"
+      },
+      {
+        "from": "Requirements",
+        "to": "Architect",
+        "on": "pass"
+      },
+      {
+        "from": "TestRunner",
+        "to": "Blocked",
+        "on": "blocked"
+      },
+      {
+        "from": "TestRunner",
+        "to": "Implementer",
+        "on": "fail"
+      },
+      {
+        "from": "TestRunner",
+        "to": "CodeReviewer",
+        "on": "pass"
       }
     ]
   },

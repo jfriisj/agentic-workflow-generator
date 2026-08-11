@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.9.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.10.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -102,10 +102,17 @@ def composition_to_json_object(
                     {
                         "from": transition.source,
                         "to": transition.target,
-                        "on": transition.event,
+                        "on": transition.result.value,
                     }
                     for transition
-                    in composition.workflow.transitions
+                    in sorted(
+                        composition.workflow.transitions,
+                        key=lambda item: (
+                            item.source,
+                            item.result.value,
+                            item.target,
+                        ),
+                    )
                 ],
             },
             "permissionProfiles": [

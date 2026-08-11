@@ -46,7 +46,7 @@ SCHEMA = read_json_object(
 def workflow_data() -> JsonObject:
     return {
         "name": "lean-delivery",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "description": "Lean workflow.",
         "startState": "Requirements",
         "terminalStates": [
@@ -103,6 +103,11 @@ def workflow_data() -> JsonObject:
                 "on": "fail",
             },
             {
+                "from": "Requirements",
+                "to": "Blocked",
+                "on": "blocked",
+            },
+            {
                 "from": "Review",
                 "to": "Done",
                 "on": "pass",
@@ -111,6 +116,11 @@ def workflow_data() -> JsonObject:
                 "from": "Review",
                 "to": "Blocked",
                 "on": "fail",
+            },
+            {
+                "from": "Review",
+                "to": "Blocked",
+                "on": "blocked",
             },
         ],
     }
@@ -845,6 +855,11 @@ def test_unreachable_state_and_missing_terminal_path_are_rejected() -> None:
             "on": "fail",
         },
         {
+            "from": "Requirements",
+            "to": "Blocked",
+            "on": "blocked",
+        },
+        {
             "from": "Review",
             "to": "Review",
             "on": "pass",
@@ -869,7 +884,7 @@ def test_cycle_helpers_terminate_deterministically() -> None:
         {
             "from": "Review",
             "to": "Requirements",
-            "on": "blocked",
+            "on": "pass",
         },
         {
             "from": "Review",
@@ -880,6 +895,16 @@ def test_cycle_helpers_terminate_deterministically() -> None:
             "from": "Requirements",
             "to": "Blocked",
             "on": "fail",
+        },
+        {
+            "from": "Requirements",
+            "to": "Blocked",
+            "on": "blocked",
+        },
+        {
+            "from": "Review",
+            "to": "Blocked",
+            "on": "blocked",
         },
     ]
 

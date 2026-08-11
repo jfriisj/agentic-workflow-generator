@@ -1,6 +1,6 @@
 {
   "name": "orchestrated-delivery",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
   "startState": "Requirements",
   "terminalStates": [
@@ -118,6 +118,11 @@
       "on": "fail"
     },
     {
+      "from": "Requirements",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "Architect",
       "to": "Implementer",
       "on": "pass"
@@ -126,6 +131,11 @@
       "from": "Architect",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "Architect",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "Implementer",
@@ -138,6 +148,11 @@
       "on": "fail"
     },
     {
+      "from": "Implementer",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "TestRunner",
       "to": "CodeReviewer",
       "on": "pass"
@@ -146,6 +161,11 @@
       "from": "TestRunner",
       "to": "Implementer",
       "on": "fail"
+    },
+    {
+      "from": "TestRunner",
+      "to": "Blocked",
+      "on": "blocked"
     },
     {
       "from": "CodeReviewer",
@@ -158,6 +178,11 @@
       "on": "fail"
     },
     {
+      "from": "CodeReviewer",
+      "to": "Blocked",
+      "on": "blocked"
+    },
+    {
       "from": "QA",
       "to": "Done",
       "on": "pass"
@@ -166,6 +191,11 @@
       "from": "QA",
       "to": "Blocked",
       "on": "fail"
+    },
+    {
+      "from": "QA",
+      "to": "Blocked",
+      "on": "blocked"
     }
   ]
 }

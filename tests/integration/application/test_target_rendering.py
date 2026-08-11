@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
+
+import pytest
 
 from agentic_workflow_generator.application.target_materialization import (
     load_active_composition,
 )
 from agentic_workflow_generator.application.target_rendering import (
+    TargetRenderingError,
     render_enabled_targets,
 )
 from agentic_workflow_generator.registry import ProjectPaths
@@ -62,6 +66,8 @@ def test_opencode_uses_agent_instance_identity() -> None:
 
 
 def test_vscode_handoffs_use_agent_instance_identity() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
     files = rendered_files("vscode-copilot")
     controller_path = Path(
         ".github/agents/workflow-controller.agent.md"
@@ -77,6 +83,192 @@ def test_vscode_handoffs_use_agent_instance_identity() -> None:
     assert 'name: "workflow-controller"' in controller
     assert 'agent: "requirements-worker"' in controller
     assert "resolution.json" not in controller
+
+    state_owner_instances = {
+        ownership.agent_instance
+        for ownership in active.composition.state_ownership
+    }
+
+    for instance in state_owner_instances:
+        state_owner = files[
+            Path(f".github/agents/{instance}.agent.md")
+        ].decode("utf-8")
+        assert "handoffs:" not in state_owner
+
+
+def test_vscode_controller_owns_every_non_terminal_route_handoff() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    files = rendered_files("vscode-copilot")
+    controller = files[
+        Path(".github/agents/workflow-controller.agent.md")
+    ].decode("utf-8")
+    owners = {
+        ownership.workflow_state: ownership.agent_instance
+        for ownership in active.composition.state_ownership
+    }
+    non_terminal_routes = tuple(
+        sorted(
+            (
+                transition.source,
+                transition.result.name,
+                transition.result.value,
+                transition.target,
+                owners[transition.target],
+            )
+            for transition in active.composition.workflow.transitions
+            if transition.target in owners
+        )
+    )
+
+    labels: list[str] = []
+
+    for source, result_name, result_value, target, owner in non_terminal_routes:
+        label = (
+            f"Route {source} + {result_name} ({result_value}) -> {target}"
+        )
+        prompt = (
+            f"Current state: {source}. Canonical result: {result_name} "
+            f"({result_value}). Dispatch the owner of selected target state "
+            f"{target}; do not infer, prioritize, or reclassify the route."
+        )
+        handoff = (
+            f'  - label: "{label}"\n'
+            f'    agent: "{owner}"\n'
+            f'    prompt: "{prompt}"\n'
+            "    send: false"
+        )
+
+        assert handoff in controller
+        labels.append(label)
+
+    assert controller.count("  - label:") == len(non_terminal_routes) + 1
+    assert [controller.index(f'label: "{label}"') for label in labels] == sorted(
+        controller.index(f'label: "{label}"') for label in labels
+    )
+
+    for transition in active.composition.workflow.transitions:
+        if transition.target not in active.composition.workflow.terminal_states:
+            continue
+
+        terminal_label = (
+            f"Route {transition.source} + {transition.result.name} "
+            f"({transition.result.value}) -> {transition.target}"
+        )
+        assert terminal_label not in controller
+
+
+def test_both_targets_preserve_controller_owned_routing() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    expected_routes = tuple(
+        sorted(
+            (
+                transition.source,
+                transition.result.name,
+                transition.result.value,
+                transition.target,
+            )
+            for transition in active.composition.workflow.transitions
+        )
+    )
+
+    for target_name, controller_path, owner_path in (
+        (
+            "opencode",
+            Path(".opencode/agents/workflow-controller.md"),
+            Path(".opencode/agents/requirements-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(".github/agents/workflow-controller.agent.md"),
+            Path(".github/agents/requirements-worker.agent.md"),
+        ),
+    ):
+        files = rendered_files(target_name)
+        controller = files[controller_path].decode("utf-8")
+        owner = files[owner_path].decode("utf-8")
+
+        assert "This controller is the sole routing authority." in controller
+        assert "- start state: `Requirements`" in controller
+        assert "- terminal states: `Done`, `Blocked`" in controller
+        assert "- default failure state: `Blocked`" in controller
+        assert "`PASS` (`pass`), `FAIL` (`fail`), `BLOCKED` (`blocked`)" in controller
+
+        for source, result_name, result_value, target in expected_routes:
+            assert (
+                f"- `{source}` + `{result_name}` (`{result_value}`) -> `{target}`"
+                in controller
+            )
+
+        assert "Return that result and control to the workflow controller." in owner
+        assert "Do not select or execute a workflow route." in owner
+        assert "Canonical routing table:" not in owner
+
+
+def test_rendering_rejects_incomplete_canonical_routing() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    workflow = active.composition.workflow
+    incomplete = replace(
+        active.composition,
+        workflow=replace(
+            workflow,
+            transitions=tuple(
+                transition
+                for transition in workflow.transitions
+                if not (
+                    transition.source == "Requirements"
+                    and transition.result.value == "pass"
+                )
+            ),
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="must have exactly one 'pass' route",
+    ):
+        render_enabled_targets(paths, incomplete)
+
+
+def test_rendering_rejects_missing_state_ownership() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    missing_owner = replace(
+        active.composition,
+        state_ownership=tuple(
+            ownership
+            for ownership in active.composition.state_ownership
+            if ownership.workflow_state != "Requirements"
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="must have exactly one compiled owner",
+    ):
+        render_enabled_targets(paths, missing_owner)
+
+
+def test_rendering_rejects_missing_controller_instance() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    missing_controller = replace(
+        active.composition,
+        role_bindings=tuple(
+            replace(binding, agent_instance="missing-controller")
+            if binding.role_name == active.composition.controller_binding
+            else binding
+            for binding in active.composition.role_bindings
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="is not a rendered agent instance",
+    ):
+        render_enabled_targets(paths, missing_controller)
 
 
 

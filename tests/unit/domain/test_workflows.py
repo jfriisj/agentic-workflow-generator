@@ -6,6 +6,7 @@ import pytest
 from agentic_workflow_generator.domain import (
     Workflow,
     WorkflowGate,
+    WorkflowRoutingResult,
     WorkflowState,
     WorkflowTransition,
 )
@@ -24,7 +25,7 @@ def workflow() -> Workflow:
 
     return Workflow(
         name="lean-delivery",
-        version="0.2.0",
+        version="0.3.0",
         description="Lean delivery workflow.",
         start_state="Requirements",
         terminal_states=(
@@ -54,12 +55,17 @@ def workflow() -> Workflow:
             WorkflowTransition(
                 source="Requirements",
                 target="Done",
-                event="pass",
+                result=WorkflowRoutingResult.PASS,
             ),
             WorkflowTransition(
                 source="Requirements",
                 target="Blocked",
-                event="fail",
+                result=WorkflowRoutingResult.FAIL,
+            ),
+            WorkflowTransition(
+                source="Requirements",
+                target="Blocked",
+                result=WorkflowRoutingResult.BLOCKED,
             ),
         ),
     )
@@ -87,7 +93,19 @@ def test_workflow_model_preserves_validated_semantics() -> None:
     transition = definition.transitions[0]
     assert transition.source == "Requirements"
     assert transition.target == "Done"
-    assert transition.event == "pass"
+    assert transition.result is WorkflowRoutingResult.PASS
+    assert transition.result.value == "pass"
+
+
+def test_workflow_routing_result_is_closed_and_serializable() -> None:
+    assert tuple(result.value for result in WorkflowRoutingResult) == (
+        "pass",
+        "fail",
+        "blocked",
+    )
+
+    with pytest.raises(ValueError):
+        WorkflowRoutingResult("approve")
 
 
 @pytest.mark.parametrize(

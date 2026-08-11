@@ -66,7 +66,7 @@ def test_direct_bundle_plan_preserves_project_metadata() -> None:
         },
         "workflow": {
             "name": "orchestrated-delivery",
-            "version": "0.2.0",
+            "version": "0.3.0",
         },
     }
     assert "agents" not in plan.active_config

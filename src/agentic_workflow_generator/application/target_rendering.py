@@ -12,7 +12,12 @@ from agentic_workflow_generator.compiler import (
     CompiledAgentInstance,
     CompiledComposition,
 )
-from agentic_workflow_generator.domain import TargetAdapter
+from agentic_workflow_generator.domain import (
+    RoleBindingType,
+    TargetAdapter,
+    WorkflowRoutingResult,
+    WorkflowTransition,
+)
 from agentic_workflow_generator.domain.targets import (
     TargetPermissionValue,
 )
@@ -53,6 +58,7 @@ def render_enabled_targets(
 ) -> tuple[RenderedTarget, ...]:
     """Render every enabled target in compiler priority order."""
 
+    _validate_routing_representation(composition)
     rendered: list[RenderedTarget] = []
 
     for target in composition.targets:
@@ -365,7 +371,72 @@ The canonical active composition is:
 ~~~
 
 Workflow: `{composition.workflow.name}`
+
+{_render_workflow_authority(composition, instance)}
 """
+
+
+def _render_workflow_authority(
+    composition: CompiledComposition,
+    instance: CompiledAgentInstance,
+) -> str:
+    controller = _controller_instance(composition)
+
+    if instance.id == controller:
+        routes = tuple(
+            (
+                f"- `{transition.source}` + "
+                f"`{transition.result.name}` (`{transition.result.value}`) "
+                f"-> `{transition.target}`"
+            )
+            for transition in _canonical_transitions(composition)
+        )
+        return "\n".join(
+            (
+                "### Controller-Owned Routing",
+                "",
+                "This controller is the sole routing authority.",
+                "",
+                f"- start state: `{composition.workflow.start_state}`",
+                "- terminal states: "
+                + ", ".join(
+                    f"`{state}`"
+                    for state in composition.workflow.terminal_states
+                ),
+                "- default failure state: "
+                f"`{composition.workflow.default_failure_state}`",
+                "- canonical gate results: `PASS` (`pass`), "
+                "`FAIL` (`fail`), `BLOCKED` (`blocked`)",
+                "",
+                "Canonical routing table:",
+                "",
+                *routes,
+                "",
+                "Receive the state owner's already-classified canonical result, "
+                "select only the unique matching route, and stop without "
+                "transition if routing is unavailable or inconsistent. Do not "
+                "reinterpret results or use declaration order as priority.",
+            )
+        )
+
+    owned_states = tuple(
+        ownership.workflow_state
+        for ownership in composition.state_ownership
+        if ownership.agent_instance == instance.id
+    )
+
+    if not owned_states:
+        return ""
+
+    return "\n".join(
+        (
+            "### State-Owner Routing Boundary",
+            "",
+            "Classify the governed gate outcome as exactly one canonical result: "
+            "`PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the "
+            "workflow controller. Do not select or execute a workflow route.",
+        )
+    )
 
 
 
@@ -677,7 +748,7 @@ def _handoffs_for_instance(
                 f"Start state {start_state!r} has no compiled owner"
             )
 
-        return (
+        handoffs = [
             _Handoff(
                 label=f"Start {start_state}",
                 agent_instance=target,
@@ -686,78 +757,198 @@ def _handoffs_for_instance(
                     "Follow its compiled gate and artifact requirements."
                 ),
             ),
-        )
+        ]
 
-    owned_states = {
-        state
-        for state, owner in state_owners.items()
-        if owner == agent_instance
+        for transition in _canonical_transitions(composition):
+            target = state_owners.get(transition.target)
+
+            if target is None:
+                if transition.target in composition.workflow.terminal_states:
+                    continue
+
+                raise TargetRenderingError(
+                    f"Non-terminal transition target {transition.target!r} "
+                    "has no compiled owner"
+                )
+
+            handoffs.append(
+                _Handoff(
+                    label=(
+                        f"Route {transition.source} + "
+                        f"{transition.result.name} "
+                        f"({transition.result.value}) -> "
+                        f"{transition.target}"
+                    ),
+                    agent_instance=target,
+                    prompt=(
+                        f"Current state: {transition.source}. Canonical result: "
+                        f"{transition.result.name} "
+                        f"({transition.result.value}). Dispatch the owner of "
+                        f"selected target state {transition.target}; do not "
+                        "infer, prioritize, or reclassify the route."
+                    ),
+                )
+            )
+
+        return tuple(handoffs)
+
+    # State owners return a canonical result to the controller. They must not
+    # receive target-native controls that let them select or execute routes.
+    return ()
+
+
+def _canonical_transitions(
+    composition: CompiledComposition,
+) -> tuple[WorkflowTransition, ...]:
+    return tuple(
+        sorted(
+            composition.workflow.transitions,
+            key=lambda transition: (
+                transition.source,
+                transition.result.value,
+                transition.target,
+            ),
+        )
+    )
+
+
+def _validate_routing_representation(
+    composition: CompiledComposition,
+) -> None:
+    """Fail explicitly when a target cannot preserve canonical routing."""
+
+    controller = _controller_instance(composition)
+    workflow = composition.workflow
+    state_names = {state.name for state in workflow.states}
+    non_terminal_names = {
+        state.name for state in workflow.states if not state.terminal
     }
-    handoffs: list[_Handoff] = []
-    seen: set[tuple[str, str, str]] = set()
+    terminal_names = {
+        state.name for state in workflow.states if state.terminal
+    }
 
-    for transition in composition.workflow.transitions:
-        if transition.source not in owned_states:
-            continue
+    if workflow.start_state not in non_terminal_names:
+        raise TargetRenderingError(
+            f"Start state {workflow.start_state!r} must be a compiled "
+            "non-terminal state for target rendering"
+        )
 
-        target_owner = state_owners.get(transition.target)
+    if workflow.default_failure_state not in terminal_names:
+        raise TargetRenderingError(
+            f"defaultFailureState {workflow.default_failure_state!r} must be "
+            "a compiled terminal state for target rendering"
+        )
 
-        if target_owner is not None:
-            target = target_owner
-            prompt = (
-                f"Continue after state {transition.source} returned "
-                f"{transition.event}. Enter state {transition.target} "
-                "and follow its compiled gate and artifact requirements."
-            )
-        elif transition.target in composition.workflow.terminal_states:
-            if transition.event.lower() == "pass":
-                continue
+    known_instances = {
+        instance.id for instance in composition.agent_instances
+    }
 
-            target = controller
-            prompt = (
-                f"State {transition.source} returned "
-                f"{transition.event} and routed to terminal state "
-                f"{transition.target}. Review the blocked outcome "
-                "and decide the next fail-closed action."
-            )
-        else:
+    if controller not in known_instances:
+        raise TargetRenderingError(
+            f"Compiled controller {controller!r} is not a rendered agent instance"
+        )
+
+    owners_by_state: dict[str, list[str]] = {}
+
+    for ownership in composition.state_ownership:
+        owners_by_state.setdefault(
+            ownership.workflow_state,
+            [],
+        ).append(ownership.agent_instance)
+
+    for state_name in sorted(non_terminal_names):
+        owners = owners_by_state.get(state_name, [])
+
+        if len(owners) != 1:
             raise TargetRenderingError(
-                f"Transition target {transition.target!r} has no "
-                "compiled owner and is not terminal"
+                f"Non-terminal state {state_name!r} must have exactly one "
+                "compiled owner for target rendering"
             )
 
-        identity = (
-            transition.event,
-            transition.target,
-            target,
-        )
-
-        if identity in seen:
-            continue
-
-        seen.add(identity)
-        handoffs.append(
-            _Handoff(
-                label=(
-                    f"{transition.event.upper()} to {target}"
-                ),
-                agent_instance=target,
-                prompt=prompt,
+        if owners[0] not in known_instances:
+            raise TargetRenderingError(
+                f"Compiled owner {owners[0]!r} for state {state_name!r} "
+                "is not a rendered agent instance"
             )
+
+    unexpected_owned_states = sorted(
+        set(owners_by_state) - non_terminal_names
+    )
+
+    if unexpected_owned_states:
+        raise TargetRenderingError(
+            "Only non-terminal states may have compiled owners for target "
+            f"rendering: {unexpected_owned_states}"
         )
 
-    return tuple(handoffs)
+    routes: dict[tuple[str, WorkflowRoutingResult], int] = {}
+
+    for transition in _canonical_transitions(composition):
+        if transition.source not in state_names:
+            raise TargetRenderingError(
+                f"Transition source {transition.source!r} is not a compiled state"
+            )
+
+        if transition.target not in state_names:
+            raise TargetRenderingError(
+                f"Transition target {transition.target!r} is not a compiled state"
+            )
+
+        if transition.source in terminal_names:
+            raise TargetRenderingError(
+                f"Terminal state {transition.source!r} cannot own a rendered route"
+            )
+
+        identity = (transition.source, transition.result)
+        routes[identity] = routes.get(identity, 0) + 1
+
+        if (
+            transition.result is WorkflowRoutingResult.BLOCKED
+            and transition.target != workflow.default_failure_state
+        ):
+            raise TargetRenderingError(
+                f"Blocked route from {transition.source!r} must target "
+                f"defaultFailureState {workflow.default_failure_state!r}"
+            )
+
+        if (
+            transition.result is WorkflowRoutingResult.PASS
+            and transition.target == workflow.default_failure_state
+        ):
+            raise TargetRenderingError(
+                f"Pass route from {transition.source!r} must not target "
+                f"defaultFailureState {workflow.default_failure_state!r}"
+            )
+
+    for state_name in sorted(non_terminal_names):
+        for result in WorkflowRoutingResult:
+            count = routes.get((state_name, result), 0)
+
+            if count != 1:
+                raise TargetRenderingError(
+                    f"State {state_name!r} must have exactly one "
+                    f"{result.value!r} route for target rendering; found {count}"
+                )
 
 
 def _controller_instance(
     composition: CompiledComposition,
 ) -> str:
-    for binding in composition.role_bindings:
-        if binding.role_name == composition.controller_binding:
-            return binding.agent_instance
+    controller_bindings = tuple(
+        binding
+        for binding in composition.role_bindings
+        if binding.binding_type is RoleBindingType.WORKFLOW_CONTROLLER
+    )
+
+    if (
+        len(controller_bindings) == 1
+        and controller_bindings[0].role_name
+        == composition.controller_binding
+    ):
+        return controller_bindings[0].agent_instance
 
     raise TargetRenderingError(
-        "Compiled controller binding has no role binding"
+        "Compiled controller binding must resolve to exactly one role binding"
     )
 
 

@@ -44,6 +44,7 @@ Profile
 Workflow
 WorkflowState
 Transition
+WorkflowRoutingResult
 Gate
 AgentProfile
 AgentInstance
@@ -246,8 +247,40 @@ Terminal states have no gate and no role binding.
 
 Every workflow has exactly one workflow-controller binding.
 
-Transitions and failure routing belong to the workflow, not to agents or target
-renderers.
+Each transition contains one source state, one target state and one closed typed
+`WorkflowRoutingResult`. The canonical values and their serialized `on` values
+are:
+
+~~~text
+PASS    -> pass
+FAIL    -> fail
+BLOCKED -> blocked
+~~~
+
+Every non-terminal state has exactly one transition for each canonical result.
+There are no other transition events, and declaration order has no semantic
+priority. Canonical serialization and rendering order transitions lexically by
+`(source, serialized result, target)`.
+
+Every `blocked` transition explicitly targets `defaultFailureState`, which is a
+declared terminal state. A `pass` transition must not target
+`defaultFailureState`. A `fail` transition may target either an explicit
+remediation state or a terminal state, including `defaultFailureState`; that
+route remains `FAIL` and is never reclassified as `BLOCKED` because of its target
+name.
+
+The workflow-controller binding is the sole route selector. It dispatches the
+start state, receives an already-classified canonical result from the current
+state owner, selects the unique matching transition and either dispatches the
+target owner or stops at a terminal state. Missing, ambiguous or inconsistent
+routing stops without transition; `defaultFailureState` is not an implicit
+fallback.
+
+State owners classify their governed gate result as `PASS`, `FAIL` or `BLOCKED`,
+then return that result and control to the controller. They do not select or
+execute transitions. Transitions and failure routing belong to the workflow,
+not to agents or target renderers. The compiler does not add runtime execution,
+state persistence, retry, escalation, aggregation or policy semantics.
 
 ## Gate
 
@@ -466,6 +499,12 @@ all registry references resolve exactly
 every non-terminal state has one state-owner binding
 every workflow has one controller binding
 controller bindings own no state or gate
+every transition result is exactly pass, fail or blocked
+every non-terminal state has exactly one route for each canonical result
+terminal states have no outgoing transitions
+every blocked route targets the terminal default failure state
+no pass route targets the default failure state
+all transition endpoints exist and all states preserve reachability invariants
 selected skills belong to the bundle
 selected skills cover binding-required capabilities
 produced artifacts belong to the bundle

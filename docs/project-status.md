@@ -95,7 +95,9 @@ Følgende repository-foundation er etableret på `development`:
 - shared og artifact-specifik statussemantik;
 - reproducible artifact evidence contract;
 - canonical input-artifact reference semantics via ADR-0010 og bounded end-to-end implementation i registry, validation, canonical compilation, active configuration og begge nuværende targets;
-- canonical workflow routing semantics via ADR-0011;
+- canonical workflow routing semantics via ADR-0011 og bounded end-to-end
+  implementation i typed domain, schemas, registry, validation, canonical
+  compilation og begge nuværende targets;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
   og reproducible stakeholder-SVG rendering.
@@ -134,7 +136,11 @@ ADR-0011 definerer canonical workflow routing semantics: `PASS`, `FAIL` og
 én eksplicit route for hvert resultat, `BLOCKED` routes eksplicit til
 `defaultFailureState`, og workflow-controlleren er den eneste route-selector.
 
-Den resterende routing-gap er den bounded end-to-end implementation af ADR-0011.
+Den bounded ADR-0011 routing-implementation er gennemført end to end. Den typed
+transition-model bruger den lukkede `PASS`/`FAIL`/`BLOCKED` vocabulary, alle
+ikke-terminale states har total eksplicit routing, canonical serialization er
+deterministisk, og begge targets bevarer controller-only route-selection uden
+state-owner-owned transition handoffs.
 
 Workflow-modellen mangler derudover fortsat hardening omkring:
 
@@ -180,11 +186,8 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0011 canonical workflow routing semantics er accepteret. Den efterfølgende
-routing-implementation skal leveres som en separat bounded implementation issue
-og PR.
-
-Derefter fortsætter de resterende v1-områder gennem repository
+ADR-0011 canonical workflow routing semantics og den bounded implementation er
+gennemført. De resterende v1-områder fortsætter gennem repository
 issue/readiness-flowet, herunder workflow test-evidence, AI-evaluation execution,
 registry-audit, bredere target preservation og consumer acceptance.
 

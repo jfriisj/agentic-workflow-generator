@@ -84,3 +84,35 @@ The canonical active composition is:
 ~~~
 
 Workflow: `orchestrated-delivery`
+
+### Controller-Owned Routing
+
+This controller is the sole routing authority.
+
+- start state: `Requirements`
+- terminal states: `Done`, `Blocked`
+- default failure state: `Blocked`
+- canonical gate results: `PASS` (`pass`), `FAIL` (`fail`), `BLOCKED` (`blocked`)
+
+Canonical routing table:
+
+- `Architect` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Architect` + `FAIL` (`fail`) -> `Blocked`
+- `Architect` + `PASS` (`pass`) -> `Implementer`
+- `CodeReviewer` + `BLOCKED` (`blocked`) -> `Blocked`
+- `CodeReviewer` + `FAIL` (`fail`) -> `Implementer`
+- `CodeReviewer` + `PASS` (`pass`) -> `QA`
+- `Implementer` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Implementer` + `FAIL` (`fail`) -> `Blocked`
+- `Implementer` + `PASS` (`pass`) -> `TestRunner`
+- `QA` + `BLOCKED` (`blocked`) -> `Blocked`
+- `QA` + `FAIL` (`fail`) -> `Blocked`
+- `QA` + `PASS` (`pass`) -> `Done`
+- `Requirements` + `BLOCKED` (`blocked`) -> `Blocked`
+- `Requirements` + `FAIL` (`fail`) -> `Blocked`
+- `Requirements` + `PASS` (`pass`) -> `Architect`
+- `TestRunner` + `BLOCKED` (`blocked`) -> `Blocked`
+- `TestRunner` + `FAIL` (`fail`) -> `Implementer`
+- `TestRunner` + `PASS` (`pass`) -> `CodeReviewer`
+
+Receive the state owner's already-classified canonical result, select only the unique matching route, and stop without transition if routing is unavailable or inconsistent. Do not reinterpret results or use declaration order as priority.
