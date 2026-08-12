@@ -142,9 +142,11 @@ ikke-terminale states har total eksplicit routing, canonical serialization er
 deterministisk, og begge targets bevarer controller-only route-selection uden
 state-owner-owned transition handoffs.
 
+ADR-0012 definerer canonical workflow test-evidence semantics; den bounded
+end-to-end implementation mangler fortsat.
+
 Workflow-modellen mangler derudover fortsat hardening omkring:
 
-- klar test-evidens i eksisterende flows;
 - klar execution-semantik for det eksisterende AI-evalueringsflow.
 
 Retry, escalation og artifact invalidation er ikke v1-krav og er ikke accepteret
@@ -187,8 +189,9 @@ compositions og begge nuværende targets.
 ## Næste prioritet
 
 ADR-0011 canonical workflow routing semantics og den bounded implementation er
-gennemført. De resterende v1-områder fortsætter gennem repository
-issue/readiness-flowet, herunder workflow test-evidence, AI-evaluation execution,
+gennemført. ADR-0012 canonical workflow test-evidence semantics er accepteret og
+afventer bounded implementation. De øvrige v1-områder fortsætter gennem
+repository issue/readiness-flowet, herunder AI-evaluation execution,
 registry-audit, bredere target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
