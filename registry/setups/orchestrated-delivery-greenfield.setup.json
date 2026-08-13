@@ -33,11 +33,8 @@
         {
           "value": "library-package",
           "label": "Library or package",
-          "reason": "Compatible because implementation, review, and test agents are useful, but the generated setup may later be reduced when a library-specific setup exists.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "orchestrated-delivery"
-          }
+          "reason": "Blocked because no library-specific composition is registered; selecting this answer would materialize the same orchestrated-delivery composition as the default project type.",
+          "classification": "blocked"
         },
         {
           "value": "documentation-only",
@@ -64,20 +61,14 @@
         {
           "value": "review-heavy",
           "label": "Review-heavy delivery",
-          "reason": "Compatible because the current bundle includes CodeReviewer and QA, but a dedicated review-heavy workflow is not registered yet.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "orchestrated-delivery"
-          }
+          "reason": "Blocked because review-heavy delivery has a dedicated registered setup and workflow. Use the review-heavy-delivery-greenfield setup instead.",
+          "classification": "blocked"
         },
         {
           "value": "test-first",
           "label": "Test-first delivery",
-          "reason": "Compatible because the current bundle includes TestRunner and test artifacts, but a dedicated test-first workflow is not registered yet.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "orchestrated-delivery"
-          }
+          "reason": "Blocked because no dedicated test-first workflow or composition is registered; selecting this answer would materialize the default orchestrated-delivery composition.",
+          "classification": "blocked"
         },
         {
           "value": "ad-hoc",

@@ -44,6 +44,7 @@ DEFAULT_OPTION_DIAGNOSTIC = "AWG-SETUP-009"
 DEFAULT_CLASSIFICATION_DIAGNOSTIC = "AWG-SETUP-010"
 DUPLICATE_OPTION_DIAGNOSTIC = "AWG-SETUP-011"
 BLOCKED_SELECTION_DIAGNOSTIC = "AWG-SETUP-012"
+NO_EFFECT_SELECTION_DIAGNOSTIC = "AWG-SETUP-013"
 
 _ROOT_OBSOLETE_FIELDS = frozenset(
     {
@@ -583,6 +584,54 @@ def _validate_question(
                 ),
             )
         )
+
+    if (
+        default_option is not None
+        and default_option.classification is SetupOptionClassification.RECOMMENDED
+    ):
+        for option_index, option in enumerate(question.options):
+            if (
+                option.value == question.default_option
+                or option.classification is SetupOptionClassification.BLOCKED
+            ):
+                continue
+
+            option_location = f"{question_location}.options[{option_index}]"
+            if option.selection is None:
+                effective_bundle = default_selection.bundle
+                effective_targets = default_selection.targets
+            else:
+                effective_bundle = (
+                    option.selection.bundle
+                    if option.selection.bundle is not None
+                    else default_selection.bundle
+                )
+                effective_targets = (
+                    option.selection.targets
+                    if option.selection.targets is not None
+                    else default_selection.targets
+                )
+
+            if (
+                effective_bundle == default_selection.bundle
+                and frozenset(effective_targets)
+                == frozenset(default_selection.targets)
+            ):
+                diagnostics.append(
+                    Diagnostic(
+                        code=NO_EFFECT_SELECTION_DIAGNOSTIC,
+                        message=(
+                            f"supported non-default option {option.value!r} must "
+                            "materially change the default selection"
+                        ),
+                        source_path=path.as_posix(),
+                        location=f"{option_location}.selection",
+                        related_identities=(
+                            question.id,
+                            option.value,
+                        ),
+                    )
+                )
 
     return tuple(diagnostics)
 
