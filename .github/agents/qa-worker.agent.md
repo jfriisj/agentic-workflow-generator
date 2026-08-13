@@ -94,7 +94,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `QAReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `quality-assurance`
   - `agentInstance`: `qa-worker`
 - revision heading: `## Revision`
@@ -120,6 +120,19 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: Valid evidence demonstrates that at least one required acceptance criterion is not satisfied, or a required upstream gate has an applicable `FAIL` result that QA is not permitted to override.
   - `BLOCKED`: Required evidence, artifacts, revisions, environments, decisions, or upstream gate evidence is unavailable, missing, stale, or unverifiable such that QA cannot establish the complete acceptance claim.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### qa-review
+
+- workflow state: `QA`
+- gate owner: role binding `quality-assurance`; agent instance `qa-worker`
+- blocking: `true`
+- required artifacts: `QAReport`
+- required test evidence: none
 
 
 ## Workflow Authority

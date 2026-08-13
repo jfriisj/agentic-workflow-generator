@@ -21,6 +21,7 @@ from agentic_workflow_generator.domain import (
     Skill,
     TargetAdapter,
     Workflow,
+    WorkflowTestEvidenceRequirement,
 )
 
 
@@ -129,6 +130,7 @@ class CompiledWorkflowGate:
     owner_agent_instance: str
     required_capabilities: tuple[str, ...]
     required_artifacts: tuple[ArtifactContract, ...]
+    required_test_evidence: tuple[WorkflowTestEvidenceRequirement, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -550,6 +552,12 @@ def _compile_workflow_gates(
                     )
                     for artifact_type
                     in state.gate.required_artifacts
+                ),
+                required_test_evidence=tuple(
+                    sorted(
+                        state.gate.required_test_evidence,
+                        key=lambda requirement: requirement.value,
+                    )
                 ),
             )
         )

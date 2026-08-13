@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.10.0"
+      "const": "0.11.0"
     },
     "project": {
       "type": "object",
@@ -949,7 +949,8 @@
           "ownerRoleBinding",
           "ownerAgentInstance",
           "requiredCapabilities",
-          "requiredArtifacts"
+          "requiredArtifacts",
+          "requiredTestEvidence"
         ],
         "additionalProperties": false,
         "properties": {
@@ -989,8 +990,48 @@
             },
             "uniqueItems": true,
             "minItems": 1
+          },
+          "requiredTestEvidence": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "changed-behavior-tests",
+                "project-validation-suite"
+              ]
+            },
+            "uniqueItems": true
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "requiredArtifacts": {
+                  "contains": {
+                    "const": "TestReport"
+                  }
+                }
+              },
+              "required": [
+                "requiredArtifacts"
+              ]
+            },
+            "then": {
+              "properties": {
+                "requiredTestEvidence": {
+                  "minItems": 1
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "requiredTestEvidence": {
+                  "maxItems": 0
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "artifactProduction": {

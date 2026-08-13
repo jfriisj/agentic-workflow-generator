@@ -1,6 +1,6 @@
 {
   "name": "ai-application-delivery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A fail-closed delivery workflow for AI applications with explicit AI quality, safety, and operational evaluation.",
   "startState": "Requirements",
   "terminalStates": [
@@ -80,6 +80,10 @@
         ],
         "requiredArtifacts": [
           "TestReport"
+        ],
+        "requiredTestEvidence": [
+          "changed-behavior-tests",
+          "project-validation-suite"
         ]
       }
     },

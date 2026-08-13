@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.10.0",
+  "schemaVersion": "0.11.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",
@@ -30,7 +30,7 @@
     },
     "workflow": {
       "name": "orchestrated-delivery",
-      "version": "0.3.0"
+      "version": "0.4.0"
     }
   },
   "targets": [
@@ -47,7 +47,7 @@
   ],
   "workflow": {
     "name": "orchestrated-delivery",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
     "startState": "Requirements",
     "terminalStates": [
@@ -1371,7 +1371,8 @@
       ],
       "requiredArtifacts": [
         "Requirements"
-      ]
+      ],
+      "requiredTestEvidence": []
     },
     {
       "workflowState": "Architect",
@@ -1385,7 +1386,8 @@
       ],
       "requiredArtifacts": [
         "ArchitectureDecision"
-      ]
+      ],
+      "requiredTestEvidence": []
     },
     {
       "workflowState": "Implementer",
@@ -1400,7 +1402,8 @@
       ],
       "requiredArtifacts": [
         "ImplementationReport"
-      ]
+      ],
+      "requiredTestEvidence": []
     },
     {
       "workflowState": "TestRunner",
@@ -1415,6 +1418,10 @@
       ],
       "requiredArtifacts": [
         "TestReport"
+      ],
+      "requiredTestEvidence": [
+        "changed-behavior-tests",
+        "project-validation-suite"
       ]
     },
     {
@@ -1430,7 +1437,8 @@
       ],
       "requiredArtifacts": [
         "CodeReview"
-      ]
+      ],
+      "requiredTestEvidence": []
     },
     {
       "workflowState": "QA",
@@ -1444,7 +1452,8 @@
       ],
       "requiredArtifacts": [
         "QAReport"
-      ]
+      ],
+      "requiredTestEvidence": []
     }
   ],
   "artifactProduction": [

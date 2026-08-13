@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.10.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.11.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -349,6 +349,10 @@ def _serialize_workflow_gate(
             "requiredArtifacts": [
                 artifact.type
                 for artifact in gate.required_artifacts
+            ],
+            "requiredTestEvidence": [
+                requirement.value
+                for requirement in gate.required_test_evidence
             ],
         },
     )

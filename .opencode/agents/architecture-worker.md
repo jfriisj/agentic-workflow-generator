@@ -92,7 +92,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `ArchitectureDecision`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `architecture`
   - `agentInstance`: `architecture-worker`
 - revision heading: `## Revision`
@@ -118,6 +118,19 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: The proposed architecture demonstrably violates an approved requirement or constraint.
   - `BLOCKED`: A requirement, quality attribute, constraint, or dependency fact necessary to make the architecture decision is unavailable, missing, or unverifiable.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### architecture-review
+
+- workflow state: `Architect`
+- gate owner: role binding `architecture`; agent instance `architecture-worker`
+- blocking: `true`
+- required artifacts: `ArchitectureDecision`
+- required test evidence: none
 
 
 ## Workflow Authority

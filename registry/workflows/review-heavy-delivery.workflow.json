@@ -1,6 +1,6 @@
 {
   "name": "review-heavy-delivery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A fail-closed delivery workflow that performs independent code review before test execution and finishes with QA acceptance.",
   "startState": "Requirements",
   "terminalStates": [
@@ -80,6 +80,10 @@
         ],
         "requiredArtifacts": [
           "TestReport"
+        ],
+        "requiredTestEvidence": [
+          "changed-behavior-tests",
+          "project-validation-suite"
         ]
       }
     },

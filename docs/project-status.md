@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 11. august 2026
+Opdateret: 13. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -72,6 +72,8 @@ silent fallback-path.
 - Hver ikke-terminal workflow-state har præcis én state owner.
 - Hvert workflow har præcis én controller.
 - Controlleren ejer routing, men ingen workflow-state eller gate.
+- Workflow-gaten ejer canonical required test-evidence categories, når den kræver
+  `TestReport`.
 - Effective permissions tilhører agent instances.
 - Capabilities, skills, artifacts, responsibilities og guardrails tilhører role
   bindings.
@@ -98,6 +100,9 @@ Følgende repository-foundation er etableret på `development`:
 - canonical workflow routing semantics via ADR-0011 og bounded end-to-end
   implementation i typed domain, schemas, registry, validation, canonical
   compilation og begge nuværende targets;
+- canonical workflow test-evidence semantics via ADR-0012 og bounded end-to-end
+  implementation i typed domain, schemas, registry, validation, canonical
+  compilation, active configuration og begge nuværende targets;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
   og reproducible stakeholder-SVG rendering.
@@ -142,8 +147,16 @@ ikke-terminale states har total eksplicit routing, canonical serialization er
 deterministisk, og begge targets bevarer controller-only route-selection uden
 state-owner-owned transition handoffs.
 
-ADR-0012 definerer canonical workflow test-evidence semantics; den bounded
-end-to-end implementation mangler fortsat.
+ADR-0012 canonical workflow test-evidence semantics er implementeret end to end.
+Hver `TestReport`-gate ejer en non-empty canonical `requiredTestEvidence` set med
+den lukkede vocabulary `changed-behavior-tests` og
+`project-validation-suite`. Parser, semantic validation, bundle projection,
+`CompiledWorkflowGate`, active config `0.11.0` og begge nuværende targets
+bevarer den komplette semantik deterministisk. Targets repræsenterer category
+meaning, requiredness, reproducible `TestReport`
+`claim`/`source`/`reproduction`/`result` evidence, statuskonsekvenser,
+static/runtime boundary og controller-only routing uden test discovery eller
+prose inference.
 
 Workflow-modellen mangler derudover fortsat hardening omkring:
 
@@ -188,11 +201,12 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0011 canonical workflow routing semantics og den bounded implementation er
-gennemført. ADR-0012 canonical workflow test-evidence semantics er accepteret og
-afventer bounded implementation. De øvrige v1-områder fortsætter gennem
-repository issue/readiness-flowet, herunder AI-evaluation execution,
-registry-audit, bredere target preservation og consumer acceptance.
+ADR-0011 canonical workflow routing semantics og ADR-0012 canonical workflow
+test-evidence semantics er gennemført med bounded end-to-end implementations.
+Det resterende workflow-contract arbejde i Goal #44 er AI-evaluation execution
+semantics. De øvrige v1-områder fortsætter gennem repository
+issue/readiness-flowet, herunder registry-audit, bredere target preservation og
+consumer acceptance.
 
 ## Accepted architecture-model decision
 

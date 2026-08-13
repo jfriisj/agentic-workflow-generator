@@ -106,6 +106,13 @@ This role binding has no required static input artifacts.
 This agent instance does not own artifact production.
 
 
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+This agent instance owns no workflow gate.
+
+
 ## Workflow Authority
 
 The canonical active composition is:

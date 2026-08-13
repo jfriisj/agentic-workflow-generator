@@ -14,6 +14,13 @@ class WorkflowRoutingResult(StrEnum):
     BLOCKED = "blocked"
 
 
+class WorkflowTestEvidenceRequirement(StrEnum):
+    """Closed canonical workflow test-evidence requirement vocabulary."""
+
+    CHANGED_BEHAVIOR_TESTS = "changed-behavior-tests"
+    PROJECT_VALIDATION_SUITE = "project-validation-suite"
+
+
 @dataclass(frozen=True, slots=True)
 class WorkflowGate:
     """Immutable blocking evidence gate for one workflow state."""
@@ -22,6 +29,7 @@ class WorkflowGate:
     blocking: bool
     required_capabilities: tuple[str, ...]
     required_artifacts: tuple[str, ...]
+    required_test_evidence: tuple[WorkflowTestEvidenceRequirement, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

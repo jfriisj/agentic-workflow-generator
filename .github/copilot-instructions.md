@@ -34,12 +34,12 @@ This repository uses generated agentic workflow infrastructure.
 
 ## Workflow Gates
 
-- `requirements-review` owned by `requirements-worker`
-- `architecture-review` owned by `architecture-worker`
-- `implementation-complete` owned by `implementation-worker`
-- `test-review` owned by `test-runner`
-- `code-review` owned by `code-review-worker`
-- `qa-review` owned by `qa-worker`
+- `requirements-review` owned by `requirements-worker`; required test evidence: none
+- `architecture-review` owned by `architecture-worker`; required test evidence: none
+- `implementation-complete` owned by `implementation-worker`; required test evidence: none
+- `test-review` owned by `test-runner`; required test evidence: `changed-behavior-tests`, `project-validation-suite`
+- `code-review` owned by `code-review-worker`; required test evidence: none
+- `qa-review` owned by `qa-worker`; required test evidence: none
 
 ## Core Rules
 

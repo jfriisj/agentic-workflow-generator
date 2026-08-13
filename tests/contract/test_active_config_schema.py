@@ -75,6 +75,90 @@ def test_all_real_bundles_serialize_against_schema() -> None:
     assert errors == []
 
 
+def test_compiled_workflow_gates_serialize_canonical_test_evidence() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    config = composition_to_json_object(
+        compile_bundle_composition(
+            snapshot,
+            project,
+            "orchestrated-delivery",
+        )
+    )
+
+    gates = cast(
+        list[dict[str, Any]],
+        config["workflowGates"],
+    )
+    test_gate = next(
+        gate
+        for gate in gates
+        if gate["workflowState"] == "TestRunner"
+    )
+
+    assert test_gate["requiredTestEvidence"] == [
+        "changed-behavior-tests",
+        "project-validation-suite",
+    ]
+    assert all(
+        gate["requiredTestEvidence"] == []
+        for gate in gates
+        if gate["workflowState"] != "TestRunner"
+    )
+
+
+def test_active_schema_rejects_missing_required_test_evidence() -> None:
+    snapshot = load_validated_registry_snapshot(
+        ProjectPaths(REPOSITORY_ROOT)
+    )
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    config = composition_to_json_object(
+        compile_bundle_composition(
+            snapshot,
+            project,
+            "lean-delivery",
+        )
+    )
+    gates = cast(
+        list[dict[str, Any]],
+        config["workflowGates"],
+    )
+    test_gate = next(
+        gate
+        for gate in gates
+        if gate["workflowState"] == "TestRunner"
+    )
+    test_gate["requiredTestEvidence"] = []
+
+    errors = list(
+        Draft202012Validator(
+            active_config_schema()
+        ).iter_errors(config)
+    )
+
+    assert any(
+        error.validator == "minItems"
+        and error.json_path.endswith(".requiredTestEvidence")
+        for error in errors
+    )
+
+
 def test_compiled_role_bindings_serialize_canonical_input_artifacts() -> None:
     snapshot = load_validated_registry_snapshot(
         ProjectPaths(REPOSITORY_ROOT)
@@ -95,7 +179,7 @@ def test_compiled_role_bindings_serialize_canonical_input_artifacts() -> None:
         )
     )
 
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     role_bindings = cast(
         list[Any],
@@ -194,7 +278,7 @@ def test_all_workflows_preserve_total_canonical_routing() -> None:
     )
 
     assert {workflow.version for workflow in snapshot.workflows} == {
-        "0.3.0"
+        "0.4.0"
     }
 
     for workflow in snapshot.workflows:
@@ -411,7 +495,7 @@ def test_active_repository_artifacts_carry_canonical_provenance() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -438,7 +522,7 @@ def test_active_repository_artifacts_carry_canonical_revision() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -459,7 +543,7 @@ def test_active_repository_artifacts_carry_status_invariants() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -480,7 +564,7 @@ def test_active_repository_artifacts_carry_status_semantics() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
@@ -508,7 +592,7 @@ def test_active_repository_artifacts_carry_canonical_evidence() -> None:
     config = read_json_object(
         REPOSITORY_ROOT / ".agentic" / "agentic.json"
     )
-    assert config["schemaVersion"] == "0.10.0"
+    assert config["schemaVersion"] == "0.11.0"
 
     artifacts = cast(list[Any], config["artifacts"])
     assert artifacts
