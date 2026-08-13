@@ -27,11 +27,8 @@
         {
           "value": "release-critical",
           "label": "Release-critical change",
-          "reason": "Compatible because failed review, test, or QA gates cannot be bypassed and unresolved work returns for correction.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "review-heavy-delivery"
-          }
+          "reason": "Blocked because no distinct release-critical composition is registered; selecting this answer would materialize the same review-heavy-delivery composition as the default assurance level.",
+          "classification": "blocked"
         },
         {
           "value": "minimal-process",

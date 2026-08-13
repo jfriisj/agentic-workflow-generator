@@ -27,11 +27,8 @@
         {
           "value": "small-bugfix",
           "label": "Small but validated bug fix",
-          "reason": "Compatible when the fix still requires documented scope, test evidence, and independent code review.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "lean-delivery"
-          }
+          "reason": "Blocked because this setup does not register a distinct bug-fix composition; selecting it would materialize the same lean-delivery composition as the default focused-feature choice.",
+          "classification": "blocked"
         },
         {
           "value": "architecture-heavy",
@@ -64,11 +61,8 @@
         {
           "value": "block-on-failure",
           "label": "Block unresolved failures",
-          "reason": "Compatible because requirements and implementation failures stop the workflow rather than allowing incomplete work to pass.",
-          "classification": "compatible",
-          "selection": {
-            "bundle": "lean-delivery"
-          }
+          "reason": "Blocked because fail-closed retry behavior is already fixed by the lean-delivery workflow; this answer does not select a distinct composition.",
+          "classification": "blocked"
         },
         {
           "value": "continue-with-warnings",

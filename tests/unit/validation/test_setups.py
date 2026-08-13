@@ -25,6 +25,7 @@ from agentic_workflow_generator.validation.setups import (
     DUPLICATE_OPTION_DIAGNOSTIC,
     DUPLICATE_QUESTION_DIAGNOSTIC,
     FILE_NAME_DIAGNOSTIC,
+    NO_EFFECT_SELECTION_DIAGNOSTIC,
     OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     TARGET_OUTSIDE_BUNDLE_DIAGNOSTIC,
@@ -415,6 +416,51 @@ def test_semantic_failures_are_structured(
     result = validate(data)
 
     assert result.diagnostics[0].code == code
+
+
+def test_supported_non_default_option_must_change_effective_selection() -> None:
+    data = setup_data()
+    selected_option = cast(
+        dict[str, JsonValue],
+        cast(
+            list[JsonValue],
+            cast(
+                dict[str, JsonValue],
+                cast(list[JsonValue], data["questions"])[0],
+            )["options"],
+        )[1],
+    )
+    selected_option["selection"] = {
+        "targets": [
+            "opencode",
+            "vscode-copilot",
+        ],
+    }
+
+    result = validate(data)
+
+    assert result.diagnostics[0].code == NO_EFFECT_SELECTION_DIAGNOSTIC
+    assert result.diagnostics[0].location == "questions[0].options[1].selection"
+
+
+def test_supported_non_default_option_without_selection_is_rejected() -> None:
+    data = setup_data()
+    selected_option = cast(
+        dict[str, JsonValue],
+        cast(
+            list[JsonValue],
+            cast(
+                dict[str, JsonValue],
+                cast(list[JsonValue], data["questions"])[0],
+            )["options"],
+        )[1],
+    )
+    del selected_option["selection"]
+
+    result = validate(data)
+
+    assert result.diagnostics[0].code == NO_EFFECT_SELECTION_DIAGNOSTIC
+    assert result.diagnostics[0].location == "questions[0].options[1].selection"
 
 
 def test_option_bundle_patch_validates_inherited_targets() -> None:

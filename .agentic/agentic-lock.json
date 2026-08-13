@@ -15,7 +15,7 @@
       "uv.lock"
     ],
     "fileCount": 168,
-    "contentHash": "sha256:2e315ccb1dfe5f4ebe170f29648ee807e0256d3a528786eae8865f7ae3dd4318",
+    "contentHash": "sha256:bf49dce65ad9ea6ee5add4f7a3e9b1a9a46c8092f26c1ae56bd5242ec9e46eed",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -259,18 +259,18 @@
       },
       {
         "path": "registry/setups/lean-delivery-greenfield.setup.json",
-        "sha256": "sha256:515886207bea5ef5f49ceb501e4d7f14b13e3ceee74fc63a301350290a598a5c",
-        "sizeBytes": 4367
+        "sha256": "sha256:bf6d6af976366cb899ee350ca0498b85a3fc1eff23e47efe50d76541f57bb558",
+        "sizeBytes": 4309
       },
       {
         "path": "registry/setups/orchestrated-delivery-greenfield.setup.json",
-        "sha256": "sha256:55c6162a7efd9d486bfc8ac3fe692878cfc1e91c92ab06cdd39a8e4ffa67ca05",
-        "sizeBytes": 4989
+        "sha256": "sha256:ac437048d86839f2b9dd806153b4cfe3afe5ad2a5c16e1d944fc2bb0f87bf725",
+        "sizeBytes": 4790
       },
       {
         "path": "registry/setups/review-heavy-delivery-greenfield.setup.json",
-        "sha256": "sha256:8904914fd0ae9ae1f7097f3a138954c3405abe48a81107283d229921c0b0d793",
-        "sizeBytes": 4405
+        "sha256": "sha256:59b40efeca7768e7d27fb12ae15f3dcbe481f7f41a6326a24a54310040b1ec96",
+        "sizeBytes": 4390
       },
       {
         "path": "registry/skills/ai-evaluation/SKILL.md",
@@ -834,8 +834,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/validation/setups.py",
-        "sha256": "sha256:c1c94fb007e80f78eae1aa4d4cf8d696c7b0124fc29a86444d0710f44a89982a",
-        "sizeBytes": 20167
+        "sha256": "sha256:7719cf4fcded64d5fec3255cfbae72ef3a506c3b48d034a4a08c94bd697668b9",
+        "sizeBytes": 22141
       },
       {
         "path": "src/agentic_workflow_generator/validation/skills.py",
