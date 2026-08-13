@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from agentic_workflow_generator.application import (
+    load_validated_registry_snapshot,
+)
 from agentic_workflow_generator.application.target_materialization import (
     load_active_composition,
 )
@@ -13,9 +16,51 @@ from agentic_workflow_generator.application.target_rendering import (
     TargetRenderingError,
     render_enabled_targets,
 )
+from agentic_workflow_generator.compiler import (
+    CompiledComposition,
+    ProjectMetadata,
+    compile_bundle_composition,
+)
+from agentic_workflow_generator.domain import BashPermission
 from agentic_workflow_generator.registry import ProjectPaths
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+
+
+def compiled_bundle(bundle_name: str) -> CompiledComposition:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    snapshot = load_validated_registry_snapshot(paths)
+    project = ProjectMetadata(
+        name="consumer-project",
+        project_type="agentic-project",
+        description="Generated target-rendering test configuration.",
+        language_profiles=("python",),
+        runtime_profiles=("python",),
+        architecture_profile="typed-composition",
+    )
+    return compile_bundle_composition(
+        snapshot,
+        project,
+        bundle_name,
+    )
+
+
+def rendered_bundle_files(
+    bundle_name: str,
+    target_name: str,
+) -> dict[Path, bytes]:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle(bundle_name)
+    targets = render_enabled_targets(paths, composition)
+    target = next(
+        item
+        for item in targets
+        if item.name == target_name
+    )
+    return {
+        file.path: file.content
+        for file in target.files
+    }
 
 
 def rendered_files(
@@ -762,3 +807,263 @@ def test_non_test_report_gate_renders_no_test_evidence() -> None:
         assert "- required test evidence: none" in section
         assert "`changed-behavior-tests`" not in section
         assert "`project-validation-suite`" not in section
+
+
+def test_both_targets_preserve_compiled_ai_evaluation_semantics() -> None:
+    composition = compiled_bundle("ai-application")
+    gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if any(
+            artifact.type == "AIEvaluationReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    binding = next(
+        binding
+        for binding in composition.role_bindings
+        if binding.role_name == gate.owner_role_binding
+    )
+    instance = next(
+        instance
+        for instance in composition.agent_instances
+        if instance.id == gate.owner_agent_instance
+    )
+
+    assert gate.required_capabilities == (
+        "ai.evaluate-quality",
+        "ai.evaluate-safety",
+        "ai.evaluate-operational-risks",
+    )
+    assert tuple(
+        production.artifact.type
+        for production in binding.input_artifacts
+    ) == (
+        "ImplementationReport",
+        "Requirements",
+    )
+    assert instance.permission_profile.read is True
+    assert instance.permission_profile.write is False
+    assert instance.permission_profile.edit is False
+    assert instance.permission_profile.bash is BashPermission.DENY
+
+    expected_common = (
+        "required AI-evaluation dimensions",
+        "governed runtime inputs",
+        "`ImplementationReport`",
+        "`Requirements`",
+        "AIEvaluationReport` is the sole evidence and status authority",
+        "`claim`, `source`, `reproduction`, `result`",
+        "map every status-determining required criterion reproducibly",
+        "relevant compiled AI-evaluation capability dimension",
+        "complete reproducible evidence satisfying all applicable required criteria",
+        "may support `PASS`",
+        "read=`true`; write=`false`; edit=`false`; bash=`deny`",
+        "do not run shell commands",
+        "execute external evaluation jobs",
+        "invoke a model-under-test merely to generate missing evidence",
+        "prevents `PASS` and yields `BLOCKED`",
+        "demonstrated nonconformance yields `FAIL`",
+        "outside the effective permission profile",
+        "the evaluation cannot be `PASS`",
+        "`FAIL_ON_DEMONSTRATED_NONCONFORMANCE`",
+        "do not parse produced artifact Markdown or project files",
+        "only the controller selects the route",
+        "## Evaluation Scope",
+        "## Safety and Failure Analysis",
+        "## Operational Evidence",
+    )
+
+    for target_name, owner_path in (
+        (
+            "opencode",
+            Path(".opencode/agents/ai-evaluation-worker.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(
+                ".github/agents/"
+                "ai-evaluation-worker.agent.md"
+            ),
+        ),
+    ):
+        content = rendered_bundle_files(
+            "ai-application",
+            target_name,
+        )[owner_path].decode("utf-8")
+
+        assert f"### {gate.name}" in content
+        for capability in gate.required_capabilities:
+            assert f"  - `{capability}`" in content
+        for expected in expected_common:
+            assert expected in content
+
+
+def test_ai_evaluation_semantics_do_not_infer_from_responsibility_prose() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("ai-application")
+    gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if any(
+            artifact.type == "AIEvaluationReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    instance = next(
+        instance
+        for instance in composition.agent_instances
+        if instance.id == gate.owner_agent_instance
+    )
+
+    def ai_gate_section(candidate: CompiledComposition) -> str:
+        target = next(
+            item
+            for item in render_enabled_targets(paths, candidate)
+            if item.name == "opencode"
+        )
+        owner = next(
+            file.content.decode("utf-8")
+            for file in target.files
+            if file.path
+            == Path(".opencode/agents/ai-evaluation-worker.md")
+        )
+        section_start = owner.index(f"### {gate.name}")
+        section_end = owner.index(
+            "\n## Workflow Authority",
+            section_start,
+        )
+        return owner[section_start:section_end]
+
+    baseline_section = ai_gate_section(composition)
+    prose_only_instance = replace(
+        instance,
+        responsibilities=(
+            *instance.responsibilities,
+            "Prose-only text mentioning ai.evaluate-made-up must not "
+            "become a required evaluation dimension",
+        ),
+    )
+    prose_only = replace(
+        composition,
+        agent_instances=tuple(
+            prose_only_instance if item is instance else item
+            for item in composition.agent_instances
+        ),
+    )
+
+    assert ai_gate_section(prose_only) == baseline_section
+    assert "ai.evaluate-made-up" not in baseline_section
+
+
+def test_rendering_rejects_lost_ai_evaluation_dimensions() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("ai-application")
+    gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if any(
+            artifact.type == "AIEvaluationReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    broken_gate = replace(
+        gate,
+        required_capabilities=(),
+    )
+    broken = replace(
+        composition,
+        workflow_gates=tuple(
+            broken_gate if item is gate else item
+            for item in composition.workflow_gates
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match=(
+            "must preserve non-empty required "
+            "AI-evaluation capabilities"
+        ),
+    ):
+        render_enabled_targets(paths, broken)
+
+
+def test_rendering_rejects_missing_ai_evaluation_governed_input() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("ai-application")
+    gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if any(
+            artifact.type == "AIEvaluationReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    binding = next(
+        binding
+        for binding in composition.role_bindings
+        if binding.role_name == gate.owner_role_binding
+    )
+    broken_binding = replace(
+        binding,
+        input_artifacts=tuple(
+            production
+            for production in binding.input_artifacts
+            if production.artifact.type != "Requirements"
+        ),
+    )
+    broken = replace(
+        composition,
+        role_bindings=tuple(
+            broken_binding if item is binding else item
+            for item in composition.role_bindings
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="must preserve governed AI-evaluation inputs",
+    ):
+        render_enabled_targets(paths, broken)
+
+
+def test_rendering_rejects_broadened_ai_evaluation_permission() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("ai-application")
+    gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if any(
+            artifact.type == "AIEvaluationReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    instance = next(
+        instance
+        for instance in composition.agent_instances
+        if instance.id == gate.owner_agent_instance
+    )
+    broken_instance = replace(
+        instance,
+        permission_profile=replace(
+            instance.permission_profile,
+            bash=BashPermission.LIMITED,
+        ),
+    )
+    broken = replace(
+        composition,
+        agent_instances=tuple(
+            broken_instance if item is instance else item
+            for item in composition.agent_instances
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match=(
+            "must preserve the accepted read-only/no-shell "
+            "AI-evaluation permission boundary"
+        ),
+    ):
+        render_enabled_targets(paths, broken)

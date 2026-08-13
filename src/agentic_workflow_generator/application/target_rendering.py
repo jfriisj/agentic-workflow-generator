@@ -11,8 +11,12 @@ from pathlib import Path
 from agentic_workflow_generator.compiler import (
     CompiledAgentInstance,
     CompiledComposition,
+    CompiledRoleBinding,
+    CompiledWorkflowGate,
 )
 from agentic_workflow_generator.domain import (
+    ArtifactContract,
+    BashPermission,
     RoleBindingType,
     TargetAdapter,
     WorkflowRoutingResult,
@@ -70,6 +74,20 @@ _TEST_REPORT_EVIDENCE_FIELDS = (
     "result",
 )
 _TEST_REPORT_STATUSES = ("PASS", "FAIL", "BLOCKED")
+_AI_EVALUATION_REPORT_TYPE = "AIEvaluationReport"
+_AI_EVALUATION_REQUIRED_INPUT_TYPES = frozenset(
+    {"ImplementationReport", "Requirements"}
+)
+_AI_EVALUATION_EVIDENCE_FIELDS = (
+    "claim",
+    "source",
+    "reproduction",
+    "result",
+)
+_AI_EVALUATION_STATUSES = ("PASS", "FAIL", "BLOCKED")
+_AI_EVALUATION_MIXED_CONDITION_RULE = (
+    "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
+)
 
 
 def render_enabled_targets(
@@ -80,6 +98,7 @@ def render_enabled_targets(
 
     _validate_routing_representation(composition)
     _validate_test_evidence_representation(composition)
+    _validate_ai_evaluation_representation(composition)
     rendered: list[RenderedTarget] = []
 
     for target in composition.targets:
@@ -460,6 +479,17 @@ def _render_workflow_gate_requirements(
             ]
         )
 
+        ai_evaluation_report = _ai_evaluation_report(gate)
+        if ai_evaluation_report is not None:
+            lines.extend(
+                _render_ai_evaluation_gate_semantics(
+                    composition,
+                    instance,
+                    gate,
+                    ai_evaluation_report,
+                )
+            )
+
         if not gate.required_test_evidence:
             lines.append("- required test evidence: none")
             continue
@@ -506,6 +536,165 @@ def _render_workflow_gate_requirements(
         )
 
     return "\n".join(lines) + "\n\n"
+
+
+
+def _ai_evaluation_report(
+    gate: CompiledWorkflowGate,
+) -> ArtifactContract | None:
+    reports = tuple(
+        artifact
+        for artifact in gate.required_artifacts
+        if artifact.type == _AI_EVALUATION_REPORT_TYPE
+    )
+
+    if not reports:
+        return None
+
+    if len(reports) != 1:
+        raise TargetRenderingError(
+            f"Workflow gate {gate.name!r} must resolve exactly one "
+            "AIEvaluationReport artifact for target rendering"
+        )
+
+    return reports[0]
+
+
+def _gate_owner_binding(
+    composition: CompiledComposition,
+    gate: CompiledWorkflowGate,
+) -> CompiledRoleBinding:
+    matches = tuple(
+        binding
+        for binding in composition.role_bindings
+        if (
+            binding.role_name == gate.owner_role_binding
+            and binding.agent_instance == gate.owner_agent_instance
+        )
+    )
+
+    if len(matches) != 1:
+        raise TargetRenderingError(
+            f"Workflow gate {gate.name!r} must resolve exactly one "
+            "compiled owner role binding for target rendering"
+        )
+
+    return matches[0]
+
+
+def _render_ai_evaluation_gate_semantics(
+    composition: CompiledComposition,
+    instance: CompiledAgentInstance,
+    gate: CompiledWorkflowGate,
+    report: ArtifactContract,
+) -> list[str]:
+    binding = _gate_owner_binding(composition, gate)
+    permission = instance.permission_profile
+    input_types = tuple(
+        production.artifact.type
+        for production in binding.input_artifacts
+    )
+    evidence_fields = ", ".join(
+        f"`{field}`"
+        for field in report.evidence.required_fields
+    )
+    statuses = ", ".join(
+        f"`{status}`"
+        for status in report.allowed_statuses
+    )
+
+    lines = [
+        "",
+        (
+            "- required AI-evaluation dimensions: every compiled gate "
+            "capability below is independently required"
+        ),
+    ]
+    lines.extend(
+        f"  - `{capability}`"
+        for capability in gate.required_capabilities
+    )
+    lines.extend(
+        [
+            "- governed runtime inputs: every compiled relation below is "
+            "authoritative",
+            *(
+                f"  - `{artifact_type}`"
+                for artifact_type in input_types
+            ),
+            (
+                "- runtime applicability: resolve concrete project-specific "
+                "criteria from governed `Requirements`, use "
+                "`ImplementationReport` as implemented-system context, and "
+                "apply the compiled `AIEvaluationReport` contract; do not "
+                "infer required dimensions from selected skill, "
+                "responsibility, or unrelated project prose"
+            ),
+            (
+                "- evidence/status authority: `AIEvaluationReport` is the "
+                "sole evidence and status authority; status-determining "
+                f"criteria use its compiled evidence fields {evidence_fields} "
+                f"and statuses {statuses}"
+            ),
+            (
+                "- evidence mapping: map every status-determining required "
+                "criterion reproducibly to the relevant compiled "
+                "AI-evaluation capability dimension and concrete governed "
+                "criterion; do not introduce a second evidence format, "
+                "category scheme, or status classifier"
+            ),
+            (
+                "- evidence-review boundary: review available reproducible "
+                "evidence; do not run shell commands, mutate repository "
+                "state, execute external evaluation jobs, invoke a "
+                "model-under-test merely to generate missing evidence, "
+                "invent measurements, or substitute subjective confidence "
+                "for required evidence"
+            ),
+            (
+                "- effective permission boundary: "
+                f"read=`{str(permission.read).lower()}`; "
+                f"write=`{str(permission.write).lower()}`; "
+                f"edit=`{str(permission.edit).lower()}`; "
+                f"bash=`{permission.bash.value}`; a command or procedure "
+                "recorded in `reproduction` is evidence provenance, not "
+                "authorization that this evaluator executed it"
+            ),
+            (
+                "- runtime status boundary: complete reproducible evidence "
+                "satisfying all applicable required criteria may support "
+                "`PASS`; unavailable, missing, or unverifiable required "
+                "evidence, data, scenario, baseline, threshold, environment, "
+                "measurement, or another prerequisite prevents `PASS` and "
+                "yields `BLOCKED` unless independently reproducible evidence "
+                "already demonstrates required nonconformance; demonstrated "
+                "nonconformance yields `FAIL`, including mixed fail+blocked "
+                "conditions under "
+                f"`{report.status_semantics.mixed_condition_rule}`"
+            ),
+            (
+                "- unauthorized-measurement boundary: when producing a "
+                "required measurement would require an action outside the "
+                "effective permission profile and no valid pre-existing "
+                "evidence is available, the evaluation cannot be `PASS`"
+            ),
+            (
+                "- static/runtime boundary: the compiler and target adapter "
+                "preserve the existing compiled gate, input, artifact, and "
+                "permission relationships; they do not parse produced "
+                "artifact Markdown or project files to discover evaluation "
+                "criteria, datasets, scenarios, metrics, thresholds, "
+                "baselines, commands, or runtime observations"
+            ),
+            (
+                "- routing boundary: the state owner returns the "
+                "already-classified canonical result to the workflow "
+                "controller; only the controller selects the route"
+            ),
+        ]
+    )
+
+    return lines
 
 
 def _test_evidence_meaning(
@@ -963,6 +1152,173 @@ def _canonical_transitions(
             ),
         )
     )
+
+
+
+def _validate_ai_evaluation_representation(
+    composition: CompiledComposition,
+) -> None:
+    # Fail if target output cannot preserve ADR-0013 semantics.
+
+    instances_by_id = {
+        instance.id: instance
+        for instance in composition.agent_instances
+    }
+
+    for gate in composition.workflow_gates:
+        report = _ai_evaluation_report(gate)
+        if report is None:
+            continue
+
+        try:
+            instance = instances_by_id[gate.owner_agent_instance]
+        except KeyError as exc:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} owner "
+                f"{gate.owner_agent_instance!r} is not a rendered agent "
+                "instance"
+            ) from exc
+
+        if not gate.required_capabilities:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} requiring "
+                "AIEvaluationReport must preserve non-empty required "
+                "AI-evaluation capabilities"
+            )
+
+        if len(set(gate.required_capabilities)) != len(
+            gate.required_capabilities
+        ):
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} has duplicate required "
+                "AI-evaluation capabilities"
+            )
+
+        binding = _gate_owner_binding(composition, gate)
+
+        if binding.binding_type is not RoleBindingType.STATE_OWNER:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} AI-evaluation owner must "
+                "remain a compiled state-owner binding"
+            )
+
+        if (
+            binding.workflow_state != gate.workflow_state
+            or binding.workflow_gate != gate.name
+        ):
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} AI-evaluation owner does "
+                "not preserve the compiled state/gate relation"
+            )
+
+        missing_owner_capabilities = tuple(
+            capability
+            for capability in gate.required_capabilities
+            if capability not in binding.required_capabilities
+        )
+        if missing_owner_capabilities:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} owner cannot preserve "
+                "required AI-evaluation capabilities: "
+                f"{missing_owner_capabilities}"
+            )
+
+        input_types = {
+            production.artifact.type
+            for production in binding.input_artifacts
+        }
+        missing_inputs = tuple(
+            sorted(
+                _AI_EVALUATION_REQUIRED_INPUT_TYPES
+                - input_types
+            )
+        )
+        if missing_inputs:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} must preserve governed "
+                "AI-evaluation inputs: "
+                f"missing {missing_inputs}"
+            )
+
+        productions = tuple(
+            production
+            for production in composition.artifact_production
+            if (
+                production.artifact.type
+                == _AI_EVALUATION_REPORT_TYPE
+                and production.role_binding
+                == gate.owner_role_binding
+                and production.agent_instance
+                == gate.owner_agent_instance
+            )
+        )
+        if len(productions) != 1:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} must preserve exactly one "
+                "owner-produced AIEvaluationReport"
+            )
+
+        if productions[0].artifact != report:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} required "
+                "AIEvaluationReport differs from the owner-produced "
+                "compiled artifact contract"
+            )
+
+        missing_fields = tuple(
+            field
+            for field in _AI_EVALUATION_EVIDENCE_FIELDS
+            if field not in report.evidence.required_fields
+        )
+        if missing_fields:
+            raise TargetRenderingError(
+                "AIEvaluationReport cannot preserve ADR-0013 evidence "
+                f"semantics; missing evidence fields: {missing_fields}"
+            )
+
+        missing_statuses = tuple(
+            status
+            for status in _AI_EVALUATION_STATUSES
+            if status not in report.allowed_statuses
+        )
+        if missing_statuses:
+            raise TargetRenderingError(
+                "AIEvaluationReport cannot preserve ADR-0013 status "
+                f"semantics; missing statuses: {missing_statuses}"
+            )
+
+        invariants = report.status_invariants
+        if not (
+            invariants.pass_requires_complete_evidence
+            and invariants.pass_forbids_demonstrated_nonconformance
+            and invariants.fail_requires_demonstrated_nonconformance
+            and invariants.blocked_requires_unavailable_prerequisite
+        ):
+            raise TargetRenderingError(
+                "AIEvaluationReport cannot preserve ADR-0013 fail-closed "
+                "status invariants"
+            )
+
+        if (
+            report.status_semantics.mixed_condition_rule
+            != _AI_EVALUATION_MIXED_CONDITION_RULE
+        ):
+            raise TargetRenderingError(
+                "AIEvaluationReport cannot preserve ADR-0013 mixed "
+                "FAIL/BLOCKED semantics"
+            )
+
+        permission = instance.permission_profile
+        if (
+            permission.read is not True
+            or permission.write is not False
+            or permission.edit is not False
+            or permission.bash is not BashPermission.DENY
+        ):
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} must preserve the accepted "
+                "read-only/no-shell AI-evaluation permission boundary"
+            )
 
 
 def _validate_test_evidence_representation(
