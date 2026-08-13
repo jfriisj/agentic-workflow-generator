@@ -158,14 +158,17 @@ meaning, requiredness, reproducible `TestReport`
 static/runtime boundary og controller-only routing uden test discovery eller
 prose inference.
 
-ADR-0013 definerer bounded canonical AI-evaluation execution semantics for det
-eksisterende `AIEvaluator / ai-evaluation-review` flow. Den eksisterende gate
-beholder sine tre required AI-evaluation capabilities som canonical required
-evaluation dimensions, `Requirements` leverer governed project-specific
-acceptance context, og `AIEvaluationReport` forbliver evidence/status authority.
-AIEvaluator er under den nuværende V1-kontrakt en read-only evidence reviewer,
-ikke en shell/model evaluation executor. Den bounded target-preservation
-implementation mangler fortsat.
+ADR-0013 bounded canonical AI-evaluation execution semantics er implementeret
+end to end gennem den eksisterende target-preservation path. Begge nuværende
+targets bevarer de tre gate-required AI-evaluation capabilities som canonical
+required evaluation dimensions fra compiled gate data, de governed
+`Requirements`- og `ImplementationReport`-inputs, `AIEvaluationReport` som sole
+evidence/status authority, den effektive read-only / no-shell permission boundary
+og ADR-0011 controller-only routing. Targetrendering fejler lukket ved manglende
+eller svækket statisk preservation, mens manglende eller unverificerbar runtime
+evidence fortsat giver `BLOCKED` frem for `PASS`. Compileren parser ikke produced
+artifact Markdown eller project content og udfører ikke evaluation jobs eller
+modelinvokation.
 
 Retry, escalation og artifact invalidation er ikke v1-krav og er ikke accepteret
 scope.
@@ -206,12 +209,11 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0011 canonical workflow routing semantics og ADR-0012 canonical workflow
-test-evidence semantics er gennemført med bounded end-to-end implementations.
-ADR-0013 bounded AI-evaluation execution semantics er accepteret og afventer
-bounded target-preservation implementation. De øvrige v1-områder fortsætter
-gennem repository issue/readiness-flowet, herunder registry-audit, bredere
-target preservation og consumer acceptance.
+ADR-0011 canonical workflow routing semantics, ADR-0012 canonical workflow
+test-evidence semantics og ADR-0013 bounded AI-evaluation execution semantics er
+gennemført med bounded end-to-end implementations. De øvrige v1-områder
+fortsætter gennem repository issue/readiness-flowet, herunder registry-audit,
+bredere target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
 
