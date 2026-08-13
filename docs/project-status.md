@@ -158,9 +158,14 @@ meaning, requiredness, reproducible `TestReport`
 static/runtime boundary og controller-only routing uden test discovery eller
 prose inference.
 
-Workflow-modellen mangler derudover fortsat hardening omkring:
-
-- klar execution-semantik for det eksisterende AI-evalueringsflow.
+ADR-0013 definerer bounded canonical AI-evaluation execution semantics for det
+eksisterende `AIEvaluator / ai-evaluation-review` flow. Den eksisterende gate
+beholder sine tre required AI-evaluation capabilities som canonical required
+evaluation dimensions, `Requirements` leverer governed project-specific
+acceptance context, og `AIEvaluationReport` forbliver evidence/status authority.
+AIEvaluator er under den nuværende V1-kontrakt en read-only evidence reviewer,
+ikke en shell/model evaluation executor. Den bounded target-preservation
+implementation mangler fortsat.
 
 Retry, escalation og artifact invalidation er ikke v1-krav og er ikke accepteret
 scope.
@@ -203,10 +208,10 @@ compositions og begge nuværende targets.
 
 ADR-0011 canonical workflow routing semantics og ADR-0012 canonical workflow
 test-evidence semantics er gennemført med bounded end-to-end implementations.
-Det resterende workflow-contract arbejde i Goal #44 er AI-evaluation execution
-semantics. De øvrige v1-områder fortsætter gennem repository
-issue/readiness-flowet, herunder registry-audit, bredere target preservation og
-consumer acceptance.
+ADR-0013 bounded AI-evaluation execution semantics er accepteret og afventer
+bounded target-preservation implementation. De øvrige v1-områder fortsætter
+gennem repository issue/readiness-flowet, herunder registry-audit, bredere
+target preservation og consumer acceptance.
 
 ## Accepted architecture-model decision
 
