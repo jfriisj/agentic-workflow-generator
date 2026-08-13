@@ -51,6 +51,7 @@ from .workflows import (
     WorkflowGate,
     WorkflowRoutingResult,
     WorkflowState,
+    WorkflowTestEvidenceRequirement,
     WorkflowTransition,
 )
 
@@ -97,5 +98,6 @@ __all__ = [
     "WorkflowGate",
     "WorkflowRoutingResult",
     "WorkflowState",
+    "WorkflowTestEvidenceRequirement",
     "WorkflowTransition",
 ]

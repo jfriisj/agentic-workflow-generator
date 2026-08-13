@@ -96,7 +96,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `CodeReview`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `code-review`
   - `agentInstance`: `code-review-worker`
 - revision heading: `## Revision`
@@ -122,6 +122,19 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: At least one reviewed dimension positively demonstrates a blocking defect, violated approved requirement or trust boundary, or other required fix that prevents the reviewed implementation from passing the code-review gate.
   - `BLOCKED`: Required changed scope, code, configuration, test evidence, dependency information, threat context, or other review evidence is unavailable, missing, or unverifiable such that the required review cannot be completed.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### code-review
+
+- workflow state: `CodeReviewer`
+- gate owner: role binding `code-review`; agent instance `code-review-worker`
+- blocking: `true`
+- required artifacts: `CodeReview`
+- required test evidence: none
 
 
 ## Workflow Authority

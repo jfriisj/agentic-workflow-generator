@@ -45,6 +45,7 @@ Workflow
 WorkflowState
 Transition
 WorkflowRoutingResult
+WorkflowTestEvidenceRequirement
 Gate
 AgentProfile
 AgentInstance
@@ -293,7 +294,43 @@ name
 blocking policy
 required capabilities
 required artifacts and accepted statuses
+required test-evidence categories when TestReport is required
 ~~~
+
+`WorkflowTestEvidenceRequirement` is a closed typed vocabulary with exactly:
+
+~~~text
+changed-behavior-tests
+project-validation-suite
+~~~
+
+`changed-behavior-tests` means repository-authoritative validation that directly
+exercises the approved changed behavior.
+
+`project-validation-suite` means the repository-authoritative broader
+regression/validation suite applicable to the project.
+
+A gate whose required artifacts include `TestReport` must own a non-empty
+`requiredTestEvidence` set containing only these canonical identities and no
+duplicates. A gate that does not require `TestReport` must not declare
+`requiredTestEvidence`. Declaration order has no semantic meaning; typed,
+compiled and serialized representations order identities lexically.
+
+The workflow gate is the sole canonical owner of the required category set.
+Targets derive the complete requirement from `CompiledWorkflowGate`; they do
+not infer categories from skills, project prose, package metadata or test
+commands.
+
+Each required category maps to independently reproducible `TestReport` evidence
+using the existing `claim`, `source`, `reproduction` and `result` fields.
+`TestReport` remains the status authority for `PASS`, `FAIL` and `BLOCKED`, and
+the state owner returns the already-classified result to the workflow
+controller.
+
+The compiler validates and preserves the static requirement set. It does not
+discover validation commands, execute tests or invent runtime observations.
+Runtime TestRunner behavior resolves repository-authoritative commands or
+procedures and records the observations.
 
 Pass, fail and blocked routing belongs to workflow transitions and the
 workflow's explicit default failure state. Gates do not own routes, retry
@@ -459,7 +496,7 @@ controller binding
 effective permission profiles
 selected skills
 artifact contracts
-workflow gates
+workflow gates including required test-evidence categories
 artifact production
 separation constraints
 ~~~
@@ -467,7 +504,10 @@ separation constraints
 `CompiledComposition` is the compiler's only internal intermediate
 representation.
 
-The active `.agentic/agentic.json` is its persistent serialization.
+The active `.agentic/agentic.json` is its persistent serialization. Each
+serialized workflow gate carries canonical `requiredTestEvidence`: the complete
+lexically ordered category set for `TestReport` gates and an empty list for
+other compiled gates.
 
 There is no separate persisted resolution model.
 
@@ -509,12 +549,16 @@ selected skills belong to the bundle
 selected skills cover binding-required capabilities
 produced artifacts belong to the bundle
 gate-required artifacts are produced by the state owner
+every TestReport gate owns non-empty canonical required test evidence
+non-TestReport gates do not declare required test evidence
+test-evidence identities are known, unique and lexically canonicalized
 each agent instance has one effective permission profile
 every effective permission maps through every enabled target
 separation policies reference valid bindings
 required distinct bindings use distinct instances
 target output remains inside declared owned paths
 target-owned paths do not overlap
+targets preserve complete compiled test-evidence semantics or fail explicitly
 ~~~
 
 There is no fallback, compatibility projection or silent degradation.
@@ -527,6 +571,7 @@ The current breaking migration does not introduce:
 additional target platforms
 runtime-context generation
 autonomous workflow execution
+test-command discovery or compiler-side test execution
 dynamic plugins
 template engines
 target feature negotiation

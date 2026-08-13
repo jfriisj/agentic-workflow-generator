@@ -1,6 +1,6 @@
 {
   "name": "orchestrated-delivery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A fail-closed software delivery workflow where routing is owned by the orchestrator and quality gates control progress.",
   "startState": "Requirements",
   "terminalStates": [
@@ -65,6 +65,10 @@
         ],
         "requiredArtifacts": [
           "TestReport"
+        ],
+        "requiredTestEvidence": [
+          "changed-behavior-tests",
+          "project-validation-suite"
         ]
       }
     },

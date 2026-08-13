@@ -90,7 +90,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `TestReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `test-execution`
   - `agentInstance`: `test-runner`
 - revision heading: `## Revision`
@@ -116,6 +116,25 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: At least one required test or validation command executes and positively demonstrates that the product does not satisfy the tested contract.
   - `BLOCKED`: A required tool, dependency, environment, credential, fixture, or test input is unavailable, missing, or unverifiable such that required validation cannot execute or be established.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### test-review
+
+- workflow state: `TestRunner`
+- gate owner: role binding `test-execution`; agent instance `test-runner`
+- blocking: `true`
+- required artifacts: `TestReport`
+- required test evidence: every category below is independently required
+  - `changed-behavior-tests`: repository-authoritative validation directly exercises the approved changed behavior; provide independently reproducible `TestReport` evidence using the existing `claim`, `source`, `reproduction`, and `result` fields
+  - `project-validation-suite`: repository-authoritative broader regression/validation suite applicable to the project; provide independently reproducible `TestReport` evidence using the existing `claim`, `source`, `reproduction`, and `result` fields
+- static/runtime boundary: required categories come only from this compiled gate; resolve repository-authoritative validation commands or procedures at runtime
+- do not infer required categories from skill or project prose; the compiler and target adapter do not discover or execute tests
+- do not invent required observations; classify `TestReport` only under its compiled `PASS`, `FAIL`, and `BLOCKED` evidence/status contract
+- routing boundary: the state owner returns the already-classified canonical result to the workflow controller; only the controller selects the route
 
 
 ## Workflow Authority

@@ -93,7 +93,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `Requirements`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `requirements`
   - `agentInstance`: `requirements-worker`
 - revision heading: `## Revision`
@@ -119,6 +119,19 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: Supplied requirements or constraints are demonstrably contradictory or impossible to satisfy as stated.
   - `BLOCKED`: A stakeholder decision, required source information, scope boundary, or acceptance threshold necessary to complete the requirements contract is unavailable, missing, or unverifiable.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### requirements-review
+
+- workflow state: `Requirements`
+- gate owner: role binding `requirements`; agent instance `requirements-worker`
+- blocking: `true`
+- required artifacts: `Requirements`
+- required test evidence: none
 
 
 ## Workflow Authority

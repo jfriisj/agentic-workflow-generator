@@ -8,6 +8,7 @@ from agentic_workflow_generator.domain import (
     WorkflowGate,
     WorkflowRoutingResult,
     WorkflowState,
+    WorkflowTestEvidenceRequirement,
     WorkflowTransition,
 )
 
@@ -89,6 +90,7 @@ def test_workflow_model_preserves_validated_semantics() -> None:
     assert requirements.gate.name == "requirements-review"
     assert requirements.gate.blocking is True
     assert requirements.gate.required_artifacts == ("Requirements",)
+    assert requirements.gate.required_test_evidence == ()
 
     transition = definition.transitions[0]
     assert transition.source == "Requirements"
@@ -106,6 +108,19 @@ def test_workflow_routing_result_is_closed_and_serializable() -> None:
 
     with pytest.raises(ValueError):
         WorkflowRoutingResult("approve")
+
+
+def test_workflow_test_evidence_requirement_is_closed_and_serializable() -> None:
+    assert tuple(
+        requirement.value
+        for requirement in WorkflowTestEvidenceRequirement
+    ) == (
+        "changed-behavior-tests",
+        "project-validation-suite",
+    )
+
+    with pytest.raises(ValueError):
+        WorkflowTestEvidenceRequirement("pytest")
 
 
 @pytest.mark.parametrize(

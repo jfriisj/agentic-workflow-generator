@@ -16,6 +16,7 @@ from agentic_workflow_generator.domain import (
     RoleBindingType,
     TargetAdapter,
     WorkflowRoutingResult,
+    WorkflowTestEvidenceRequirement,
     WorkflowTransition,
 )
 from agentic_workflow_generator.domain.targets import (
@@ -52,6 +53,25 @@ class _Handoff:
     prompt: str
 
 
+_TEST_EVIDENCE_MEANINGS = {
+    WorkflowTestEvidenceRequirement.CHANGED_BEHAVIOR_TESTS: (
+        "repository-authoritative validation directly exercises the approved "
+        "changed behavior"
+    ),
+    WorkflowTestEvidenceRequirement.PROJECT_VALIDATION_SUITE: (
+        "repository-authoritative broader regression/validation suite "
+        "applicable to the project"
+    ),
+}
+_TEST_REPORT_EVIDENCE_FIELDS = (
+    "claim",
+    "source",
+    "reproduction",
+    "result",
+)
+_TEST_REPORT_STATUSES = ("PASS", "FAIL", "BLOCKED")
+
+
 def render_enabled_targets(
     paths: ProjectPaths,
     composition: CompiledComposition,
@@ -59,6 +79,7 @@ def render_enabled_targets(
     """Render every enabled target in compiler priority order."""
 
     _validate_routing_representation(composition)
+    _validate_test_evidence_representation(composition)
     rendered: list[RenderedTarget] = []
 
     for target in composition.targets:
@@ -362,6 +383,7 @@ def _render_agent_body(
 
 {_render_required_input_artifacts(composition, instance)}
 {_render_produced_artifacts(composition, instance)}
+{_render_workflow_gate_requirements(composition, instance)}
 ## Workflow Authority
 
 The canonical active composition is:
@@ -374,6 +396,129 @@ Workflow: `{composition.workflow.name}`
 
 {_render_workflow_authority(composition, instance)}
 """
+
+
+def _render_workflow_gate_requirements(
+    composition: CompiledComposition,
+    instance: CompiledAgentInstance,
+) -> str:
+    gates = tuple(
+        sorted(
+            (
+                gate
+                for gate in composition.workflow_gates
+                if gate.owner_agent_instance == instance.id
+            ),
+            key=lambda gate: (
+                gate.workflow_state,
+                gate.name,
+            ),
+        )
+    )
+    lines = [
+        "## Workflow Gate Requirements",
+        "",
+        (
+            "Gate requirements are rendered directly from the canonical "
+            "compiled workflow gate."
+        ),
+    ]
+
+    if not gates:
+        lines.extend(
+            [
+                "",
+                "This agent instance owns no workflow gate.",
+            ]
+        )
+        return "\n".join(lines) + "\n\n"
+
+    for gate in gates:
+        artifact_types = tuple(
+            artifact.type
+            for artifact in gate.required_artifacts
+        )
+        lines.extend(
+            [
+                "",
+                f"### {gate.name}",
+                "",
+                f"- workflow state: `{gate.workflow_state}`",
+                (
+                    "- gate owner: role binding "
+                    f"`{gate.owner_role_binding}`; agent instance "
+                    f"`{gate.owner_agent_instance}`"
+                ),
+                f"- blocking: `{str(gate.blocking).lower()}`",
+                (
+                    "- required artifacts: "
+                    + ", ".join(
+                        f"`{artifact_type}`"
+                        for artifact_type in artifact_types
+                    )
+                ),
+            ]
+        )
+
+        if not gate.required_test_evidence:
+            lines.append("- required test evidence: none")
+            continue
+
+        lines.append(
+            "- required test evidence: every category below is "
+            "independently required"
+        )
+
+        for requirement in gate.required_test_evidence:
+            lines.append(
+                "  - "
+                f"`{requirement.value}`: "
+                f"{_test_evidence_meaning(requirement)}; provide "
+                "independently reproducible `TestReport` evidence using "
+                "the existing `claim`, `source`, `reproduction`, and "
+                "`result` fields"
+            )
+
+        lines.extend(
+            [
+                (
+                    "- static/runtime boundary: required categories come "
+                    "only from this compiled gate; resolve "
+                    "repository-authoritative validation commands or "
+                    "procedures at runtime"
+                ),
+                (
+                    "- do not infer required categories from skill or "
+                    "project prose; the compiler and target adapter do not "
+                    "discover or execute tests"
+                ),
+                (
+                    "- do not invent required observations; classify "
+                    "`TestReport` only under its compiled `PASS`, `FAIL`, "
+                    "and `BLOCKED` evidence/status contract"
+                ),
+                (
+                    "- routing boundary: the state owner returns the "
+                    "already-classified canonical result to the workflow "
+                    "controller; only the controller selects the route"
+                ),
+            ]
+        )
+
+    return "\n".join(lines) + "\n\n"
+
+
+def _test_evidence_meaning(
+    requirement: WorkflowTestEvidenceRequirement,
+) -> str:
+    try:
+        return _TEST_EVIDENCE_MEANINGS[requirement]
+    except KeyError as exc:
+        identity = getattr(requirement, "value", repr(requirement))
+        raise TargetRenderingError(
+            "Target rendering does not support canonical test-evidence "
+            f"requirement {identity!r}"
+        ) from exc
 
 
 def _render_workflow_authority(
@@ -655,7 +800,15 @@ def _render_project_instructions(
     gates = tuple(
         (
             f"`{gate.name}` owned by "
-            f"`{gate.owner_agent_instance}`"
+            f"`{gate.owner_agent_instance}`; required test evidence: "
+            + (
+                ", ".join(
+                    f"`{requirement.value}`"
+                    for requirement in gate.required_test_evidence
+                )
+                if gate.required_test_evidence
+                else "none"
+            )
         )
         for gate in composition.workflow_gates
     )
@@ -810,6 +963,97 @@ def _canonical_transitions(
             ),
         )
     )
+
+
+def _validate_test_evidence_representation(
+    composition: CompiledComposition,
+) -> None:
+    """Fail if target output cannot preserve canonical test-evidence semantics."""
+
+    known_instances = {
+        instance.id
+        for instance in composition.agent_instances
+    }
+
+    for gate in composition.workflow_gates:
+        test_reports = tuple(
+            artifact
+            for artifact in gate.required_artifacts
+            if artifact.type == "TestReport"
+        )
+
+        if not test_reports:
+            if gate.required_test_evidence:
+                raise TargetRenderingError(
+                    f"Workflow gate {gate.name!r} declares test evidence "
+                    "without requiring TestReport"
+                )
+            continue
+
+        if len(test_reports) != 1:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} must resolve exactly one "
+                "TestReport artifact for target rendering"
+            )
+
+        if gate.owner_agent_instance not in known_instances:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} owner "
+                f"{gate.owner_agent_instance!r} is not a rendered agent "
+                "instance"
+            )
+
+        if not gate.required_test_evidence:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} requiring TestReport must "
+                "preserve non-empty required test evidence"
+            )
+
+        canonical = tuple(
+            sorted(
+                gate.required_test_evidence,
+                key=lambda requirement: requirement.value,
+            )
+        )
+        if canonical != gate.required_test_evidence:
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} test-evidence requirements "
+                "are not in canonical lexical order"
+            )
+
+        if len(set(gate.required_test_evidence)) != len(
+            gate.required_test_evidence
+        ):
+            raise TargetRenderingError(
+                f"Workflow gate {gate.name!r} has duplicate test-evidence "
+                "requirements"
+            )
+
+        for requirement in gate.required_test_evidence:
+            _test_evidence_meaning(requirement)
+
+        test_report = test_reports[0]
+        missing_fields = tuple(
+            field
+            for field in _TEST_REPORT_EVIDENCE_FIELDS
+            if field not in test_report.evidence.required_fields
+        )
+        if missing_fields:
+            raise TargetRenderingError(
+                "TestReport cannot represent required workflow test "
+                f"evidence; missing evidence fields: {missing_fields}"
+            )
+
+        missing_statuses = tuple(
+            status
+            for status in _TEST_REPORT_STATUSES
+            if status not in test_report.allowed_statuses
+        )
+        if missing_statuses:
+            raise TargetRenderingError(
+                "TestReport cannot preserve workflow test-evidence status "
+                f"semantics; missing statuses: {missing_statuses}"
+            )
 
 
 def _validate_routing_representation(

@@ -92,7 +92,7 @@ Produced output must satisfy each compiled artifact contract.
   - `artifactType`: `ImplementationReport`
   - `artifactVersion`: `0.7.0`
   - `workflow`: `orchestrated-delivery`
-  - `workflowVersion`: `0.3.0`
+  - `workflowVersion`: `0.4.0`
   - `roleBinding`: `implementation`
   - `agentInstance`: `implementation-worker`
 - revision heading: `## Revision`
@@ -118,6 +118,19 @@ Produced output must satisfy each compiled artifact contract.
   - `FAIL`: The implementation or implementation-level validation positively demonstrates that the approved behavior is not satisfied.
   - `BLOCKED`: An approved input, dependency, tool, credential, environment, or required decision necessary to complete the implementation responsibility is unavailable, missing, or unverifiable.
   - `mixedConditionRule`: `FAIL_ON_DEMONSTRATED_NONCONFORMANCE`
+
+
+## Workflow Gate Requirements
+
+Gate requirements are rendered directly from the canonical compiled workflow gate.
+
+### implementation-complete
+
+- workflow state: `Implementer`
+- gate owner: role binding `implementation`; agent instance `implementation-worker`
+- blocking: `true`
+- required artifacts: `ImplementationReport`
+- required test evidence: none
 
 
 ## Workflow Authority

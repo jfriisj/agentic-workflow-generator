@@ -98,6 +98,7 @@ class ProjectedWorkflowGate:
     name: str
     required_capabilities: frozenset[str]
     required_artifacts: frozenset[str]
+    required_test_evidence: frozenset[str]
 
 
 @dataclass(frozen=True, slots=True)
@@ -236,6 +237,14 @@ def project_workflows(
                             raw_gate,
                             "requiredArtifacts",
                             f"{label}.gate.requiredArtifacts",
+                        )
+                    ),
+                    required_test_evidence=frozenset(
+                        _project_optional_nested_string_list(
+                            source,
+                            raw_gate,
+                            "requiredTestEvidence",
+                            f"{label}.gate.requiredTestEvidence",
                         )
                     ),
                 )
@@ -516,6 +525,23 @@ def _project_nested_string_list(
         values.append(raw_value.strip())
 
     return tuple(values)
+
+
+def _project_optional_nested_string_list(
+    source: RegistrySource,
+    data: Mapping[str, JsonValue],
+    field: str,
+    label: str,
+) -> tuple[str, ...]:
+    if data.get(field) is None:
+        return ()
+
+    return _project_nested_string_list(
+        source,
+        data,
+        field,
+        label,
+    )
 
 
 def _reject_duplicate_projection(

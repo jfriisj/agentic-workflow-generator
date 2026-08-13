@@ -213,6 +213,7 @@ def references(
                                     }
                                 )
                             ),
+                            required_test_evidence=frozenset(),
                         ),
                     ),
                     ProjectedWorkflowState(
@@ -477,6 +478,7 @@ def test_input_artifact_dependency_cycle_fails_closed() -> None:
             name="peer-review",
             required_capabilities=frozenset({"requirements.elicit"}),
             required_artifacts=frozenset({"Requirements"}),
+            required_test_evidence=frozenset(),
         ),
     )
     reference_data = replace(

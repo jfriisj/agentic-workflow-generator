@@ -16,6 +16,7 @@ from agentic_workflow_generator.domain.workflows import (
     WorkflowGate,
     WorkflowRoutingResult,
     WorkflowState,
+    WorkflowTestEvidenceRequirement,
     WorkflowTransition,
 )
 from agentic_workflow_generator.infrastructure import (
@@ -55,6 +56,7 @@ NO_TERMINAL_PATH_DIAGNOSTIC = "AWG-WORKFLOW-018"
 ARTIFACT_STATUS_EVENT_DIAGNOSTIC = "AWG-WORKFLOW-019"
 BLOCKED_TARGET_DIAGNOSTIC = "AWG-WORKFLOW-020"
 PASS_FAILURE_TARGET_DIAGNOSTIC = "AWG-WORKFLOW-021"
+TEST_EVIDENCE_DIAGNOSTIC = "AWG-WORKFLOW-022"
 
 OBSOLETE_WORKFLOW_FIELDS = frozenset(
     {
@@ -355,6 +357,9 @@ def _parse_state(
             blocking=cast(bool, raw_gate["blocking"]),
             required_capabilities=_string_tuple(raw_gate["requiredCapabilities"]),
             required_artifacts=_string_tuple(raw_gate["requiredArtifacts"]),
+            required_test_evidence=_test_evidence_tuple(
+                raw_gate.get("requiredTestEvidence")
+            ),
         )
         terminal = False
     else:
@@ -372,6 +377,24 @@ def _string_tuple(
     value: JsonValue,
 ) -> tuple[str, ...]:
     return tuple(cast(list[str], value))
+
+
+def _test_evidence_tuple(
+    value: JsonValue | None,
+) -> tuple[WorkflowTestEvidenceRequirement, ...]:
+    if value is None:
+        return ()
+
+    requirements = (
+        WorkflowTestEvidenceRequirement(identity)
+        for identity in cast(list[str], value)
+    )
+    return tuple(
+        sorted(
+            requirements,
+            key=lambda requirement: requirement.value,
+        )
+    )
 
 
 def _validate_workflow_semantics(
@@ -548,6 +571,62 @@ def _validate_workflow_semantics(
 
         if gate is None:
             continue
+
+        has_test_report = "TestReport" in gate.required_artifacts
+        evidence_count = len(gate.required_test_evidence)
+        unique_evidence_count = len(set(gate.required_test_evidence))
+
+        if evidence_count != unique_evidence_count:
+            diagnostics.append(
+                Diagnostic(
+                    code=TEST_EVIDENCE_DIAGNOSTIC,
+                    message="requiredTestEvidence identities must be unique",
+                    source_path=source_path.as_posix(),
+                    location=f"states[{index}].gate.requiredTestEvidence",
+                    related_identities=(
+                        state.name,
+                        gate.name,
+                        *(
+                            requirement.value
+                            for requirement in gate.required_test_evidence
+                        ),
+                    ),
+                )
+            )
+
+        if has_test_report and not gate.required_test_evidence:
+            diagnostics.append(
+                Diagnostic(
+                    code=TEST_EVIDENCE_DIAGNOSTIC,
+                    message=(
+                        "gate requiring 'TestReport' must declare non-empty "
+                        "requiredTestEvidence"
+                    ),
+                    source_path=source_path.as_posix(),
+                    location=f"states[{index}].gate.requiredTestEvidence",
+                    related_identities=(state.name, gate.name, "TestReport"),
+                )
+            )
+        elif not has_test_report and gate.required_test_evidence:
+            diagnostics.append(
+                Diagnostic(
+                    code=TEST_EVIDENCE_DIAGNOSTIC,
+                    message=(
+                        "gate not requiring 'TestReport' must not declare "
+                        "requiredTestEvidence"
+                    ),
+                    source_path=source_path.as_posix(),
+                    location=f"states[{index}].gate.requiredTestEvidence",
+                    related_identities=(
+                        state.name,
+                        gate.name,
+                        *(
+                            requirement.value
+                            for requirement in gate.required_test_evidence
+                        ),
+                    ),
+                )
+            )
 
         for capability in gate.required_capabilities:
             if capability in references.skill_capabilities:

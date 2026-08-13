@@ -1,6 +1,6 @@
 {
   "name": "lean-delivery",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A compact fail-closed delivery workflow for focused changes that require explicit requirements, implementation, testing, and code review without a separate architecture or QA phase.",
   "startState": "Requirements",
   "terminalStates": [
@@ -51,6 +51,10 @@
         ],
         "requiredArtifacts": [
           "TestReport"
+        ],
+        "requiredTestEvidence": [
+          "changed-behavior-tests",
+          "project-validation-suite"
         ]
       }
     },

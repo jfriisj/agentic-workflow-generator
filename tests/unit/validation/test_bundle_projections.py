@@ -467,6 +467,7 @@ def test_workflow_projection_is_deterministic() -> None:
                         "Requirements",
                     }
                 ),
+                required_test_evidence=frozenset(),
             ),
         ),
         ProjectedWorkflowState(
@@ -485,6 +486,50 @@ def test_workflow_projection_is_deterministic() -> None:
             name="zeta",
             states=expected_states,
         ),
+    )
+
+
+
+
+def test_workflow_projection_preserves_required_test_evidence() -> None:
+    states: JsonValue = [
+        {
+            "name": "TestRunner",
+            "gate": {
+                "name": "test-review",
+                "requiredCapabilities": [
+                    "test.run",
+                ],
+                "requiredArtifacts": [
+                    "TestReport",
+                ],
+                "requiredTestEvidence": [
+                    "project-validation-suite",
+                    "changed-behavior-tests",
+                ],
+            },
+        },
+        {
+            "name": "Done",
+            "terminal": True,
+        },
+    ]
+
+    result = project_workflows(
+        (
+            workflow_source(
+                states=states,
+            ),
+        )
+    )
+
+    gate = result[0].states[0].gate
+    assert gate is not None
+    assert gate.required_test_evidence == frozenset(
+        {
+            "changed-behavior-tests",
+            "project-validation-suite",
+        }
     )
 
 

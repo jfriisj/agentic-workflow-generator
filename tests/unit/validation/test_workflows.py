@@ -20,6 +20,7 @@ from agentic_workflow_generator.validation.workflows import (
     OBSOLETE_FIELD_DIAGNOSTIC,
     PASS_FAILURE_TARGET_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
+    TEST_EVIDENCE_DIAGNOSTIC,
     UNKNOWN_ARTIFACT_DIAGNOSTIC,
     UNKNOWN_CAPABILITY_DIAGNOSTIC,
     WorkflowReferenceData,
@@ -118,6 +119,16 @@ def references() -> WorkflowReferenceData:
                     }
                 ),
             ),
+            (
+                "TestReport",
+                frozenset(
+                    {
+                        "pass",
+                        "fail",
+                        "blocked",
+                    }
+                ),
+            ),
         ),
     )
 
@@ -150,6 +161,157 @@ def test_valid_workflow_is_parsed() -> None:
     assert workflow.states[0].gate is not None
     assert workflow.states[0].gate.required_artifacts == ("Requirements",)
     assert workflow.transitions[0].result.value == "pass"
+
+
+
+
+def test_test_report_gate_parses_canonical_test_evidence_order() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredArtifacts"] = ["TestReport"]
+    gate["requiredTestEvidence"] = [
+        "project-validation-suite",
+        "changed-behavior-tests",
+    ]
+
+    result = validate(source(data=data))
+
+    assert result.is_valid
+    parsed_gate = result.workflows[0].states[0].gate
+    assert parsed_gate is not None
+    assert tuple(
+        requirement.value
+        for requirement in parsed_gate.required_test_evidence
+    ) == (
+        "changed-behavior-tests",
+        "project-validation-suite",
+    )
+
+
+def test_test_report_gate_missing_test_evidence_fails_schema() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredArtifacts"] = ["TestReport"]
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_unknown_test_evidence_identity_fails_schema() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredArtifacts"] = ["TestReport"]
+    gate["requiredTestEvidence"] = ["pytest"]
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_duplicate_test_evidence_identity_fails_schema() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredArtifacts"] = ["TestReport"]
+    gate["requiredTestEvidence"] = [
+        "changed-behavior-tests",
+        "changed-behavior-tests",
+    ]
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_non_test_report_gate_declaring_test_evidence_fails_schema() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredTestEvidence"] = ["changed-behavior-tests"]
+
+    result = validate(source(data=data))
+
+    assert any(
+        diagnostic.code == SCHEMA_DIAGNOSTIC
+        for diagnostic in result.diagnostics
+    )
+
+
+def test_semantic_validation_rejects_missing_test_evidence_when_schema_is_bypassed() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredArtifacts"] = ["TestReport"]
+
+    parsed = workflows_module._parse_workflow(source(data=data))
+    diagnostics = workflows_module._validate_workflow_semantics(
+        parsed,
+        references(),
+    )
+
+    assert any(
+        diagnostic.code == TEST_EVIDENCE_DIAGNOSTIC
+        for diagnostic in diagnostics
+    )
+
+
+def test_semantic_validation_rejects_misplaced_test_evidence_when_schema_is_bypassed() -> None:
+    data = workflow_data()
+    states = data["states"]
+    assert isinstance(states, list)
+    first = states[0]
+    assert isinstance(first, dict)
+    gate = first["gate"]
+    assert isinstance(gate, dict)
+    gate["requiredTestEvidence"] = ["changed-behavior-tests"]
+
+    parsed = workflows_module._parse_workflow(source(data=data))
+    diagnostics = workflows_module._validate_workflow_semantics(
+        parsed,
+        references(),
+    )
+
+    assert any(
+        diagnostic.code == TEST_EVIDENCE_DIAGNOSTIC
+        for diagnostic in diagnostics
+    )
 
 
 def test_file_name_must_match_workflow_name() -> None:

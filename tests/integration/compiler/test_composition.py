@@ -178,6 +178,20 @@ def test_orchestrated_bundle_preserves_authoritative_binding_semantics() -> None
         artifact.type
         for artifact in requirements_gate.required_artifacts
     ) == ("Requirements",)
+    assert requirements_gate.required_test_evidence == ()
+
+    test_gate = next(
+        gate
+        for gate in composition.workflow_gates
+        if gate.workflow_state == "TestRunner"
+    )
+    assert tuple(
+        requirement.value
+        for requirement in test_gate.required_test_evidence
+    ) == (
+        "changed-behavior-tests",
+        "project-validation-suite",
+    )
 
 
 def test_selected_targets_can_narrow_bundle_targets() -> None:

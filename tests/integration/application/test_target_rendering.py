@@ -588,3 +588,177 @@ def test_rendered_status_semantics_use_compiled_artifact_contract() -> None:
             "Missing required evidence alone must result in `BLOCKED`; "
             "demonstrated nonconformance remains governed by the artifact contract."
         ) in content
+def test_both_targets_preserve_compiled_test_evidence_semantics() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    gate = next(
+        gate
+        for gate in active.composition.workflow_gates
+        if any(
+            artifact.type == "TestReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+
+    expected_categories = (
+        "changed-behavior-tests",
+        "project-validation-suite",
+    )
+    assert tuple(
+        requirement.value
+        for requirement in gate.required_test_evidence
+    ) == expected_categories
+
+    expected_meanings = (
+        (
+            "`changed-behavior-tests`: repository-authoritative validation "
+            "directly exercises the approved changed behavior"
+        ),
+        (
+            "`project-validation-suite`: repository-authoritative broader "
+            "regression/validation suite applicable to the project"
+        ),
+    )
+    expected_common = (
+        f"### {gate.name}",
+        f"- workflow state: `{gate.workflow_state}`",
+        (
+            "- gate owner: role binding "
+            f"`{gate.owner_role_binding}`; agent instance "
+            f"`{gate.owner_agent_instance}`"
+        ),
+        (
+            "- required test evidence: every category below is "
+            "independently required"
+        ),
+        *expected_meanings,
+        (
+            "- static/runtime boundary: required categories come only "
+            "from this compiled gate"
+        ),
+        (
+            "- do not infer required categories from skill or project "
+            "prose"
+        ),
+        "- do not invent required observations",
+        (
+            "- routing boundary: the state owner returns the "
+            "already-classified canonical result"
+        ),
+    )
+
+    for target_name, owner_path, instructions_path in (
+        (
+            "opencode",
+            Path(
+                ".opencode/agents/"
+                f"{gate.owner_agent_instance}.md"
+            ),
+            Path("AGENTS.md"),
+        ),
+        (
+            "vscode-copilot",
+            Path(
+                ".github/agents/"
+                f"{gate.owner_agent_instance}.agent.md"
+            ),
+            Path(".github/copilot-instructions.md"),
+        ),
+    ):
+        files = rendered_files(target_name)
+        owner = files[owner_path].decode("utf-8")
+        instructions = files[instructions_path].decode("utf-8")
+
+        for expected in expected_common:
+            assert expected in owner
+
+        for category, meaning in zip(
+            expected_categories,
+            expected_meanings,
+            strict=True,
+        ):
+            assert (
+                f"{meaning}; provide independently reproducible "
+                "`TestReport` evidence"
+            ) in owner
+            assert f"`{category}`" in instructions
+
+        assert (
+            "`claim`, `source`, `reproduction`, and `result` fields"
+        ) in owner
+        assert (
+            "the compiler and target adapter do not discover or execute tests"
+        ) in owner
+        assert (
+            "classify `TestReport` only under its compiled `PASS`, `FAIL`, "
+            "and `BLOCKED` evidence/status contract"
+        ) in owner
+
+
+def test_rendering_rejects_lost_required_test_evidence() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    gate = next(
+        gate
+        for gate in active.composition.workflow_gates
+        if any(
+            artifact.type == "TestReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+    broken_gate = replace(
+        gate,
+        required_test_evidence=(),
+    )
+    broken = replace(
+        active.composition,
+        workflow_gates=tuple(
+            broken_gate if item is gate else item
+            for item in active.composition.workflow_gates
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="must preserve non-empty required test evidence",
+    ):
+        render_enabled_targets(paths, broken)
+
+
+def test_non_test_report_gate_renders_no_test_evidence() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    active = load_active_composition(paths)
+    gate = next(
+        gate
+        for gate in active.composition.workflow_gates
+        if all(
+            artifact.type != "TestReport"
+            for artifact in gate.required_artifacts
+        )
+    )
+
+    for target_name, owner_path in (
+        (
+            "opencode",
+            Path(
+                ".opencode/agents/"
+                f"{gate.owner_agent_instance}.md"
+            ),
+        ),
+        (
+            "vscode-copilot",
+            Path(
+                ".github/agents/"
+                f"{gate.owner_agent_instance}.agent.md"
+            ),
+        ),
+    ):
+        owner = rendered_files(target_name)[owner_path].decode("utf-8")
+        section_start = owner.index(f"### {gate.name}")
+        next_heading = owner.find("\n### ", section_start + 1)
+        section_end = next_heading if next_heading != -1 else len(owner)
+        section = owner[section_start:section_end]
+
+        assert "- required test evidence: none" in section
+        assert "`changed-behavior-tests`" not in section
+        assert "`project-validation-suite`" not in section
