@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 13. august 2026
+Opdateret: 14. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -175,9 +175,21 @@ scope.
 
 ### Profiles, bundles og setups
 
-Registry-indholdet kræver fortsat audit og hardening for stale tekst,
-capability completeness, placebo-lignende setupvalg og præcis klassifikation af
-den composition, der faktisk materialiseres.
+Goal #48 registry-honesty arbejdet er gennemført på `development`. Den accepterede
+registry er auditeret mod materialiseret adfærd; de identificerede no-effect
+guided setupvalg og stale claims er fjernet; required capability coverage er
+komplet; advisory profile-felter fungerer ikke som implicit runtime authority;
+og klassifikationer matcher den composition, compileren faktisk materialiserer.
+
+ADR-0014 fastlægger desuden artifact content-production/materialization-boundary.
+Begge nuværende targets bevarer nu eksplicit, at `produces` ejer komplet governed
+artifact content og klassifikation uden at udvide effective permissions.
+Read-only producers bruger mediated target/framework handoff til materialisering,
+conversation-only content er ikke materialized governed input, downstream
+consumption kræver materialized/readable availability, og materialization failure
+forbliver fail-closed uden at gøre workflow-controlleren til artifact writer.
+
+Der er ikke et kendt resterende v1-gap i den bounded registry-honesty scope.
 
 ### Architecture and documentation
 
@@ -210,10 +222,11 @@ compositions og begge nuværende targets.
 ## Næste prioritet
 
 ADR-0011 canonical workflow routing semantics, ADR-0012 canonical workflow
-test-evidence semantics og ADR-0013 bounded AI-evaluation execution semantics er
-gennemført med bounded end-to-end implementations. De øvrige v1-områder
-fortsætter gennem repository issue/readiness-flowet, herunder registry-audit,
-bredere target preservation og consumer acceptance.
+test-evidence semantics, ADR-0013 bounded AI-evaluation execution semantics og
+Goal #48 registry-honesty outcome er gennemført på `development`. De resterende
+v1-områder fortsætter gennem repository issue/readiness-flowet, herunder bredere
+canonical target preservation, consumer acceptance/release readiness og
+controlled evolution.
 
 ## Accepted architecture-model decision
 
