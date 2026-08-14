@@ -18,33 +18,33 @@
       "generatedFiles": [
         {
           "path": ".opencode/agents/architecture-worker.md",
-          "sha256": "a8c30808ffeb7fd5c9050b89ba875823640ecbdcccb4f4ec39a7d0a85d7e52c9",
-          "bytes": 4269
+          "sha256": "82bb569c89802ba25421226b7873185e7ca5429845d5b7e3f384d87b4de3ae71",
+          "bytes": 5676
         },
         {
           "path": ".opencode/agents/code-review-worker.md",
-          "sha256": "145eb3bcc3403d0245f2fada103ad9d10bd5d9ac2490a3b0ddf9691fdbc91cd2",
-          "bytes": 4695
+          "sha256": "d85906caff68628a0ec39a5b2d433ef5663984a9f1acb1254272005e99cb3665",
+          "bytes": 6102
         },
         {
           "path": ".opencode/agents/implementation-worker.md",
-          "sha256": "ff30ae14388f65c4fde76543f38eeb809f528acabb6ce1a30be9eefd72266a75",
-          "bytes": 4527
+          "sha256": "b590b5b603a5d4058346291d2fe8ac46f0ba680058dc91944c7de0d977bd10d2",
+          "bytes": 5841
         },
         {
           "path": ".opencode/agents/qa-worker.md",
-          "sha256": "99d1ab63a54dfc9dd743e5789cf4fc02d7b7e0911398f7a396334020366c4a8d",
-          "bytes": 4726
+          "sha256": "0e0ac0043885560b839302120d366924c86e29553115873eee90b05fbbcf48b4",
+          "bytes": 6133
         },
         {
           "path": ".opencode/agents/requirements-worker.md",
-          "sha256": "e77daa992f74296050c22e901c263df433db88c1ab2778e1367bc89d1c04e0a9",
-          "bytes": 4265
+          "sha256": "d17c71c07d9ce8505da38001952514ded9552798a0947b3809bbd9bfcb8d4116",
+          "bytes": 5672
         },
         {
           "path": ".opencode/agents/test-runner.md",
-          "sha256": "8a6b6188b9ab77912bb996a44a5e679ae7c48fb6b5a62b8e76939d912417cf41",
-          "bytes": 5257
+          "sha256": "50b4ce4224dea001b00f4b0496b433d093e2f3fc8c5bd01ce1121a4fa62af5b8",
+          "bytes": 6573
         },
         {
           "path": ".opencode/agents/workflow-controller.md",
@@ -165,33 +165,33 @@
       "generatedFiles": [
         {
           "path": ".github/agents/architecture-worker.agent.md",
-          "sha256": "2298926543de721c4a33ed12017502baa4973f290466ab72ca09481ecc1d4e1c",
-          "bytes": 4279
+          "sha256": "31d239bbbeaaff6d4de270c2e9165549548561a72dc0a76c4d367b8ad5f5c5cb",
+          "bytes": 5686
         },
         {
           "path": ".github/agents/code-review-worker.agent.md",
-          "sha256": "dc55bfe524738b37dae3be95f2348d60e157cbb18316ee371a6e3df5786ee3c7",
-          "bytes": 4704
+          "sha256": "63f1f766186c05c350801ff55fd19a9619ee1e514ce952dac0586b6800be3b89",
+          "bytes": 6111
         },
         {
           "path": ".github/agents/implementation-worker.agent.md",
-          "sha256": "e880852f0d4a8267dad017da515db4bb40b5615984a976d3d064ec2264db1064",
-          "bytes": 4603
+          "sha256": "36424e2dd30ddeab1ecbef94c8abaa83585edfd43b3a3ee26422de6b3d6928ec",
+          "bytes": 5917
         },
         {
           "path": ".github/agents/qa-worker.agent.md",
-          "sha256": "f9657976325e0d0f5e84358d22b8706b831ecdf910973399af056d092b9c280b",
-          "bytes": 4726
+          "sha256": "4085550991dfc337524d929c482886dfcb5d036404029fb02fd57bc6c61c47d0",
+          "bytes": 6133
         },
         {
           "path": ".github/agents/requirements-worker.agent.md",
-          "sha256": "6d5010bf5e490bb6d1cf88ca8b8dde92a3427e48158db177f49edd631549b306",
-          "bytes": 4275
+          "sha256": "1b869a0a10803e20fbd80cea41831bdb68888125254af9018c63d859e7d2a92d",
+          "bytes": 5682
         },
         {
           "path": ".github/agents/test-runner.agent.md",
-          "sha256": "41095581f2d21da4c3ef8193438327c63b1794605c3530c3355d6bcf67bffcc1",
-          "bytes": 5305
+          "sha256": "809adf4030bd7ab49f3b87a7903663f5f578e0617213d0775dc0ec1fd2ad06b2",
+          "bytes": 6621
         },
         {
           "path": ".github/agents/workflow-controller.agent.md",
