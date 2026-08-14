@@ -516,7 +516,7 @@ canonical permission profile.
 
 For the current targets, `limited` is preserved as follows:
 
-- OpenCode uses its per-agent `ask` shell permission in the normal permission
+- OpenCode uses its per-agent `bash: ask` permission in the normal permission
   mode; explicit `--auto`/auto-approve operation is outside the supported
   preservation mode for a limited-shell agent.
 - VS Code Copilot exposes the terminal tool to a limited-shell agent but requires
