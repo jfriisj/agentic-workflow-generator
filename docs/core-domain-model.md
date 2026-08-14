@@ -475,7 +475,56 @@ Each concrete agent instance explicitly selects one permission profile.
 Every enabled target adapter must provide a valid mapping for each effective
 permission profile used by the compiled composition.
 
-Permission mappings must never silently broaden permissions.
+Permission mappings must preserve the complete canonical direct-action authority
+without silent omission or broadening. Target-native controls may group several
+canonical actions only when the grouping does not grant an action that the
+canonical profile denies. If a target cannot preserve an applicable permission
+distinction, generation must fail explicitly.
+
+The canonical boolean fields are direct-action authority:
+
+- `read=true` permits direct repository reads and `read=false` forbids them;
+- `write=true` permits direct file creation/write operations and `write=false`
+  forbids them;
+- `edit=true` permits direct modification of existing repository content and
+  `edit=false` forbids it.
+
+Current V1 profiles use `write` and `edit` together. A future profile that
+distinguishes them must fail for a target that cannot preserve that distinction
+unless a separately accepted decision changes the target representation.
+
+`bash` has exactly three canonical meanings:
+
+- `deny` — the agent has no direct shell authority;
+- `limited` — direct shell invocation is available only through the target
+  host's ordinary approval boundary; the generated project must not select,
+  synthesize or rely on an auto-approval/bypass mode for that agent;
+- `allow` — the project-level profile imposes no additional approval requirement
+  on direct shell invocation, although the target host or user may still apply
+  stricter approval, sandbox or policy controls.
+
+`limited` is approval-gated shell authority. It is not a hidden command
+whitelist, command-discovery mechanism or target-specific rule set. The current
+permission profile contains no canonical command-pattern payload, so a target
+must not invent one. A future requirement for governed command subsets requires
+a separate accepted domain/scope decision.
+
+Explicit host/user/session overrides that intentionally bypass normal approval
+controls are outside the generated project's permission-preservation contract.
+The generator must not emit, enable or recommend such a bypass to satisfy a
+canonical permission profile.
+
+For the current targets, `limited` is preserved as follows:
+
+- OpenCode uses its per-agent `ask` shell permission in the normal permission
+  mode; explicit `--auto`/auto-approve operation is outside the supported
+  preservation mode for a limited-shell agent.
+- VS Code Copilot exposes the terminal tool to a limited-shell agent but requires
+  the normal `Default Approvals` execution mode. `Bypass Approvals` and
+  `Autopilot` are outside the supported preservation mode for that agent.
+  Generated agent guidance must make this host prerequisite explicit because
+  the custom-agent `tools` field controls tool availability rather than the
+  session approval level.
 
 A read-only artifact producer remains read-only. Artifact ownership does not
 synthesize write/edit/shell authority merely to satisfy an output path. Such a
