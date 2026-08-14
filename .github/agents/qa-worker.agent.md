@@ -73,6 +73,16 @@ Static governed inputs are resolved from the canonical compiled composition.
 
 Produced output must satisfy each compiled artifact contract.
 
+### Materialization Boundary
+
+- content ownership: each compiled producing role binding owns complete governed artifact content and classification; `produces` does not grant repository write, edit, or shell authority
+- effective permission boundary: read=`true`; write=`false`; edit=`false`; bash=`deny`
+- materialized availability: conversation-only content is not sufficient; downstream governed consumption or dispatch requires a complete contract-conformant edition materialized at a location satisfying the compiled output path pattern and readable by the governed consumer
+- fail-closed materialization: unavailable or unreadable materialization forbids `PASS`; use `BLOCKED` unless independently reproducible evidence demonstrates outcome-determining nonconformance, which remains `FAIL` under the artifact contract
+- fallback boundary: do not substitute conversation-only content, an invented path, an ungoverned temporary file, or a stale artifact edition
+- controller boundary: the workflow controller selects routes only and does not own artifact persistence or materialization
+- mediated handoff: this effective permission profile does not allow direct repository mutation; construct and return complete contract-conformant artifact content through the target/framework handoff for caller-owned materialization outside this agent instance's permission profile; do not attempt a forbidden write
+
 ### QAReport
 
 - output path pattern: `agent-output/qa-report/*.md`

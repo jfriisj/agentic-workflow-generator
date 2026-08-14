@@ -1067,3 +1067,109 @@ def test_rendering_rejects_broadened_ai_evaluation_permission() -> None:
         ),
     ):
         render_enabled_targets(paths, broken)
+
+_DEFAULT_BUNDLES_FOR_MATERIALIZATION = (
+    "ai-application",
+    "lean-delivery",
+    "orchestrated-delivery",
+    "review-heavy-delivery",
+)
+
+
+@pytest.mark.parametrize(
+    "bundle_name",
+    _DEFAULT_BUNDLES_FOR_MATERIALIZATION,
+)
+@pytest.mark.parametrize(
+    ("target_name", "agent_path_template"),
+    (
+        ("opencode", ".opencode/agents/{agent}.md"),
+        ("vscode-copilot", ".github/agents/{agent}.agent.md"),
+    ),
+)
+def test_current_targets_preserve_adr_0014_materialization_boundary(
+    bundle_name: str,
+    target_name: str,
+    agent_path_template: str,
+) -> None:
+    composition = compiled_bundle(bundle_name)
+    files = rendered_bundle_files(bundle_name, target_name)
+    instances = {
+        instance.id: instance
+        for instance in composition.agent_instances
+    }
+    mediated_producers = 0
+
+    assert composition.artifact_production
+
+    for production in composition.artifact_production:
+        instance = instances[production.agent_instance]
+        path = Path(
+            agent_path_template.format(agent=production.agent_instance)
+        )
+        content = files[path].decode("utf-8")
+        permission = instance.permission_profile
+        direct_mutation = (
+            permission.write
+            or permission.edit
+            or permission.bash is not BashPermission.DENY
+        )
+
+        assert "### Materialization Boundary" in content
+        assert (
+            "`produces` does not grant repository write, edit, or shell "
+            "authority"
+        ) in content
+        assert "conversation-only content is not sufficient" in content
+        assert (
+            "unavailable or unreadable materialization forbids `PASS`"
+        ) in content
+        assert (
+            "the workflow controller selects routes only and does not own "
+            "artifact persistence or materialization"
+        ) in content
+        assert (
+            f"- output path pattern: `{production.artifact.path_pattern}`"
+        ) in content
+
+        if direct_mutation:
+            assert "- writable-producer boundary:" in content
+            continue
+
+        mediated_producers += 1
+        assert "- mediated handoff:" in content
+        assert (
+            "caller-owned materialization outside this agent instance's "
+            "permission profile"
+        ) in content
+        assert "do not attempt a forbidden write" in content
+
+        if target_name == "opencode":
+            assert "  edit: deny" in content
+            assert "  bash: deny" in content
+        else:
+            assert 'tools: ["search", "read/readFile"]' in content
+
+    assert mediated_producers > 0
+
+
+def test_rendering_rejects_artifact_production_without_rendered_producer() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("lean-delivery")
+    production = composition.artifact_production[0]
+    invalid = replace(
+        composition,
+        artifact_production=(
+            replace(
+                production,
+                agent_instance="missing-artifact-producer",
+            ),
+            *composition.artifact_production[1:],
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="not a rendered agent instance",
+    ):
+        render_enabled_targets(paths, invalid)

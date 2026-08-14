@@ -99,6 +99,7 @@ def render_enabled_targets(
     _validate_routing_representation(composition)
     _validate_test_evidence_representation(composition)
     _validate_ai_evaluation_representation(composition)
+    _validate_artifact_materialization_representation(composition)
     rendered: list[RenderedTarget] = []
 
     for target in composition.targets:
@@ -830,6 +831,17 @@ def _render_required_input_artifacts(
     return "\n".join(lines) + "\n\n"
 
 
+def _has_direct_repository_mutation_permission(
+    instance: CompiledAgentInstance,
+) -> bool:
+    permission = instance.permission_profile
+    return (
+        permission.write
+        or permission.edit
+        or permission.bash is not BashPermission.DENY
+    )
+
+
 def _render_produced_artifacts(
     composition: CompiledComposition,
     instance: CompiledAgentInstance,
@@ -847,6 +859,7 @@ This agent instance does not own artifact production.
 
 """
 
+    permission = instance.permission_profile
     lines = [
         "## Produced Artifacts",
         "",
@@ -854,7 +867,63 @@ This agent instance does not own artifact production.
             "Produced output must satisfy each compiled artifact "
             "contract."
         ),
+        "",
+        "### Materialization Boundary",
+        "",
+        (
+            "- content ownership: each compiled producing role binding "
+            "owns complete governed artifact content and classification; "
+            "`produces` does not grant repository write, edit, or shell "
+            "authority"
+        ),
+        (
+            "- effective permission boundary: "
+            f"read=`{str(permission.read).lower()}`; "
+            f"write=`{str(permission.write).lower()}`; "
+            f"edit=`{str(permission.edit).lower()}`; "
+            f"bash=`{permission.bash.value}`"
+        ),
+        (
+            "- materialized availability: conversation-only content is not "
+            "sufficient; downstream governed consumption or dispatch "
+            "requires a complete contract-conformant edition materialized "
+            "at a location satisfying the compiled output path pattern and "
+            "readable by the governed consumer"
+        ),
+        (
+            "- fail-closed materialization: unavailable or unreadable "
+            "materialization forbids `PASS`; use `BLOCKED` unless "
+            "independently reproducible evidence demonstrates "
+            "outcome-determining nonconformance, which remains `FAIL` under "
+            "the artifact contract"
+        ),
+        (
+            "- fallback boundary: do not substitute conversation-only "
+            "content, an invented path, an ungoverned temporary file, or a "
+            "stale artifact edition"
+        ),
+        (
+            "- controller boundary: the workflow controller selects routes "
+            "only and does not own artifact persistence or materialization"
+        ),
     ]
+
+    if _has_direct_repository_mutation_permission(instance):
+        lines.append(
+            "- writable-producer boundary: direct materialization may use "
+            "only operations already granted by this effective permission "
+            "profile; artifact ownership grants no additional operation, "
+            "and mediated materialization remains valid"
+        )
+    else:
+        lines.append(
+            "- mediated handoff: this effective permission profile does not "
+            "allow direct repository mutation; construct and return complete "
+            "contract-conformant artifact content through the "
+            "target/framework handoff for caller-owned materialization "
+            "outside this agent instance's permission profile; do not "
+            "attempt a forbidden write"
+        )
 
     for production in productions:
         artifact = production.artifact
@@ -1153,6 +1222,71 @@ def _canonical_transitions(
         )
     )
 
+
+
+def _validate_artifact_materialization_representation(
+    composition: CompiledComposition,
+) -> None:
+    # Fail when compiled artifact ownership cannot preserve ADR-0014.
+    instances_by_id = {
+        instance.id: instance
+        for instance in composition.agent_instances
+    }
+
+    for production in composition.artifact_production:
+        try:
+            instance = instances_by_id[production.agent_instance]
+        except KeyError as exc:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} references producer "
+                f"{production.agent_instance!r} that is not a rendered "
+                "agent instance"
+            ) from exc
+
+        bindings = tuple(
+            binding
+            for binding in composition.role_bindings
+            if (
+                binding.role_name == production.role_binding
+                and binding.agent_instance == production.agent_instance
+            )
+        )
+        if len(bindings) != 1:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} must resolve exactly one "
+                "compiled producing role binding"
+            )
+
+        binding = bindings[0]
+        if binding.binding_type is not RoleBindingType.STATE_OWNER:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} must remain owned by a "
+                "compiled state-owner role binding"
+            )
+
+        if production.artifact not in binding.produces:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} is not preserved by its "
+                "compiled producing role binding"
+            )
+
+        if production.role_binding not in instance.role_bindings:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} is not preserved by the "
+                "compiled producer agent instance"
+            )
+
+        if not production.artifact.path_pattern:
+            raise TargetRenderingError(
+                "Artifact production for "
+                f"{production.artifact.type!r} cannot preserve an empty "
+                "materialization path pattern"
+            )
 
 
 def _validate_ai_evaluation_representation(

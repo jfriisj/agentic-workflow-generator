@@ -437,6 +437,35 @@ already-produced results and do not gain classification authority.
 Artifact production belongs to role bindings. Agent profiles do not own produced
 artifacts.
 
+A producing role binding owns the complete governed artifact content and its
+classification under the artifact contract. `produces` does not grant or imply
+direct repository write, edit or shell authority. Direct actions remain governed
+only by the producing agent instance's effective permission profile.
+
+Artifact content production and materialization are distinct runtime
+responsibilities. When the producing agent cannot perform the repository mutation
+required by the artifact contract's `pathPattern`, it returns the complete
+contract-conformant artifact content through the target/framework handoff.
+Persistence/materialization then occurs outside that agent instance's permission
+profile at the surrounding target execution boundary or its caller. This does not
+introduce a materializer role, persistence service, artifact store, workflow
+engine or compiler runtime responsibility.
+
+A governed produced artifact is runtime-available to a downstream consumer only
+after one complete edition has been materialized at a concrete location satisfying
+the artifact contract's `pathPattern` and is readable by that consumer. Proposed
+conversation content alone is not materialized workflow memory. The workflow
+controller must not dispatch a downstream state whose required governed input has
+not crossed this boundary, and the controller does not become the artifact writer.
+
+Materialization remains fail closed. If required produced content cannot be
+materialized or made readable, `PASS` is unavailable. Absent independently
+demonstrated nonconformance the producing state returns `BLOCKED`; demonstrated
+outcome-determining nonconformance remains `FAIL` under the artifact contract's
+existing mixed-condition rule. Targets must not substitute conversation-only
+content, an invented path, an ungoverned temporary file or a stale artifact
+edition.
+
 ## Permission profile
 
 A permission profile is a platform-neutral effective permission definition.
@@ -447,6 +476,12 @@ Every enabled target adapter must provide a valid mapping for each effective
 permission profile used by the compiled composition.
 
 Permission mappings must never silently broaden permissions.
+
+A read-only artifact producer remains read-only. Artifact ownership does not
+synthesize write/edit/shell authority merely to satisfy an output path. Such a
+producer returns complete governed artifact content for mediated materialization
+outside its effective permission profile. A target/framework persistence operation
+must not be exposed back to that producer as an undeclared mutation tool.
 
 ## Target adapter
 
@@ -463,6 +498,12 @@ permission mapping
 
 Target-specific file formats, handoff rendering and validation behavior belong
 to renderer code and contract tests.
+
+Both current target renderers must preserve the artifact production/materialization
+boundary from canonical compiled artifact production, artifact contracts and
+effective permissions. A renderer that cannot preserve required content ownership,
+mediated handoff, materialized-availability or fail-closed semantics must fail
+explicitly rather than broaden permissions or omit the requirement.
 
 Target adapters do not define:
 
@@ -510,6 +551,12 @@ lexically ordered category set for `TestReport` gates and an empty list for
 other compiled gates.
 
 There is no separate persisted resolution model.
+
+The compiler validates and preserves static artifact-production ownership,
+contracts, input references and effective permissions. It does not execute
+artifact-producing agents, persist runtime artifact content, select concrete
+runtime artifact editions, prove runtime materialization, or add workflow runtime
+state solely to track materialization.
 
 Target generation must consume the typed active configuration or the in-memory
 compiled composition. It must not reinterpret raw registry files.
@@ -559,6 +606,13 @@ required distinct bindings use distinct instances
 target output remains inside declared owned paths
 target-owned paths do not overlap
 targets preserve complete compiled test-evidence semantics or fail explicitly
+artifact production ownership never broadens effective agent permissions
+read-only artifact producers use mediated target/framework materialization
+conversation-only produced content is not treated as materialized governed input
+downstream dispatch requires required governed inputs to be materialized and readable
+materialization failure forbids PASS and remains fail closed under artifact status semantics
+workflow controllers do not gain artifact persistence or materialization ownership
+targets preserve the compiled artifact materialization boundary or fail explicitly
 ~~~
 
 There is no fallback, compatibility projection or silent degradation.
