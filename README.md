@@ -99,25 +99,28 @@ Generated-output ownership and integrity:
 Generated output is deterministic and fail-closed. Target adapters consume the
 canonical compiled composition and must not reinterpret raw registry input.
 
-## Domain model
+## Architecture and domain model
 
-Start with the stakeholder-facing overview:
+The current-state architecture narrative is [`docs/architecture.md`](docs/architecture.md).
+The sole semantic architecture model is
+[`docs/architecture/workspace.dsl`](docs/architecture/workspace.dsl), while detailed
+platform-neutral domain semantics are owned by
+[`docs/core-domain-model.md`](docs/core-domain-model.md).
 
-- [`agentic-domain-overview.svg`](docs/diagrams/domain/agentic-domain-overview.svg)
+Stakeholder-facing architecture views are reproducible derived output:
 
-Authoritative detailed PlantUML sources:
+- [`system-context.svg`](docs/architecture/diagrams/system-context.svg)
+- [`compiler-responsibilities.svg`](docs/architecture/diagrams/compiler-responsibilities.svg)
 
-- [`setup-selection-chen.puml`](docs/diagrams/domain/setup-selection-chen.puml)
-- [`workflow-control-chen.puml`](docs/diagrams/domain/workflow-control-chen.puml)
-- [`agent-composition-chen.puml`](docs/diagrams/domain/agent-composition-chen.puml)
-- [`capabilities-artifacts-targets-chen.puml`](docs/diagrams/domain/capabilities-artifacts-targets-chen.puml)
-
-Render and verify diagrams with:
+PlantUML and committed SVG files are not semantic architecture authority. Validate
+the canonical model with:
 
 ```bash
-uv run render-domain-diagrams
-uv run render-domain-diagrams --check
+uv run architecture-model check
 ```
+
+If the pinned local architecture toolchain has not been prepared, run
+`uv run architecture-model prepare` explicitly before the check.
 
 ## Project authority
 
@@ -127,7 +130,8 @@ uv run render-domain-diagrams --check
 | Current state and priority | [`docs/project-status.md`](docs/project-status.md) |
 | Governance | [`docs/governance.md`](docs/governance.md) |
 | Operational workflow and commands | [`docs/workflow.md`](docs/workflow.md) |
-| Architecture | [`docs/architecture.md`](docs/architecture.md) |
+| Architecture narrative | [`docs/architecture.md`](docs/architecture.md) |
+| Semantic architecture model | [`docs/architecture/workspace.dsl`](docs/architecture/workspace.dsl) |
 | Core domain | [`docs/core-domain-model.md`](docs/core-domain-model.md) |
 | Technology baseline | [`docs/tech-stack.md`](docs/tech-stack.md) |
 | Architecture decisions | [`docs/adr/`](docs/adr/) |
