@@ -1377,3 +1377,113 @@ def test_rendering_rejects_unrepresentable_write_edit_split() -> None:
         match="cannot preserve divergent canonical write/edit authority",
     ):
         render_enabled_targets(paths, broken)
+def _markdown_list_section(
+    content: str,
+    heading: str,
+) -> tuple[str, ...]:
+    marker = f"## {heading}\n\n"
+    assert content.count(marker) == 1
+    section = content.split(marker, 1)[1].split("\n\n## ", 1)[0]
+    return tuple(
+        line.removeprefix("- ")
+        for line in section.splitlines()
+        if line.startswith("- ")
+    )
+
+
+def _expected_markdown_list(values: tuple[str, ...]) -> tuple[str, ...]:
+    return values or ("None",)
+
+
+@pytest.mark.parametrize(
+    "bundle_name",
+    _DEFAULT_BUNDLES_FOR_MATERIALIZATION,
+)
+@pytest.mark.parametrize(
+    ("target_name", "agent_suffix"),
+    (
+        ("opencode", ".md"),
+        ("vscode-copilot", ".agent.md"),
+    ),
+)
+def test_current_targets_preserve_general_compiled_semantics(
+    bundle_name: str,
+    target_name: str,
+    agent_suffix: str,
+) -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle(bundle_name)
+    target = next(
+        item
+        for item in composition.targets
+        if item.adapter.name == target_name
+    )
+    output_paths = {
+        output.name: output.path
+        for output in target.adapter.output_paths
+    }
+    files = rendered_bundle_files(bundle_name, target_name)
+
+    for instance in composition.agent_instances:
+        agent_path = (
+            Path(output_paths["agents"])
+            / f"{instance.id}{agent_suffix}"
+        )
+        assert agent_path in files
+        content = files[agent_path].decode("utf-8")
+
+        assert f"- agent instance: `{instance.id}`" in content
+        assert f"- profile: `{instance.profile.name}`" in content
+        assert (
+            f"- role bindings: {', '.join(instance.role_bindings)}"
+            in content
+        )
+        assert _markdown_list_section(
+            content,
+            "Required Capabilities",
+        ) == _expected_markdown_list(instance.required_capabilities)
+        assert _markdown_list_section(
+            content,
+            "Selected Skills",
+        ) == _expected_markdown_list(
+            tuple(skill.name for skill in instance.selected_skills)
+        )
+        assert _markdown_list_section(
+            content,
+            "Responsibilities",
+        ) == _expected_markdown_list(instance.responsibilities)
+        assert _markdown_list_section(
+            content,
+            "Guardrails",
+        ) == _expected_markdown_list(instance.guardrails)
+
+    instructions_path = Path(output_paths["instructions"])
+    assert instructions_path in files
+    instructions = files[instructions_path].decode("utf-8")
+    assert f"- bundle: {composition.bundle}" in instructions
+    assert f"- profile: {composition.profile.name}" in instructions
+    assert f"- workflow: {composition.workflow.name}" in instructions
+
+    skill_output_root = Path(output_paths["skills"])
+    expected_skill_files: dict[Path, bytes] = {}
+
+    for skill in composition.skills:
+        source_root = paths.registry_root / "skills" / skill.name
+        for source_path in sorted(
+            source_root.rglob("*"),
+            key=lambda path: path.relative_to(source_root).as_posix(),
+        ):
+            if not source_path.is_file():
+                continue
+            expected_skill_files[
+                skill_output_root
+                / skill.name
+                / source_path.relative_to(source_root)
+            ] = source_path.read_bytes()
+
+    rendered_skill_files = {
+        path: content
+        for path, content in files.items()
+        if path.is_relative_to(skill_output_root)
+    }
+    assert rendered_skill_files == expected_skill_files
