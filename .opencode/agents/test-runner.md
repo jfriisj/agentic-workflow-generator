@@ -3,7 +3,7 @@ description: "Runs tests and produces validation evidence."
 mode: subagent
 permission:
   edit: allow
-  bash: allow
+  bash: ask
 ---
 
 # TestRunner

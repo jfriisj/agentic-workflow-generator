@@ -43,8 +43,8 @@
         },
         {
           "path": ".opencode/agents/test-runner.md",
-          "sha256": "50b4ce4224dea001b00f4b0496b433d093e2f3fc8c5bd01ce1121a4fa62af5b8",
-          "bytes": 6573
+          "sha256": "cd6834ef6b3477eae8b1c5629a1a1d55ace1ee3c42082deb9dbbd29ebff5bddd",
+          "bytes": 6571
         },
         {
           "path": ".opencode/agents/workflow-controller.md",
@@ -190,8 +190,8 @@
         },
         {
           "path": ".github/agents/test-runner.agent.md",
-          "sha256": "809adf4030bd7ab49f3b87a7903663f5f578e0617213d0775dc0ec1fd2ad06b2",
-          "bytes": 6621
+          "sha256": "eb10e16282246e7fffae98e4d20e321b2eb2a988125106cae4f33acadfb6ecd7",
+          "bytes": 6876
         },
         {
           "path": ".github/agents/workflow-controller.agent.md",

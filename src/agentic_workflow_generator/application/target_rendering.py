@@ -88,6 +88,20 @@ _AI_EVALUATION_STATUSES = ("PASS", "FAIL", "BLOCKED")
 _AI_EVALUATION_MIXED_CONDITION_RULE = (
     "FAIL_ON_DEMONSTRATED_NONCONFORMANCE"
 )
+_OPENCODE_PERMISSION_SETTINGS = frozenset({"edit", "bash"})
+_VSCODE_PERMISSION_SETTINGS = frozenset({"tools", "notes"})
+_VSCODE_REQUIRED_READ_TOOLS = frozenset({"search", "read/readFile"})
+_VSCODE_ALLOWED_TOOLS = frozenset(
+    {
+        "search",
+        "read/readFile",
+        "edit/editFiles",
+        "execute/runInTerminal",
+        "execute/testFailure",
+    }
+)
+_VSCODE_EDIT_TOOL = "edit/editFiles"
+_VSCODE_BASH_TOOL = "execute/runInTerminal"
 
 
 def render_enabled_targets(
@@ -100,6 +114,7 @@ def render_enabled_targets(
     _validate_test_evidence_representation(composition)
     _validate_ai_evaluation_representation(composition)
     _validate_artifact_materialization_representation(composition)
+    _validate_permission_representation(composition)
     rendered: list[RenderedTarget] = []
 
     for target in composition.targets:
@@ -350,7 +365,22 @@ def _render_vscode_agent(
             composition,
             instance,
         )
+        + _render_vscode_permission_guidance(instance)
     )
+
+
+def _render_vscode_permission_guidance(
+    instance: CompiledAgentInstance,
+) -> str:
+    if instance.permission_profile.bash is not BashPermission.LIMITED:
+        return ""
+
+    return """## Target Permission Prerequisite
+
+This agent's canonical `bash=limited` permission is preserved only under VS Code
+`Default Approvals`. `Bypass Approvals` and `Autopilot` are unsupported
+preservation modes for this limited-shell agent.
+"""
 
 
 def _render_agent_body(
@@ -1222,6 +1252,149 @@ def _canonical_transitions(
         )
     )
 
+
+
+
+def _validate_permission_representation(
+    composition: CompiledComposition,
+) -> None:
+    """Fail when target-native controls cannot preserve canonical permissions."""
+
+    for target in composition.targets:
+        adapter = target.adapter
+        for instance in composition.agent_instances:
+            if adapter.name == "opencode":
+                _validate_opencode_permission_profile(adapter, instance)
+            elif adapter.name == "vscode-copilot":
+                _validate_vscode_permission_profile(adapter, instance)
+
+
+def _validate_opencode_permission_profile(
+    adapter: TargetAdapter,
+    instance: CompiledAgentInstance,
+) -> None:
+    settings = _permission_settings(adapter, instance.permission_profile.name)
+    unknown_settings = tuple(
+        sorted(set(settings) - _OPENCODE_PERMISSION_SETTINGS)
+    )
+    if unknown_settings:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile "
+            f"{instance.permission_profile.name!r} contains unsupported "
+            f"permission settings: {unknown_settings}"
+        )
+
+    permission = instance.permission_profile
+    if permission.read is not True:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} cannot preserve canonical read=false "
+            f"for permission profile {permission.name!r}"
+        )
+    if permission.write != permission.edit:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} cannot preserve divergent canonical "
+            f"write/edit authority for permission profile {permission.name!r}"
+        )
+
+    edit = _required_permission_string(
+        settings, "edit", adapter.name, permission.name
+    )
+    expected_edit = "allow" if permission.edit else "deny"
+    if edit != expected_edit:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile {permission.name!r} "
+            "does not preserve canonical write/edit authority: "
+            f"expected edit={expected_edit!r}, found {edit!r}"
+        )
+
+    bash = _required_permission_string(
+        settings, "bash", adapter.name, permission.name
+    )
+    expected_bash = {
+        BashPermission.DENY: "deny",
+        BashPermission.LIMITED: "ask",
+        BashPermission.ALLOW: "allow",
+    }[permission.bash]
+    if bash != expected_bash:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile {permission.name!r} "
+            f"does not preserve canonical bash={permission.bash.value!r}: "
+            f"expected {expected_bash!r}, found {bash!r}"
+        )
+
+
+def _validate_vscode_permission_profile(
+    adapter: TargetAdapter,
+    instance: CompiledAgentInstance,
+) -> None:
+    settings = _permission_settings(adapter, instance.permission_profile.name)
+    unknown_settings = tuple(
+        sorted(set(settings) - _VSCODE_PERMISSION_SETTINGS)
+    )
+    if unknown_settings:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile "
+            f"{instance.permission_profile.name!r} contains unsupported "
+            f"permission settings: {unknown_settings}"
+        )
+
+    tools = settings.get("tools")
+    if (
+        not isinstance(tools, tuple)
+        or not tools
+        or any(not item for item in tools)
+    ):
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile "
+            f"{instance.permission_profile.name!r} must provide "
+            "a non-empty tools list"
+        )
+
+    unknown_tools = tuple(sorted(set(tools) - _VSCODE_ALLOWED_TOOLS))
+    if unknown_tools:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile "
+            f"{instance.permission_profile.name!r} contains unsupported "
+            f"permission tools: {unknown_tools}"
+        )
+
+    permission = instance.permission_profile
+    if permission.read is not True:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} cannot preserve canonical read=false "
+            f"for permission profile {permission.name!r}"
+        )
+
+    missing_read_tools = tuple(
+        sorted(_VSCODE_REQUIRED_READ_TOOLS - set(tools))
+    )
+    if missing_read_tools:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile {permission.name!r} "
+            "does not preserve canonical read authority: "
+            f"missing {missing_read_tools}"
+        )
+
+    if permission.write != permission.edit:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} cannot preserve divergent canonical "
+            f"write/edit authority for permission profile {permission.name!r}"
+        )
+
+    has_edit = _VSCODE_EDIT_TOOL in tools
+    if has_edit != permission.edit:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile {permission.name!r} "
+            "does not preserve canonical write/edit authority"
+        )
+
+    has_bash = _VSCODE_BASH_TOOL in tools
+    expected_bash = permission.bash is not BashPermission.DENY
+    if has_bash != expected_bash:
+        raise TargetRenderingError(
+            f"Target {adapter.name!r} permission profile {permission.name!r} "
+            f"does not preserve canonical bash={permission.bash.value!r}"
+        )
 
 
 def _validate_artifact_materialization_representation(

@@ -15,7 +15,7 @@
       "uv.lock"
     ],
     "fileCount": 168,
-    "contentHash": "sha256:5a7a30f2096fc0f55f93e322f4a91432984c74e9ee4f5873076f9f2508ebd771",
+    "contentHash": "sha256:6724b12fb5579216e656af886750c8d1fc28a2c5c407d63cfd9346197b8e7c4a",
     "files": [
       {
         "path": ".agentic/agentic.json",
@@ -374,13 +374,13 @@
       },
       {
         "path": "registry/targets/opencode/adapter.json",
-        "sha256": "sha256:384b8c2d5f659fd5736b45d46f95dbb2aa4fa304c88f6c5144badbb2301b19f4",
-        "sizeBytes": 658
+        "sha256": "sha256:32e986bbd41f0e21739b8d44cf5b3b82a8a559856a761278f05f6f67c384240c",
+        "sizeBytes": 656
       },
       {
         "path": "registry/targets/vscode-copilot/adapter.json",
-        "sha256": "sha256:57bf7bb4cc620ccb2389bdb1c8c770fb16099a143ca2b5b624f2d2ea0585c5a2",
-        "sizeBytes": 1165
+        "sha256": "sha256:653094700da9dd8640e18af736ad2748c2fabe546c30595d1bb64606c82d7b1e",
+        "sizeBytes": 1191
       },
       {
         "path": "registry/workflows/ai-application-delivery.workflow.json",
@@ -474,8 +474,8 @@
       },
       {
         "path": "src/agentic_workflow_generator/application/target_rendering.py",
-        "sha256": "sha256:3d565b578dcbd598739c026b77bb70d97c17dcfa31644cb59f79c6a65d4c8e4c",
-        "sizeBytes": 59076
+        "sha256": "sha256:05405d8ffd6e985c7810d916ad500a79a97478016c919210a83d871e971337cc",
+        "sizeBytes": 65371
       },
       {
         "path": "src/agentic_workflow_generator/application/target_runtime_validation.py",

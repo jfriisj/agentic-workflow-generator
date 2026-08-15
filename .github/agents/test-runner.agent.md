@@ -1,7 +1,7 @@
 ---
 name: "test-runner"
 description: "Runs tests and produces validation evidence."
-tools: ["search", "read/readFile", "execute/runInTerminal", "execute/testFailure"]
+tools: ["search", "read/readFile", "edit/editFiles", "execute/runInTerminal", "execute/testFailure"]
 ---
 
 # TestRunner
@@ -160,3 +160,8 @@ Workflow: `orchestrated-delivery`
 ### State-Owner Routing Boundary
 
 Classify the governed gate outcome as exactly one canonical result: `PASS`, `FAIL`, or `BLOCKED`. Return that result and control to the workflow controller. Do not select or execute a workflow route.
+## Target Permission Prerequisite
+
+This agent's canonical `bash=limited` permission is preserved only under VS Code
+`Default Approvals`. `Bypass Approvals` and `Autopilot` are unsupported
+preservation modes for this limited-shell agent.
