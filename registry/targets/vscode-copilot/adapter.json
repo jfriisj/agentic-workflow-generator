@@ -29,6 +29,7 @@
       "tools": [
         "search",
         "read/readFile",
+        "edit/editFiles",
         "execute/runInTerminal",
         "execute/testFailure"
       ],

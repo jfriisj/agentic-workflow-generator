@@ -1173,3 +1173,207 @@ def test_rendering_rejects_artifact_production_without_rendered_producer() -> No
         match="not a rendered agent instance",
     ):
         render_enabled_targets(paths, invalid)
+
+
+def _composition_with_target_permission_setting(
+    composition: CompiledComposition,
+    target_name: str,
+    permission_profile: str,
+    setting_name: str,
+    value: str | tuple[str, ...],
+) -> CompiledComposition:
+    target = next(
+        item
+        for item in composition.targets
+        if item.adapter.name == target_name
+    )
+    mapping = next(
+        item
+        for item in target.adapter.permission_mappings
+        if item.permission_profile == permission_profile
+    )
+    setting = next(
+        item
+        for item in mapping.settings
+        if item.name == setting_name
+    )
+    updated_setting = replace(setting, value=value)
+    updated_mapping = replace(
+        mapping,
+        settings=tuple(
+            updated_setting if item is setting else item
+            for item in mapping.settings
+        ),
+    )
+    updated_adapter = replace(
+        target.adapter,
+        permission_mappings=tuple(
+            updated_mapping if item is mapping else item
+            for item in target.adapter.permission_mappings
+        ),
+    )
+    updated_target = replace(target, adapter=updated_adapter)
+    return replace(
+        composition,
+        targets=tuple(
+            updated_target if item is target else item
+            for item in composition.targets
+        ),
+    )
+
+
+def test_both_targets_preserve_every_current_effective_permission_profile() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    seen_profiles: set[str] = set()
+
+    for bundle_name in _DEFAULT_BUNDLES_FOR_MATERIALIZATION:
+        composition = compiled_bundle(bundle_name)
+        targets = {
+            target.name: target
+            for target in render_enabled_targets(paths, composition)
+        }
+        opencode_files = {
+            file.path: file.content
+            for file in targets["opencode"].files
+        }
+        vscode_files = {
+            file.path: file.content
+            for file in targets["vscode-copilot"].files
+        }
+
+        for instance in composition.agent_instances:
+            permission = instance.permission_profile
+            seen_profiles.add(permission.name)
+            assert permission.read is True
+            assert permission.write == permission.edit
+
+            opencode = opencode_files[
+                Path(f".opencode/agents/{instance.id}.md")
+            ].decode("utf-8")
+            expected_edit = "allow" if permission.edit else "deny"
+            expected_bash = {
+                BashPermission.DENY: "deny",
+                BashPermission.LIMITED: "ask",
+                BashPermission.ALLOW: "allow",
+            }[permission.bash]
+            assert f"  edit: {expected_edit}" in opencode
+            assert f"  bash: {expected_bash}" in opencode
+
+            vscode = vscode_files[
+                Path(f".github/agents/{instance.id}.agent.md")
+            ].decode("utf-8")
+            tools_line = next(
+                line
+                for line in vscode.splitlines()
+                if line.startswith("tools: ")
+            )
+            tools = set(json.loads(tools_line.removeprefix("tools: ")))
+
+            assert {"search", "read/readFile"} <= tools
+            assert ("edit/editFiles" in tools) == permission.edit
+            assert (
+                "execute/runInTerminal" in tools
+            ) == (permission.bash is not BashPermission.DENY)
+
+            if permission.bash is BashPermission.LIMITED:
+                assert (
+                    "canonical `bash=limited` permission is preserved only "
+                    "under VS Code"
+                ) in vscode
+                assert "`Default Approvals`" in vscode
+                assert "`Bypass Approvals` and `Autopilot`" in vscode
+            else:
+                assert "## Target Permission Prerequisite" not in vscode
+
+    assert seen_profiles == {
+        "read-only",
+        "implementation",
+        "test-runner",
+    }
+
+
+def test_rendering_rejects_broadened_opencode_limited_shell() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("orchestrated-delivery")
+    broken = _composition_with_target_permission_setting(
+        composition,
+        "opencode",
+        "test-runner",
+        "bash",
+        "allow",
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="does not preserve canonical bash='limited'",
+    ):
+        render_enabled_targets(paths, broken)
+
+
+def test_rendering_rejects_vscode_missing_required_edit_tool() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("orchestrated-delivery")
+    target = next(
+        item
+        for item in composition.targets
+        if item.adapter.name == "vscode-copilot"
+    )
+    mapping = next(
+        item
+        for item in target.adapter.permission_mappings
+        if item.permission_profile == "test-runner"
+    )
+    tools = next(
+        item.value
+        for item in mapping.settings
+        if item.name == "tools"
+    )
+    assert isinstance(tools, tuple)
+    broken_tools = tuple(
+        tool
+        for tool in tools
+        if tool != "edit/editFiles"
+    )
+    broken = _composition_with_target_permission_setting(
+        composition,
+        "vscode-copilot",
+        "test-runner",
+        "tools",
+        broken_tools,
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="does not preserve canonical write/edit authority",
+    ):
+        render_enabled_targets(paths, broken)
+
+
+def test_rendering_rejects_unrepresentable_write_edit_split() -> None:
+    paths = ProjectPaths(REPOSITORY_ROOT)
+    composition = compiled_bundle("orchestrated-delivery")
+    instance = next(
+        item
+        for item in composition.agent_instances
+        if item.permission_profile.name == "test-runner"
+    )
+    broken_instance = replace(
+        instance,
+        permission_profile=replace(
+            instance.permission_profile,
+            edit=False,
+        ),
+    )
+    broken = replace(
+        composition,
+        agent_instances=tuple(
+            broken_instance if item is instance else item
+            for item in composition.agent_instances
+        ),
+    )
+
+    with pytest.raises(
+        TargetRenderingError,
+        match="cannot preserve divergent canonical write/edit authority",
+    ):
+        render_enabled_targets(paths, broken)

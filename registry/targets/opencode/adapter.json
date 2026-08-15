@@ -19,7 +19,7 @@
     },
     "test-runner": {
       "edit": "allow",
-      "bash": "allow"
+      "bash": "ask"
     }
   },
   "ownedPaths": [
