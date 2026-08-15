@@ -42,31 +42,14 @@ Setup
   -> Generated output
 ~~~
 
-## Conceptual domain model
+## Architecture and domain model
 
-The domain overview is the navigation entry point:
-
-~~~text
-docs/diagrams/domain/agentic-domain-overview.puml
-~~~
-
-The authoritative entity, relationship and cardinality models are divided by
-bounded context:
-
-~~~text
-docs/diagrams/domain/setup-selection-chen.puml
-docs/diagrams/domain/workflow-control-chen.puml
-docs/diagrams/domain/agent-composition-chen.puml
-docs/diagrams/domain/capabilities-artifacts-targets-chen.puml
-~~~
-
-Rendered SVG files are maintained beside each PlantUML source.
-
-Cross-context ownership and diagram authority are documented in:
-
-~~~text
-docs/diagrams/domain/README.md
-~~~
+The current-state architecture narrative is owned by `docs/architecture.md`. The
+sole semantic architecture model is `docs/architecture/workspace.dsl`, and
+detailed platform-neutral domain semantics are owned by
+`docs/core-domain-model.md`. Stakeholder-facing SVG views under
+`docs/architecture/diagrams/` are reproducible derived output rather than semantic
+authority.
 
 The central target-model distinction is:
 
@@ -153,9 +136,10 @@ The typed registry snapshot and compiler consume validated `TargetAdapter`
 objects directly. There is no compatibility projection, fallback target model
 or separate semantic target validator.
 
-Target renderers and the remaining downstream generation pipeline are still
-being migrated to consume `CompiledComposition` directly. Until that work is
-complete, the repository is intentionally not globally green.
+Target renderers consume canonical `CompiledComposition` semantics directly.
+Both supported V1 targets preserve applicable canonical semantics through typed
+target rendering and fail-closed validation without introducing a second target
+semantic authority.
 
 ## Registry scope
 

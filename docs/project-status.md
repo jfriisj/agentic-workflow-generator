@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 14. august 2026
+Opdateret: 15. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -105,7 +105,10 @@ Følgende repository-foundation er etableret på `development`:
   compilation, active configuration og begge nuværende targets;
 - Python/uv-baseret obligatorisk toolchain uden Node/npm-krav;
 - canonical Structurizr DSL architecture-model med repository-owned validation
-  og reproducible stakeholder-SVG rendering.
+  og reproducible stakeholder-SVG rendering;
+- Goal #50 canonical V1 target preservation accepteret på `development` ved
+  `68951d38788df6379f9c35df470de79884015b81` gennem PR #75, med generaliseret
+  all-bundle, both-target evidence for applicable canonical semantics.
 
 Historisk test- og migrationsstatistik bevares i Git-historikken og er ikke
 aktuel projektstatus.
@@ -121,6 +124,12 @@ aktuel projektstatus.
 
 Milestones og deres målbare completion criteria ejes af ADR-0008. Fremtidige
 issues skal angive hvilket milestone og hvilket exit criterion de fremmer.
+
+Milestone 4, canonical target preservation, er gennemført og accepteret gennem
+Goal #50 på `development` ved
+`68951d38788df6379f9c35df470de79884015b81`. Milestone 5 consumer acceptance
+og release readiness samt Milestone 6 controlled evolution er de resterende
+v1-milestones.
 
 ## Kendte v1-gaps
 
@@ -221,12 +230,13 @@ compositions og begge nuværende targets.
 
 ## Næste prioritet
 
-ADR-0011 canonical workflow routing semantics, ADR-0012 canonical workflow
-test-evidence semantics, ADR-0013 bounded AI-evaluation execution semantics og
-Goal #48 registry-honesty outcome er gennemført på `development`. De resterende
-v1-områder fortsætter gennem repository issue/readiness-flowet, herunder bredere
-canonical target preservation, consumer acceptance/release readiness og
-controlled evolution.
+Goal #50 canonical V1 target preservation er gennemført og accepteret på
+`development` ved `68951d38788df6379f9c35df470de79884015b81` gennem PR #75.
+Den næste planning workstream er Goal #51 consumer acceptance and release
+readiness: clean consumer-project evidence for deterministic initialization,
+compilation, materialization, generated-state validation og repeat execution på
+begge understøttede targets. Goal #52 controlled evolution forbliver efter denne
+workstream og dekomponeres først gennem normal issue/readiness-flow.
 
 ## Accepted architecture-model decision
 
