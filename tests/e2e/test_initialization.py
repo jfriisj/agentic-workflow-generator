@@ -12,6 +12,10 @@ from agentic_workflow_generator.application import (
     InitializationService,
     load_initialization_service,
 )
+from agentic_workflow_generator.application.lockfile import (
+    generate_lockfile,
+    validate_lockfile,
+)
 from agentic_workflow_generator.infrastructure import (
     read_json_object,
 )
@@ -183,3 +187,63 @@ def test_consumer_acceptance_matrix_initializes_clean_consumers(
         path: path.read_bytes()
         for path in expected_written_paths
     } == first_outputs
+
+
+@pytest.mark.parametrize(
+    "selection",
+    CONSUMER_ACCEPTANCE_MATRIX,
+    ids=lambda selection: f"{selection.mode}:{selection.name}",
+)
+def test_consumer_acceptance_matrix_generates_canonical_lock_state(
+    tmp_path: Path,
+    selection: ConsumerSelection,
+) -> None:
+    paths = copy_consumer_repository(
+        tmp_path / "consumer-project"
+    )
+    service = load_initialization_service(paths)
+    plan = plan_selection(service, selection)
+    initialization_result = service.commit(plan)
+
+    assert initialization_result.changed is True
+    assert paths.active_config.exists()
+    assert not paths.lockfile.exists()
+    assert not paths.generated_root.exists()
+    assert not paths.manifest.exists()
+
+    active_config_before_lock = paths.active_config.read_bytes()
+
+    first_generation = generate_lockfile(paths)
+    first_lockfile = paths.lockfile.read_bytes()
+
+    assert first_generation.input_file_count > 0
+    assert first_generation.content_hash.startswith("sha256:")
+    assert validate_lockfile(paths) == ()
+
+    lockfile = read_json_object(paths.lockfile)
+    inputs = lockfile["inputs"]
+
+    assert isinstance(inputs, dict)
+    files = inputs["files"]
+    assert isinstance(files, list)
+
+    locked_paths = {
+        entry["path"]
+        for entry in files
+        if isinstance(entry, dict)
+        and isinstance(entry.get("path"), str)
+    }
+
+    assert ".agentic/agentic.json" in locked_paths
+    assert paths.active_config.read_bytes() == active_config_before_lock
+    assert not paths.generated_root.exists()
+    assert not paths.manifest.exists()
+
+    second_generation = generate_lockfile(paths)
+
+    assert second_generation == first_generation
+    assert paths.lockfile.read_bytes() == first_lockfile
+    assert validate_lockfile(paths) == ()
+    assert paths.active_config.read_bytes() == active_config_before_lock
+    assert not paths.generated_root.exists()
+    assert not paths.manifest.exists()
