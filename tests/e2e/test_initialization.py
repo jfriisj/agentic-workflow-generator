@@ -16,6 +16,12 @@ from agentic_workflow_generator.application.lockfile import (
     generate_lockfile,
     validate_lockfile,
 )
+from agentic_workflow_generator.application.target_materialization import (
+    materialize_targets,
+)
+from agentic_workflow_generator.application.target_output_validation import (
+    validate_target_output,
+)
 from agentic_workflow_generator.infrastructure import (
     read_json_object,
 )
@@ -247,3 +253,82 @@ def test_consumer_acceptance_matrix_generates_canonical_lock_state(
     assert paths.active_config.read_bytes() == active_config_before_lock
     assert not paths.generated_root.exists()
     assert not paths.manifest.exists()
+
+
+@pytest.mark.parametrize(
+    "selection",
+    CONSUMER_ACCEPTANCE_MATRIX,
+    ids=lambda selection: f"{selection.mode}:{selection.name}",
+)
+def test_consumer_acceptance_matrix_materializes_canonical_target_state(
+    tmp_path: Path,
+    selection: ConsumerSelection,
+) -> None:
+    paths = copy_consumer_repository(
+        tmp_path / "consumer-project"
+    )
+    service = load_initialization_service(paths)
+    plan = plan_selection(service, selection)
+    initialization_result = service.commit(plan)
+
+    assert initialization_result.changed is True
+    assert not paths.lockfile.exists()
+    assert not paths.generated_root.exists()
+
+    generate_lockfile(paths)
+
+    assert validate_lockfile(paths) == ()
+    assert paths.lockfile.exists()
+    assert not paths.generated_root.exists()
+    assert not paths.manifest.exists()
+
+    active_config_before_materialization = paths.active_config.read_bytes()
+    lockfile_before_materialization = paths.lockfile.read_bytes()
+
+    result = materialize_targets(paths)
+
+    assert result.target_count == len(plan.targets)
+    assert result.generated_file_count > 0
+    assert paths.manifest.exists()
+    assert validate_target_output(paths) == ()
+
+    manifest = read_json_object(paths.manifest)
+    targets = manifest["targets"]
+    summary = manifest["summary"]
+
+    assert isinstance(targets, list)
+    assert isinstance(summary, dict)
+
+    manifest_target_names: list[str] = []
+    manifest_generated_paths: list[str] = []
+
+    for target in targets:
+        assert isinstance(target, dict)
+        target_name = target.get("name")
+        generated_files = target.get("generatedFiles")
+
+        assert isinstance(target_name, str)
+        assert isinstance(generated_files, list)
+        assert target.get("generatedFileCount") == len(generated_files)
+
+        manifest_target_names.append(target_name)
+
+        for generated_file in generated_files:
+            assert isinstance(generated_file, dict)
+            generated_path = generated_file.get("path")
+            assert isinstance(generated_path, str)
+            manifest_generated_paths.append(generated_path)
+
+    assert tuple(manifest_target_names) == plan.targets
+    assert summary["targetCount"] == result.target_count
+    assert summary["generatedFileCount"] == result.generated_file_count
+    assert len(manifest_generated_paths) == result.generated_file_count
+    assert all(
+        paths.repository_path(generated_path).is_file()
+        for generated_path in manifest_generated_paths
+    )
+    assert (
+        paths.active_config.read_bytes()
+        == active_config_before_materialization
+    )
+    assert paths.lockfile.read_bytes() == lockfile_before_materialization
