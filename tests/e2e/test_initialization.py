@@ -272,6 +272,7 @@ def test_consumer_acceptance_matrix_materializes_canonical_target_state(
     initialization_result = service.commit(plan)
 
     assert initialization_result.changed is True
+    assert paths.active_config.exists()
     assert not paths.lockfile.exists()
     assert not paths.generated_root.exists()
 
