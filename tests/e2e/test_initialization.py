@@ -23,8 +23,12 @@ from agentic_workflow_generator.application.target_output_validation import (
     UNMANAGED_FILE_DIAGNOSTIC,
     validate_target_output,
 )
+from agentic_workflow_generator.cli.main import (
+    main as cli_main,
+)
 from agentic_workflow_generator.infrastructure import (
     read_json_object,
+    write_json,
 )
 from agentic_workflow_generator.registry import ProjectPaths
 
@@ -482,3 +486,47 @@ def test_consumer_acceptance_matrix_repeats_canonical_target_state(
     } == generated_before_repeat
     assert owned_regular_files() == canonical_generated_paths
     assert validate_target_output(paths) == ()
+
+
+def test_consumer_incomplete_active_composition_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = copy_consumer_repository(
+        tmp_path / "consumer-project"
+    )
+    service = load_initialization_service(paths)
+    plan = service.plan_bundle("orchestrated-delivery")
+    initialization_result = service.commit(plan)
+
+    assert initialization_result.changed is True
+    assert paths.active_config.exists()
+    assert not paths.lockfile.exists()
+    assert not paths.generated_root.exists()
+    assert not paths.manifest.exists()
+
+    active_config = read_json_object(paths.active_config)
+
+    assert "workflow" in active_config
+    del active_config["workflow"]
+    write_json(paths.active_config, active_config)
+
+    invalid_active_config = paths.active_config.read_bytes()
+
+    monkeypatch.chdir(paths.root)
+    result = cli_main(("validate",))
+
+    assert result == 1
+    output = capsys.readouterr().out
+    assert "AWG-ACTIVE-CONFIG-001" in output
+    assert "workflow" in output
+
+    assert (
+        paths.active_config.read_bytes()
+        == invalid_active_config
+    )
+    assert "workflow" not in read_json_object(
+        paths.active_config
+    )
+    assert not paths.lockfile.exists()
