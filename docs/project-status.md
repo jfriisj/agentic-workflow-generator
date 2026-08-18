@@ -279,17 +279,16 @@ Alle seks ADR-0008 V1 milestones er complete, og V1 er release-ready på
 `development`. Der er endnu ikke gennemført en V1 release til `production`.
 
 Goal #86, configurable Agent Factory OpenCode composition, er den næste
-post-V1 planning workstream og er `priority: next`. Scope-transition child #94 er
-den aktive `priority: now` authority-slice.
+post-V1 planning workstream og er `priority: next`. Scope-transition #94 er
+closed/completed gennem PR #95, og capability'en er accepteret i `docs/scope.md`.
 
-#94 må kun optage den bounded Agent Factory composition/model-assignment
-capability i accepteret scope og registrere dens ownership/architecture impact.
-Den ændrer ikke executable behavior. Repository-evidence viser, at canonical
-model assignment ikke har en nuværende domain owner; derfor forbliver
-implementation blokeret på en separat accepteret ownership decision/ADR efter
-scope-transitionen.
+Decision child #96 er den aktive `priority: now` slice. ADR-0015 vælger
+`AgentInstance` som canonical owner af en bounded typed provider/model assignment.
+Adopterende bundles er all-or-none, og targets må kun oversætte den canonical
+værdi uden inference eller fallback.
 
-Ingen implementation-child under Goal #86 er ready endnu.
+Ingen implementation-child under Goal #86 er ready før ADR-0015 er accepteret på
+`development`.
 
 ## Accepted architecture-model decision
 
