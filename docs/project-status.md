@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 15. august 2026
+Opdateret: 18. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -108,7 +108,12 @@ Følgende repository-foundation er etableret på `development`:
   og reproducible stakeholder-SVG rendering;
 - Goal #50 canonical V1 target preservation accepteret på `development` ved
   `68951d38788df6379f9c35df470de79884015b81` gennem PR #75, med generaliseret
-  all-bundle, both-target evidence for applicable canonical semantics.
+  all-bundle, both-target evidence for applicable canonical semantics;
+- Goal #51 consumer acceptance and release readiness accepteret på den endelige
+  validerede Milestone-5 integration-state ved
+  `80f86b5a2b74f4d3d0930bb44a433087e790d976`, med clean-consumer evidence for
+  initialization, compilation, validation, materialization, repeat execution,
+  generated-state ownership og fail-closed representative invalid input.
 
 Historisk test- og migrationsstatistik bevares i Git-historikken og er ikke
 aktuel projektstatus.
@@ -128,8 +133,10 @@ issues skal angive hvilket milestone og hvilket exit criterion de fremmer.
 Milestone 4, canonical target preservation, er gennemført og accepteret gennem
 Goal #50 på `development` ved
 `68951d38788df6379f9c35df470de79884015b81`. Milestone 5 consumer acceptance
-og release readiness samt Milestone 6 controlled evolution er de resterende
-v1-milestones.
+og release readiness er gennemført gennem Goal #51 med final repository-wide
+validation grøn på `development` ved
+`80f86b5a2b74f4d3d0930bb44a433087e790d976`. Milestone 6 controlled evolution
+er det eneste resterende v1-milestone.
 
 ## Kendte v1-gaps
 
@@ -224,19 +231,34 @@ eller target-scope.
 Testsuiten har kendt duplicate-code-gæld. Den må reduceres uden at deaktivere
 kvalitetsregler, svække assertions eller skjule duplication gennem exclusions.
 
-V1 kræver desuden consumer-oriented acceptance coverage, der beviser
-deterministic compilation, materialization og validation for de understøttede
-compositions og begge nuværende targets.
+Goal #51 consumer acceptance and release readiness er gennemført på den
+accepterede Milestone-5 integration-state. Den version-controlled clean-consumer
+acceptance evidence beviser:
+
+- clean initialization for den accepterede bundle/setup matrix;
+- deterministic active configuration og canonical compiler-input lock state;
+- canonical materialization og generated-state/output-manifest validation for
+  begge nuværende targets;
+- repeat execution uden drift eller unmanaged target-owned output;
+- fail-closed rejection af en repræsentativ strukturelt incomplete active
+  composition uden fallback, silent repair eller accepteret downstream generated
+  state;
+- full repository validation på den endelige accepterede integration-state.
+
+Historiske test counts er fortsat ikke release criterion.
 
 ## Næste prioritet
 
 Goal #50 canonical V1 target preservation er gennemført og accepteret på
 `development` ved `68951d38788df6379f9c35df470de79884015b81` gennem PR #75.
-Den næste planning workstream er Goal #51 consumer acceptance and release
-readiness: clean consumer-project evidence for deterministic initialization,
-compilation, materialization, generated-state validation og repeat execution på
-begge understøttede targets. Goal #52 controlled evolution forbliver efter denne
-workstream og dekomponeres først gennem normal issue/readiness-flow.
+Goal #51 consumer acceptance and release readiness er ligeledes gennemført med
+final repository-wide validation grøn på den accepterede Milestone-5 state ved
+`80f86b5a2b74f4d3d0930bb44a433087e790d976`.
+
+Den næste planning workstream er Goal #52 controlled evolution. Goal #52 skal
+re-reades mod current `development` og promoveres/dekomponeres gennem normal
+issue/readiness-flow før executable work autoriseres. V1 er endnu ikke complete,
+fordi Milestone 6 fortsat mangler acceptance.
 
 ## Accepted architecture-model decision
 
