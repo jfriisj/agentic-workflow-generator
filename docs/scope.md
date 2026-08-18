@@ -17,21 +17,20 @@ Changes outside this document require the scope-transition rules defined in
 
 ## Current phase
 
-**V1 completion**
+**Post-V1 controlled product evolution**
 
-ADR-0008 defines the canonical v1 product outcome, six v1 milestones, controlled
-evolution principle and finite release-readiness exit condition.
+ADR-0008 V1 is complete and release-ready on accepted `development`. Its six
+milestones, controlled-evolution principle and hard compiler/runtime constraints
+remain the baseline for later work.
 
-The atomic migration to the typed `AgentInstance` / `RoleBinding`,
-`CompiledComposition` and typed top-level CLI architecture is complete.
+Post-V1 scope expansion is admitted only through explicit governed transitions.
+The current admitted expansion is bounded to Goal #86: a configurable OpenCode
+Agent Factory composition with explicit supported per-agent model assignment.
 
-The current phase is limited to completing the accepted compiler, workflow,
-artifact, registry, target, architecture-documentation and validation work
-required by ADR-0008.
-
-This phase is not authorization for unrelated product expansion. Work must map
-to an ADR-0008 milestone and remain inside the product boundary and hard
-constraints below.
+This phase does not authorize unrelated product expansion. Implementation of the
+Goal #86 capability remains blocked until the required ownership/architecture
+decision is accepted; later implementation must remain inside the product
+boundary and hard constraints below.
 
 ## Product boundary
 
@@ -236,6 +235,64 @@ ADR-0009 separately admits Structurizr DSL and the pinned documentation-tool
 boundary used by the canonical architecture model. Maintenance of that accepted
 model, its validation and its derived rendering is therefore in scope. A future
 architecture-model technology change still requires a separate accepted decision.
+
+### 7. Configurable Agent Factory OpenCode composition
+
+Goal #86 admits one bounded post-V1 consumer capability: a clean consumer project
+may select a declared Agent Factory composition whose explicit agent/role
+composition and supported per-agent model assignments are represented
+canonically, compiled deterministically and preserved in generated OpenCode
+output.
+
+Accepted work may include only the registry, schema, typed-domain/compiler,
+active-configuration, validation, OpenCode rendering, generated-output and test
+changes required to support that outcome.
+
+The admitted capability must preserve this sequence:
+
+~~~text
+select accepted Agent Factory composition
+    -> validated typed input
+    -> canonical CompiledComposition
+    -> active configuration
+    -> OpenCode rendering
+    -> generated-state validation
+    -> OpenCode runtime validation
+    -> repeat
+    -> canonical deterministic result
+~~~
+
+Explicit model assignment is admitted as a static governed composition concern,
+not as model execution, model hosting or provider orchestration. The OpenCode
+renderer may translate accepted canonical assignment semantics into target-native
+syntax but must not become a second semantic authority.
+
+This scope transition does not decide which existing canonical domain entity owns
+model assignment. The current domain model gives `AgentInstance` concrete worker
+identity/configuration responsibility and `RoleBinding` workflow-role
+responsibility, but neither currently owns model selection. Because adding that
+ownership changes a durable canonical representation, a separate accepted
+decision/ADR is required before implementation.
+
+The minimum admitted configurability is limited to:
+
+- declaring/selecting the Agent Factory composition required by Goal #86;
+- explicit supported model assignment for the concrete generated agents in that
+  composition;
+- deterministic canonical preservation of those assignments;
+- fail-closed rejection of missing, invalid or unsupported required assignments;
+- OpenCode target-native preservation and runtime validation;
+- canonical output-manifest ownership and idempotent regeneration.
+
+This capability does not admit:
+
+- automatic model selection, recommendation or inference;
+- model hosting, execution, provider SDK orchestration or credential management;
+- raw OpenCode configuration as canonical semantic authority;
+- a generalized cross-target model-routing platform beyond demonstrated need;
+- a hard-coded one-off template that bypasses registry and canonical compilation;
+- a plugin system, dynamic discovery or generic target DSL;
+- a new target platform or unrelated composition/registry redesign.
 
 ## Hard architectural constraints
 

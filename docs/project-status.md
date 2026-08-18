@@ -275,17 +275,21 @@ Historiske test counts er fortsat ikke release criterion.
 
 ## Næste prioritet
 
-Goal #50 canonical V1 target preservation, Goal #51 consumer acceptance and
-release readiness samt Goal #52 controlled evolution er gennemført. Final
-Milestone-6 repository validation er grøn på
-`development @ 49bf510f3518739571fda72853557f6672e1cf43`.
-
 Alle seks ADR-0008 V1 milestones er complete, og V1 er release-ready på
 `development`. Der er endnu ikke gennemført en V1 release til `production`.
 
-Efter Goal #52 acceptance lukkes og `development` re-reades, vælges næste
-planning workstream gennem normal dependency/readiness-flow. Denne V1-completion
-slice promoverer eller dekomponerer ikke dependent work.
+Goal #86, configurable Agent Factory OpenCode composition, er den næste
+post-V1 planning workstream og er `priority: next`. Scope-transition child #94 er
+den aktive `priority: now` authority-slice.
+
+#94 må kun optage den bounded Agent Factory composition/model-assignment
+capability i accepteret scope og registrere dens ownership/architecture impact.
+Den ændrer ikke executable behavior. Repository-evidence viser, at canonical
+model assignment ikke har en nuværende domain owner; derfor forbliver
+implementation blokeret på en separat accepteret ownership decision/ADR efter
+scope-transitionen.
+
+Ingen implementation-child under Goal #86 er ready endnu.
 
 ## Accepted architecture-model decision
 
