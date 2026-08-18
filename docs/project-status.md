@@ -12,19 +12,20 @@ accepterede ADRs. Teknologibaselinen dokumenteres i `docs/tech-stack.md`.
 
 ## Aktuel fase
 
-**V1 completion**
+**V1 complete / release-ready on `development`**
 
 Migrationen til den typed `AgentInstance` / `RoleBinding`-arkitektur,
 `CompiledComposition` som canonical compiler-authoritet og typed top-level CLI er
 afsluttet.
 
 ADR-0008 fastlægger v1-produktmål, seks målbare milestones, controlled evolution
-og en finite release-readiness exit condition. `docs/scope.md` er nu alignet med
-den beslutning og autoriserer kun det bounded arbejde, der kræves for at afslutte
-de seks milestones.
+og en finite release-readiness exit condition. Alle seks milestones er nu
+gennemført med repository-verificerbar acceptance evidence og final
+repository-wide validation på `development`.
 
-Projektet arbejder derfor mod en repository-verificerbar v1 completion state
-frem for en åben post-migration hardening-fase.
+V1 er dermed complete og release-ready på `development`. Det er ikke en claim om,
+at V1 er released på `production`; release-flowet forbliver separat og ejes af
+`docs/workflow.md`.
 
 ## V1 outcome
 
@@ -113,7 +114,13 @@ Følgende repository-foundation er etableret på `development`:
   validerede Milestone-5 integration-state ved
   `80f86b5a2b74f4d3d0930bb44a433087e790d976`, med clean-consumer evidence for
   initialization, compilation, validation, materialization, repeat execution,
-  generated-state ownership og fail-closed representative invalid input.
+  generated-state ownership og fail-closed representative invalid input;
+- Goal #52 controlled evolution accepteret gennem issue #91's repository-backed
+  seam inventory og final repository-wide validation på
+  `49bf510f3518739571fda72853557f6672e1cf43`, med eksplicit ownership og
+  dependency direction for targets, workflows, artifact contracts og
+  capability/skill concerns samt no-gap evidence for second compiler authority,
+  compatibility fallback og parallel semantic resolution paths.
 
 Historisk test- og migrationsstatistik bevares i Git-historikken og er ikke
 aktuel projektstatus.
@@ -136,7 +143,12 @@ Goal #50 på `development` ved
 og release readiness er gennemført gennem Goal #51 med final repository-wide
 validation grøn på `development` ved
 `80f86b5a2b74f4d3d0930bb44a433087e790d976`. Milestone 6 controlled evolution
-er det eneste resterende v1-milestone.
+er gennemført gennem Goal #52 med repository-backed seam evidence fra #91 og
+final repository-wide validation grøn på `development` ved
+`49bf510f3518739571fda72853557f6672e1cf43`.
+
+Alle seks ADR-0008 V1 milestones er dermed complete på `development`, og V1
+opfylder ADR-0008's repository-level release-readiness exit condition.
 
 ## Kendte v1-gaps
 
@@ -226,6 +238,20 @@ integration-target state:
 Konsolideringen ændrer ikke produkt-, compiler-, registry-, workflow-, artifact-
 eller target-scope.
 
+### Controlled evolution
+
+Goal #52 controlled evolution er gennemført gennem issue #91's inventory af de
+reelle eksisterende extension seams. Targets, workflows, artifact contracts og
+capability/skill concerns har eksplicit authoritative ownership, typed dependency
+direction og eksisterende fail-closed contract/integration protection.
+
+Researchen demonstrerede intet production-code-, test-, architecture-model- eller
+seam-specifikt documentation-gap. Der blev heller ikke fundet nogen second
+compiler authority, compatibility fallback eller parallel semantic resolution
+path. Controlled evolution er derfor bevist gennem de eksisterende bounded
+seams; V1 introducerer ikke en synthetic third target, plugin platform, dynamic
+discovery eller generic target DSL for at demonstrere extensibility.
+
 ### Testkvalitet og consumer acceptance
 
 Testsuiten har kendt duplicate-code-gæld. Den må reduceres uden at deaktivere
@@ -249,16 +275,17 @@ Historiske test counts er fortsat ikke release criterion.
 
 ## Næste prioritet
 
-Goal #50 canonical V1 target preservation er gennemført og accepteret på
-`development` ved `68951d38788df6379f9c35df470de79884015b81` gennem PR #75.
-Goal #51 consumer acceptance and release readiness er ligeledes gennemført med
-final repository-wide validation grøn på den accepterede Milestone-5 state ved
-`80f86b5a2b74f4d3d0930bb44a433087e790d976`.
+Goal #50 canonical V1 target preservation, Goal #51 consumer acceptance and
+release readiness samt Goal #52 controlled evolution er gennemført. Final
+Milestone-6 repository validation er grøn på
+`development @ 49bf510f3518739571fda72853557f6672e1cf43`.
 
-Den næste planning workstream er Goal #52 controlled evolution. Goal #52 skal
-re-reades mod current `development` og promoveres/dekomponeres gennem normal
-issue/readiness-flow før executable work autoriseres. V1 er endnu ikke complete,
-fordi Milestone 6 fortsat mangler acceptance.
+Alle seks ADR-0008 V1 milestones er complete, og V1 er release-ready på
+`development`. Der er endnu ikke gennemført en V1 release til `production`.
+
+Efter Goal #52 acceptance lukkes og `development` re-reades, vælges næste
+planning workstream gennem normal dependency/readiness-flow. Denne V1-completion
+slice promoverer eller dekomponerer ikke dependent work.
 
 ## Accepted architecture-model decision
 
