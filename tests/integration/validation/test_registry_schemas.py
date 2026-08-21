@@ -38,7 +38,7 @@ def test_real_registry_schemas_validate_all_documents() -> None:
     result = validate_registry_schemas(ProjectPaths(REPOSITORY_ROOT))
 
     assert result.is_valid
-    assert result.checked_document_count == 46
+    assert result.checked_document_count == 48
     assert result.diagnostics == ()
 
 
@@ -271,7 +271,7 @@ def test_invalid_json_document_is_reported_individually(
 
     result = validate_registry_schemas(paths)
 
-    assert result.checked_document_count == 46
+    assert result.checked_document_count == 48
     diagnostic = next(
         item for item in result.diagnostics if item.code == DOCUMENT_INPUT_DIAGNOSTIC
     )

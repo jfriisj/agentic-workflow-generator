@@ -514,6 +514,23 @@ Do not rely on whichever setup was last generated in the repository.
 
 ## 11. Current registered setups
 
+### agent-factory-greenfield
+
+Purpose:
+
+~~~text
+OpenCode Agent Factory composition
+seven distinct governed delivery workers
+explicit per-agent provider/model assignment
+exact target preservation without model routing or fallback
+~~~
+
+The setup reuses the accepted `orchestrated-delivery` workflow and
+`microservice-platform` profile because Goal #86 changes concrete worker
+identity/model configuration rather than workflow semantics. Its dedicated
+`agent-factory` bundle is materially distinct and enables only the `opencode`
+target.
+
 ### ai-application-greenfield
 
 Purpose:

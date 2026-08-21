@@ -19,6 +19,7 @@ def test_real_registry_guided_init_service_materializes_all_setups() -> None:
         setup.name
         for setup in service.setups
     ) == (
+        "agent-factory-greenfield",
         "ai-application-greenfield",
         "lean-delivery-greenfield",
         "orchestrated-delivery-greenfield",
@@ -32,12 +33,20 @@ def test_real_registry_guided_init_service_materializes_all_setups() -> None:
     )
 
     for setup in service.setups:
+        supports_target_override = any(
+            question.id == "target-platforms"
+            for question in setup.questions
+        )
         profile = service.materialize(
             setup.name,
-            overrides,
+            overrides if supports_target_override else None,
         )
 
         assert profile.selected == SetupSelection(
             bundle=setup.default_selection.bundle,
-            targets=("opencode",),
+            targets=(
+                ("opencode",)
+                if supports_target_override
+                else setup.default_selection.targets
+            ),
         )

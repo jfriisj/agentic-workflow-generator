@@ -1,0 +1,33 @@
+{
+  "name": "agent-factory-greenfield",
+  "description": "Guided OpenCode setup for the governed seven-agent Agent Factory composition with explicit per-agent model assignments.",
+  "version": "0.1.0",
+  "mode": "greenfield",
+  "defaultSelection": {
+    "bundle": "agent-factory",
+    "targets": [
+      "opencode"
+    ]
+  },
+  "questions": [
+    {
+      "id": "composition",
+      "prompt": "Which governed Agent Factory composition should be generated?",
+      "options": [
+        {
+          "value": "agent-factory",
+          "label": "Agent Factory OpenCode composition",
+          "reason": "Recommended because Goal #86 accepts the seven-agent governed delivery roster with explicit per-agent model assignment and OpenCode target preservation.",
+          "classification": "recommended",
+          "selection": {
+            "bundle": "agent-factory",
+            "targets": [
+              "opencode"
+            ]
+          }
+        }
+      ],
+      "defaultOption": "agent-factory"
+    }
+  ]
+}

@@ -28,7 +28,7 @@
       "minLength": 1
     },
     "schemaVersion": {
-      "const": "0.11.0"
+      "const": "0.12.0"
     },
     "project": {
       "type": "object",
@@ -726,6 +726,24 @@
             },
             "uniqueItems": true,
             "minItems": 1
+          },
+          "modelAssignment": {
+            "type": "object",
+            "required": [
+              "provider",
+              "model"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }

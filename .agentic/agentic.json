@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/agentic.schema.json",
-  "schemaVersion": "0.11.0",
+  "schemaVersion": "0.12.0",
   "project": {
     "name": "agentic-workflow-generator",
     "type": "agentic-generator",

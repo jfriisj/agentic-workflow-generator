@@ -98,21 +98,22 @@ uv run agentic-workflow-generator init --bundle orchestrated-delivery
 
 ## Registered greenfield setups
 
-Four greenfield setups are registered: three process-oriented setups and one domain-oriented AI application setup.
+Five greenfield setups are registered: three process-oriented setups, one domain-oriented AI application setup, and one Agent Factory OpenCode setup.
 
 | Setup | Bundle | Profile | Workflow | Purpose |
 |---|---|---|---|---|
+| `agent-factory-greenfield` | `agent-factory` | `microservice-platform` | `orchestrated-delivery` | Seven-agent Agent Factory OpenCode composition with explicit per-agent model assignments |
 | `ai-application-greenfield` | `ai-application` | `ai-application` | `ai-application-delivery` | AI delivery with explicit quality, safety, failure-mode, and operational evaluation |
 | `lean-delivery-greenfield` | `lean-delivery` | `lean-delivery` | `lean-delivery` | Focused lower-risk changes with fewer handoffs |
 | `orchestrated-delivery-greenfield` | `orchestrated-delivery` | `microservice-platform` | `orchestrated-delivery` | General delivery with architecture, tests, review, and QA |
 | `review-heavy-delivery-greenfield` | `review-heavy-delivery` | `review-heavy-delivery` | `review-heavy-delivery` | High-assurance delivery with review before formal tests |
 
-All four setups default to:
+All five setups default to mode `greenfield`, `failFast: true`, and
+`fallbackAllowed: false`.
 
-- mode `greenfield`
-- targets `opencode` and `vscode-copilot`
-- `failFast: true`
-- `fallbackAllowed: false`
+The four V1 setups default to targets `opencode` and `vscode-copilot`.
+`agent-factory-greenfield` defaults to `opencode` only because Goal #86 admits
+explicit model-assignment preservation through the OpenCode target boundary.
 
 ### AI application delivery flow
 
@@ -141,6 +142,7 @@ Independent code review occurs before formal test execution.
 
 The registry files are:
 
+- `registry/setups/agent-factory-greenfield.setup.json`
 - `registry/setups/ai-application-greenfield.setup.json`
 - `registry/setups/lean-delivery-greenfield.setup.json`
 - `registry/setups/orchestrated-delivery-greenfield.setup.json`

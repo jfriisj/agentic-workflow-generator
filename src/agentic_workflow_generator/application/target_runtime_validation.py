@@ -36,7 +36,7 @@ def validate_opencode_runtime(
     plan = build_target_materialization_plan(paths)
 
     try:
-        expected_default, expected_modes = (
+        expected_default, expected_modes, expected_models = (
             _planned_opencode_contract(plan)
         )
     except LookupError as exc:
@@ -89,6 +89,7 @@ def validate_opencode_runtime(
             effective_config,
             expected_default,
             expected_modes,
+            expected_models,
         )
     )
 
@@ -189,7 +190,7 @@ def _run_opencode(
 
 def _planned_opencode_contract(
     plan: TargetMaterializationPlan,
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str], dict[str, str]]:
     target = next(
         (
             target
@@ -236,6 +237,7 @@ def _planned_opencode_contract(
         )
 
     modes: dict[str, str] = {}
+    models: dict[str, str] = {}
 
     for file in target.files:
         if (
@@ -245,23 +247,43 @@ def _planned_opencode_contract(
         ):
             continue
 
-        modes[file.path.stem] = _frontmatter_mode(
+        content = file.content.decode("utf-8")
+        mode = _frontmatter_value(
             file.path,
-            file.content.decode("utf-8"),
+            content,
+            "mode",
+            required=True,
         )
+        if mode is None:
+            raise LookupError(
+                f"Canonical agent lacks mode: {file.path}"
+            )
+        modes[file.path.stem] = mode
+
+        model = _frontmatter_value(
+            file.path,
+            content,
+            "model",
+            required=False,
+        )
+        if model is not None:
+            models[file.path.stem] = model
 
     if not modes:
         raise LookupError(
             "Canonical OpenCode rendering contains no agents"
         )
 
-    return default_agent, modes
+    return default_agent, modes, models
 
 
-def _frontmatter_mode(
+def _frontmatter_value(
     path: Path,
     content: str,
-) -> str:
+    field: str,
+    *,
+    required: bool,
+) -> str | None:
     lines = content.splitlines()
 
     if not lines or lines[0] != "---":
@@ -273,21 +295,32 @@ def _frontmatter_mode(
         if line == "---":
             break
 
-        if line.startswith("mode:"):
-            mode = line.split(":", 1)[1].strip()
+        if line.startswith(f"{field}:"):
+            raw_value = line.split(":", 1)[1].strip()
+            if not raw_value:
+                break
 
-            if mode:
-                return mode
+            try:
+                parsed = json.loads(raw_value)
+            except json.JSONDecodeError:
+                parsed = raw_value
 
-    raise LookupError(
-        f"Canonical agent lacks mode: {path}"
-    )
+            if isinstance(parsed, str) and parsed:
+                return parsed
+            break
+
+    if required:
+        raise LookupError(
+            f"Canonical agent lacks {field}: {path}"
+        )
+    return None
 
 
 def _validate_effective_config(
     effective_config: object,
     expected_default: str,
     expected_modes: dict[str, str],
+    expected_models: dict[str, str],
 ) -> tuple[Diagnostic, ...]:
     if not isinstance(effective_config, dict):
         return (
@@ -355,6 +388,23 @@ def _validate_effective_config(
                         f"{agent_name!r} differs from canonical "
                         f"output: expected {expected_mode!r}, "
                         f"found {effective_agent.get('mode')!r}"
+                    ),
+                )
+            )
+
+        expected_model = expected_models.get(agent_name)
+        if (
+            expected_model is not None
+            and effective_agent.get("model") != expected_model
+        ):
+            diagnostics.append(
+                Diagnostic(
+                    code=RUNTIME_CONTRACT_DIAGNOSTIC,
+                    message=(
+                        f"OpenCode effective model for "
+                        f"{agent_name!r} differs from canonical "
+                        f"output: expected {expected_model!r}, "
+                        f"found {effective_agent.get('model')!r}"
                     ),
                 )
             )

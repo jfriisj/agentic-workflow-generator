@@ -111,6 +111,7 @@ def test_all_registered_setups_materialize_valid_default_profiles() -> None:
     setups, references, profile_schema = load_validated_setups()
 
     assert tuple(setup.name for setup in setups) == (
+        "agent-factory-greenfield",
         "ai-application-greenfield",
         "lean-delivery-greenfield",
         "orchestrated-delivery-greenfield",
@@ -148,13 +149,23 @@ def test_all_registered_setups_materialize_valid_default_profiles() -> None:
         ),
     ],
 )
-def test_all_registered_setups_materialize_valid_target_overrides(
+def test_registered_target_override_setups_materialize_valid_profiles(
     target_option: str,
     expected_targets: list[str],
 ) -> None:
     setups, references, profile_schema = load_validated_setups()
+    target_override_setups = tuple(
+        setup
+        for setup in setups
+        if any(
+            question.id == "target-platforms"
+            for question in setup.questions
+        )
+    )
 
-    for setup in setups:
+    assert target_override_setups
+
+    for setup in target_override_setups:
         data = validate_materialized_profile(
             setup,
             references,

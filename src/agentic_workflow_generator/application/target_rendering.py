@@ -314,6 +314,7 @@ def _render_opencode_agent(
         "---\n"
         f"description: {_yaml_string(instance.profile.description)}\n"
         f"mode: {mode}\n"
+        f"{_render_opencode_model(instance)}"
         "permission:\n"
         f"  edit: {edit}\n"
         f"  bash: {bash}\n"
@@ -322,6 +323,20 @@ def _render_opencode_agent(
             composition,
             instance,
         )
+    )
+
+
+def _render_opencode_model(
+    instance: CompiledAgentInstance,
+) -> str:
+    assignment = instance.model_assignment
+    if assignment is None:
+        return ""
+
+    return (
+        "model: "
+        + _yaml_string(f"{assignment.provider}/{assignment.model}")
+        + "\n"
     )
 
 

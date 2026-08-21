@@ -3,7 +3,7 @@
   "description": "Deterministic ownership and integrity manifest for generated target output.",
   "composition": {
     "path": ".agentic/agentic.json",
-    "sha256": "e5ba31980e056a329d21c7b363faeea8b501f06f11c669b470322ef03c1cbc8a"
+    "sha256": "39d2503ca95d2d0e81d5d9d3298933d1f2bde0059bc26fd129bc2666804280c7"
   },
   "targets": [
     {

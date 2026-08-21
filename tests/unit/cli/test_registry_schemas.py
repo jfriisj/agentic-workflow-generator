@@ -24,7 +24,7 @@ def test_registry_schema_cli_preserves_success_contract(
     assert result == 0
     assert capsys.readouterr().out == (
         "PASS: Registry JSON schemas are valid. "
-        "Checked 46 registry file(s).\n"
+        "Checked 48 registry file(s).\n"
     )
 
 

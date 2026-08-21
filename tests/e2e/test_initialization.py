@@ -35,17 +35,23 @@ from agentic_workflow_generator.registry import ProjectPaths
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
+ALL_TARGETS = ("opencode", "vscode-copilot")
+
+
 @dataclass(frozen=True, slots=True)
 class ConsumerSelection:
     mode: Literal["bundle", "setup"]
     name: str
+    targets: tuple[str, ...] = ALL_TARGETS
 
 
 CONSUMER_ACCEPTANCE_MATRIX = (
+    ConsumerSelection("bundle", "agent-factory", ("opencode",)),
     ConsumerSelection("bundle", "ai-application"),
     ConsumerSelection("bundle", "lean-delivery"),
     ConsumerSelection("bundle", "orchestrated-delivery"),
     ConsumerSelection("bundle", "review-heavy-delivery"),
+    ConsumerSelection("setup", "agent-factory-greenfield", ("opencode",)),
     ConsumerSelection("setup", "ai-application-greenfield"),
     ConsumerSelection("setup", "lean-delivery-greenfield"),
     ConsumerSelection("setup", "orchestrated-delivery-greenfield"),
@@ -139,13 +145,9 @@ def test_consumer_acceptance_matrix_initializes_clean_consumers(
     assert not paths.generated_root.exists()
 
     service = load_initialization_service(paths)
-    registered_targets = tuple(
-        target.name
-        for target in service.registry.targets
-    )
     first_plan = plan_selection(service, selection)
 
-    assert first_plan.targets == registered_targets
+    assert first_plan.targets == selection.targets
 
     first_result = service.commit(first_plan)
     expected_written_paths = frozenset(
@@ -486,6 +488,91 @@ def test_consumer_acceptance_matrix_repeats_canonical_target_state(
     } == generated_before_repeat
     assert owned_regular_files() == canonical_generated_paths
     assert validate_target_output(paths) == ()
+
+
+def test_agent_factory_reference_fixture_preserves_models(
+    tmp_path: Path,
+) -> None:
+    paths = copy_consumer_repository(tmp_path / "consumer-project")
+    service = load_initialization_service(paths)
+    plan = service.plan_setup("agent-factory-greenfield")
+    service.commit(plan)
+
+    active_config = read_json_object(paths.active_config)
+    instances = active_config["agentInstances"]
+    assert isinstance(instances, list)
+    assert {
+        instance["id"]
+        for instance in instances
+        if isinstance(instance, dict)
+    } == {
+        "requirements-researcher",
+        "software-architect",
+        "minimal-change-engineer",
+        "test-engineer",
+        "code-reviewer",
+        "reality-checker",
+        "workflow-controller",
+    }
+    assert all(
+        isinstance(instance, dict)
+        and instance.get("modelAssignment")
+        == {"provider": "openai", "model": "gpt-5.6-sol"}
+        for instance in instances
+    )
+
+    generate_lockfile(paths)
+    materialize_targets(paths)
+    assert validate_target_output(paths) == ()
+    for instance in instances:
+        assert isinstance(instance, dict)
+        agent_path = paths.root / ".opencode" / "agents" / f"{instance['id']}.md"
+        assert agent_path.is_file()
+        assert 'model: "openai/gpt-5.6-sol"' in agent_path.read_text(encoding="utf-8")
+
+
+def test_agent_factory_distinct_assignments_preserve_per_agent(
+    tmp_path: Path,
+) -> None:
+    paths = copy_consumer_repository(tmp_path / "consumer-project")
+    bundle_path = paths.registry_root / "bundles" / "agent-factory.bundle.json"
+    bundle = read_json_object(bundle_path)
+    instances = bundle["agentInstances"]
+    assert isinstance(instances, list)
+    first = instances[0]
+    assert isinstance(first, dict)
+    first["modelAssignment"] = {"provider": "openai", "model": "gpt-5.6-luna"}
+    write_json(bundle_path, bundle)
+
+    service = load_initialization_service(paths)
+    plan = service.plan_bundle("agent-factory")
+    service.commit(plan)
+    active_config = read_json_object(paths.active_config)
+    active_instances = active_config["agentInstances"]
+    assert isinstance(active_instances, list)
+    by_id = {
+        instance["id"]: instance
+        for instance in active_instances
+        if isinstance(instance, dict) and isinstance(instance.get("id"), str)
+    }
+    assert by_id["requirements-researcher"]["modelAssignment"] == {
+        "provider": "openai",
+        "model": "gpt-5.6-luna",
+    }
+    assert by_id["software-architect"]["modelAssignment"] == {
+        "provider": "openai",
+        "model": "gpt-5.6-sol",
+    }
+
+    generate_lockfile(paths)
+    materialize_targets(paths)
+    assert validate_target_output(paths) == ()
+    assert 'model: "openai/gpt-5.6-luna"' in (
+        paths.root / ".opencode" / "agents" / "requirements-researcher.md"
+    ).read_text(encoding="utf-8")
+    assert 'model: "openai/gpt-5.6-sol"' in (
+        paths.root / ".opencode" / "agents" / "software-architect.md"
+    ).read_text(encoding="utf-8")
 
 
 def test_consumer_incomplete_active_composition_fails_closed(

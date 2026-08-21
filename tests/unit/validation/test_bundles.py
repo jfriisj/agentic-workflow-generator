@@ -1,5 +1,6 @@
 from dataclasses import replace
 from pathlib import Path
+from typing import cast
 
 from jsonschema.exceptions import ValidationError
 
@@ -29,6 +30,7 @@ from agentic_workflow_generator.validation.bundles import (
     MISSING_GATE_ARTIFACT_DIAGNOSTIC,
     MISSING_GATE_CAPABILITY_DIAGNOSTIC,
     MISSING_STATE_OWNER_DIAGNOSTIC,
+    MODEL_ASSIGNMENT_ADOPTION_DIAGNOSTIC,
     OBSOLETE_FIELD_DIAGNOSTIC,
     SCHEMA_DIAGNOSTIC,
     SEPARATION_INSTANCE_DIAGNOSTIC,
@@ -332,6 +334,50 @@ def test_valid_bundle_is_parsed() -> None:
     )
 
 
+
+
+def test_full_model_assignment_adoption_is_parsed() -> None:
+    data = bundle_data()
+    instances = cast(list[JsonObject], data["agentInstances"])
+    assignments = (("openai", "gpt-5.6-luna"), ("openai", "gpt-5.6-sol"))
+    for instance, (provider, model) in zip(instances, assignments, strict=True):
+        instance["modelAssignment"] = {
+            "provider": provider,
+            "model": model,
+        }
+
+    result = validate(source(data=data))
+
+    assert result.is_valid
+    assert result.diagnostics == ()
+    assert result.bundles[0].agent_instances[0].model_assignment is not None
+    assert result.bundles[0].agent_instances[0].model_assignment.model == "gpt-5.6-luna"
+    assert result.bundles[0].agent_instances[1].model_assignment is not None
+    assert result.bundles[0].agent_instances[1].model_assignment.model == "gpt-5.6-sol"
+
+
+def test_partial_model_assignment_adoption_fails_closed() -> None:
+    data = bundle_data()
+    instance = _object_entry(data, "agentInstances", 0)
+    instance["modelAssignment"] = {"provider": "openai", "model": "gpt-5.6-sol"}
+
+    result = validate(source(data=data))
+
+    assert MODEL_ASSIGNMENT_ADOPTION_DIAGNOSTIC in diagnostic_codes(result)
+
+
+def test_empty_model_assignment_identity_fails_schema_validation() -> None:
+    data = bundle_data()
+    for instance in cast(list[JsonObject], data["agentInstances"]):
+        instance["modelAssignment"] = {
+            "provider": "",
+            "model": "gpt-5.6-sol",
+        }
+
+    result = validate(source(data=data))
+
+    assert result.bundles == ()
+    assert SCHEMA_DIAGNOSTIC in diagnostic_codes(result)
 
 
 def test_missing_input_artifacts_fails_schema_validation() -> None:
