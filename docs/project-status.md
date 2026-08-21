@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 18. august 2026
+Opdateret: 21. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -278,17 +278,22 @@ Historiske test counts er fortsat ikke release criterion.
 Alle seks ADR-0008 V1 milestones er complete, og V1 er release-ready på
 `development`. Der er endnu ikke gennemført en V1 release til `production`.
 
-Goal #86, configurable Agent Factory OpenCode composition, er den næste
-post-V1 planning workstream og er `priority: next`. Scope-transition #94 er
+Goal #86, configurable Agent Factory OpenCode composition, er den aktive
+post-V1 workstream og er `priority: now`. Scope-transition #94 er
 closed/completed gennem PR #95, og capability'en er accepteret i `docs/scope.md`.
+Decision #96 er closed/completed gennem PR #97; ADR-0015 er accepteret på
+`development` og vælger `AgentInstance` som canonical owner af en bounded typed
+provider/model assignment. Adopterende bundles er all-or-none, og targets må kun
+oversætte den canonical værdi uden inference eller fallback. Beslutningen er
+endnu ikke implementeret.
 
-Decision child #96 er den aktive `priority: now` slice. ADR-0015 vælger
-`AgentInstance` som canonical owner af en bounded typed provider/model assignment.
-Adopterende bundles er all-or-none, og targets må kun oversætte den canonical
-værdi uden inference eller fallback.
-
-Ingen implementation-child under Goal #86 er ready før ADR-0015 er accepteret på
-`development`.
+Post-ADR readiness viser ikke et resterende scope- eller architecture-decision
+behov. Den eksisterende bundle-ejede `agentInstances` / `roleBindings`
+composition er tilstrækkelig til at repræsentere et andet konkret role set.
+Den eneste aktuelt demonstrerede planning prerequisite er den præcise Agent
+Factory fixture: agent-/role-identiteter samt eksplicit `provider` / `model` for
+hver konkret agent. Ingen implementation-child er ready før denne fixture er
+eksplicit; derefter er default én vertikal implementation slice.
 
 ## Accepted architecture-model decision
 
