@@ -1,6 +1,6 @@
 # Projektstatus — `agentic-workflow-generator`
 
-Opdateret: 21. august 2026
+Opdateret: 22. august 2026
 
 Denne fil er projektets autoritative aktuelle status.
 
@@ -278,28 +278,29 @@ Historiske test counts er fortsat ikke release criterion.
 Alle seks ADR-0008 V1 milestones er complete, og V1 er release-ready på
 `development`. Der er endnu ikke gennemført en V1 release til `production`.
 
-Goal #86, configurable Agent Factory OpenCode composition, er den aktive
-post-V1 workstream og er `priority: now`. Scope-transition #94 er
-closed/completed gennem PR #95, og capability'en er accepteret i `docs/scope.md`.
-Decision #96 er closed/completed gennem PR #97; ADR-0015 er accepteret på
-`development` og vælger `AgentInstance` som canonical owner af en bounded typed
-provider/model assignment. Adopterende bundles er all-or-none, og targets må kun
-oversætte den canonical værdi uden inference eller fallback. Beslutningen er
-endnu ikke implementeret.
+Goal #86, configurable Agent Factory OpenCode composition, er accepteret på
+`development` ved `7972bf5247bc32f0f2b0c61903e27b1c84a3755e` gennem PR #100 /
+implementation #99. Scope-transition #94 og decision #96 / ADR-0015 er dermed
+realiseret gennem den eksisterende bundle/compiler/target-path uden en ny
+composition- eller model-routing-authoritet.
 
-Post-ADR readiness har ingen resterende scope-, architecture- eller
-fixture-dependency. Goal #86 registrerer nu den konkrete syv-agent Agent Factory
-reference fixture over de eksisterende canonical role bindings og bruger
-`openai/gpt-5.6-sol` som eksplicit reference assignment på alle syv instances.
-Referencevalget er configuration til acceptance og ikke en permanent eller
-dynamisk model-selection policy.
+Den accepterede Agent Factory composition kan vælges gennem
+`agent-factory-greenfield`, materialiserer kun OpenCode og bevarer de syv
+konkrete agent identities, eksisterende role bindings/profiles og den eksplicitte
+`openai/gpt-5.6-sol` model assignment på hver instance. `ModelAssignment` er
+implementeret end to end gennem registry schema, typed domain, fail-closed
+all-or-none bundle validation, canonical compilation, active config `0.12.0`,
+OpenCode target-preservation og runtime validation. Eksisterende non-adopting
+bundles forbliver uden implicit model authority eller fallback.
 
-Implementation #99 er den aktive vertikale `priority: now` slice. Den ejer den
-bounded `ModelAssignment`-implementation end to end gennem registry schema,
-typed domain, fail-closed all-or-none bundle validation, canonical compilation,
-active config `0.12.0`, OpenCode target-preservation, runtime validation,
-clean-consumer/idempotency evidence og required canonical generated/lock state.
-Eksisterende non-adopting bundles forbliver uden implicit model authority.
+Post-merge clean-consumer acceptance på den accepterede `development`-baseline
+beviser deterministic generation, canonical generated-output ownership,
+idempotency, exact identity/role/profile/model preservation og OpenCode runtime
+validation. Goal #86 har derfor intet resterende implementation work.
+
+Der er endnu ikke accepteret et efterfølgende post-V1 Goal som `priority: now`.
+Næste workstream vælges først efter post-goal reevaluering af åbne ready issues;
+roadmap eller planning containers autoriserer ikke implementation alene.
 
 ## Accepted architecture-model decision
 
