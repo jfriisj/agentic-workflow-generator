@@ -17,7 +17,7 @@ from .composition import (
     CompiledWorkflowGate,
 )
 
-ACTIVE_CONFIG_SCHEMA_VERSION = "0.11.0"
+ACTIVE_CONFIG_SCHEMA_VERSION = "0.12.0"
 GENERATOR_NAME = "agentic-workflow-generator"
 GENERATOR_VERSION = "0.1.0"
 
@@ -252,7 +252,7 @@ def composition_to_json_object(
 def _serialize_agent_instance(
     instance: CompiledAgentInstance,
 ) -> JsonObject:
-    return cast(
+    result = cast(
         JsonObject,
         {
             "id": instance.id,
@@ -287,6 +287,14 @@ def _serialize_agent_instance(
             "guardrails": list(instance.guardrails),
         },
     )
+
+    if instance.model_assignment is not None:
+        result["modelAssignment"] = {
+            "provider": instance.model_assignment.provider,
+            "model": instance.model_assignment.model,
+        }
+
+    return result
 
 
 def _serialize_role_binding(

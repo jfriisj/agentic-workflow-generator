@@ -49,6 +49,7 @@ WorkflowTestEvidenceRequirement
 Gate
 AgentProfile
 AgentInstance
+ModelAssignment
 RoleBinding
 SeparationPolicy
 Capability
@@ -164,12 +165,40 @@ agent profile
 display name
 permission profile
 shared-context policy
+optional model assignment
 ~~~
 
 Each agent instance has exactly one effective permission profile.
 
 One agent instance may serve several role bindings when the bundle's separation
 policies allow it.
+
+## Model assignment
+
+`ModelAssignment` is a bounded value owned by one concrete `AgentInstance`.
+
+It contains exactly:
+
+~~~text
+provider
+model
+~~~
+
+Both identities are non-empty. The value has no independent registry lifecycle,
+provider catalogue, alias resolution or runtime routing authority.
+
+A bundle either omits model assignment from every instance or declares it on
+every instance. Once a bundle adopts explicit assignment, partial assignment is
+invalid and must fail closed.
+
+Compilation preserves the exact value on `CompiledAgentInstance`; active
+configuration serializes the structured pair. A target may translate the pair to
+target-native syntax only where accepted target semantics support it. It must not
+choose, substitute, inherit or reinterpret a missing assignment.
+
+A non-adopting bundle remains valid and gains no implicit canonical model.
+Runtime provider/model unavailability is an acceptance concern and must not
+trigger compiler fallback.
 
 ## Role binding
 

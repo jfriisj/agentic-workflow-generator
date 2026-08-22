@@ -509,13 +509,10 @@ def test_interactive_cancellation_preserves_existing_outputs(
     assert "== Guided Agentic Initialization ==" in output
     assert "Select a registered guided setup:" in output
 
-    for setup_name in (
-        "ai-application-greenfield",
-        "lean-delivery-greenfield",
-        "orchestrated-delivery-greenfield",
-        "review-heavy-delivery-greenfield",
-    ):
-        assert setup_name in output
+    service = load_initialization_service(paths)
+
+    for setup in service.guided_init.setups:
+        assert setup.name in output
 
     assert output.endswith(
         "FAIL: interactive guided init was cancelled; no files were written\n"

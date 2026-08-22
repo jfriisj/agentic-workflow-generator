@@ -68,6 +68,24 @@
           },
           "sharedContextPolicy": {
             "const": "shared-with-assigned-bindings"
+          },
+          "modelAssignment": {
+            "type": "object",
+            "required": [
+              "provider",
+              "model"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }

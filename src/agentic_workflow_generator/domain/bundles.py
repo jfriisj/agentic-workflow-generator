@@ -26,6 +26,14 @@ class SeparationMode(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class ModelAssignment:
+    """Explicit provider/model identity owned by one concrete agent instance."""
+
+    provider: str
+    model: str
+
+
+@dataclass(frozen=True, slots=True)
 class AgentInstance:
     """Immutable concrete worker instantiated from an agent profile."""
 
@@ -34,6 +42,7 @@ class AgentInstance:
     display_name: str
     permission_profile: str
     shared_context_policy: SharedContextPolicy
+    model_assignment: ModelAssignment | None = None
 
 
 @dataclass(frozen=True, slots=True)

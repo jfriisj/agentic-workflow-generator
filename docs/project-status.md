@@ -179,7 +179,7 @@ ADR-0012 canonical workflow test-evidence semantics er implementeret end to end.
 Hver `TestReport`-gate ejer en non-empty canonical `requiredTestEvidence` set med
 den lukkede vocabulary `changed-behavior-tests` og
 `project-validation-suite`. Parser, semantic validation, bundle projection,
-`CompiledWorkflowGate`, active config `0.11.0` og begge nuværende targets
+`CompiledWorkflowGate`, active config `0.12.0` og begge nuværende targets
 bevarer den komplette semantik deterministisk. Targets repræsenterer category
 meaning, requiredness, reproducible `TestReport`
 `claim`/`source`/`reproduction`/`result` evidence, statuskonsekvenser,
@@ -287,13 +287,19 @@ provider/model assignment. Adopterende bundles er all-or-none, og targets må ku
 oversætte den canonical værdi uden inference eller fallback. Beslutningen er
 endnu ikke implementeret.
 
-Post-ADR readiness viser ikke et resterende scope- eller architecture-decision
-behov. Den eksisterende bundle-ejede `agentInstances` / `roleBindings`
-composition er tilstrækkelig til at repræsentere et andet konkret role set.
-Den eneste aktuelt demonstrerede planning prerequisite er den præcise Agent
-Factory fixture: agent-/role-identiteter samt eksplicit `provider` / `model` for
-hver konkret agent. Ingen implementation-child er ready før denne fixture er
-eksplicit; derefter er default én vertikal implementation slice.
+Post-ADR readiness har ingen resterende scope-, architecture- eller
+fixture-dependency. Goal #86 registrerer nu den konkrete syv-agent Agent Factory
+reference fixture over de eksisterende canonical role bindings og bruger
+`openai/gpt-5.6-sol` som eksplicit reference assignment på alle syv instances.
+Referencevalget er configuration til acceptance og ikke en permanent eller
+dynamisk model-selection policy.
+
+Implementation #99 er den aktive vertikale `priority: now` slice. Den ejer den
+bounded `ModelAssignment`-implementation end to end gennem registry schema,
+typed domain, fail-closed all-or-none bundle validation, canonical compilation,
+active config `0.12.0`, OpenCode target-preservation, runtime validation,
+clean-consumer/idempotency evidence og required canonical generated/lock state.
+Eksisterende non-adopting bundles forbliver uden implicit model authority.
 
 ## Accepted architecture-model decision
 

@@ -26,7 +26,7 @@ def test_real_registry_loads_one_complete_validated_snapshot() -> None:
 
     assert len(snapshot.agents) == 8
     assert len(snapshot.artifacts) == 7
-    assert len(snapshot.bundles) == 4
+    assert len(snapshot.bundles) == 5
     assert len(snapshot.permission_profiles) == 3
     assert len(snapshot.profiles) == 4
     assert len(snapshot.skills) == 10

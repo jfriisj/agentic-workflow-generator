@@ -11,6 +11,7 @@ from agentic_workflow_generator.domain import (
     AgentProfile,
     ArtifactContract,
     Bundle,
+    ModelAssignment,
     PermissionProfile,
     Profile,
     RoleBinding,
@@ -108,6 +109,7 @@ class CompiledAgentInstance:
     produces: tuple[ArtifactContract, ...]
     responsibilities: tuple[str, ...]
     guardrails: tuple[str, ...]
+    model_assignment: ModelAssignment | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -495,6 +497,7 @@ def _compile_instance(
             for binding in assigned
             for guardrail in binding.guardrails
         ),
+        model_assignment=instance.model_assignment,
     )
 
 

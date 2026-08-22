@@ -15,6 +15,7 @@ from agentic_workflow_generator.domain.bundles import (
     AgentInstance,
     Bundle,
     InputArtifactReference,
+    ModelAssignment,
     RoleBinding,
     RoleBindingType,
     SeparationMode,
@@ -74,6 +75,7 @@ INPUT_ARTIFACT_CONTROLLER_DIAGNOSTIC = "AWG-BUNDLE-037"
 INPUT_ARTIFACT_PRODUCER_MISMATCH_DIAGNOSTIC = "AWG-BUNDLE-038"
 INPUT_ARTIFACT_SELF_REFERENCE_DIAGNOSTIC = "AWG-BUNDLE-039"
 INPUT_ARTIFACT_CYCLE_DIAGNOSTIC = "AWG-BUNDLE-040"
+MODEL_ASSIGNMENT_ADOPTION_DIAGNOSTIC = "AWG-BUNDLE-041"
 
 OBSOLETE_BUNDLE_FIELDS = frozenset(
     {
@@ -671,6 +673,7 @@ def _parse_bundle(
                             )
                         )
                     ),
+                    model_assignment=_parse_model_assignment(raw_instance),
                 )
                 for raw_instance in raw_instances
             ),
@@ -706,6 +709,20 @@ def _parse_bundle(
             targets=_string_tuple(source.data["targets"]),
         ),
         source_path=source.source_path,
+    )
+
+
+def _parse_model_assignment(
+    raw_instance: JsonObject,
+) -> ModelAssignment | None:
+    raw_assignment = raw_instance.get("modelAssignment")
+    if raw_assignment is None:
+        return None
+
+    assignment = cast(JsonObject, raw_assignment)
+    return ModelAssignment(
+        provider=cast(str, assignment["provider"]),
+        model=cast(str, assignment["model"]),
     )
 
 
@@ -838,6 +855,7 @@ def _validate_bundle_semantics(
             )
         )
 
+    diagnostics.extend(_validate_model_assignment_adoption(bundle, path))
     diagnostics.extend(
         _validate_bundle_references(
             bundle,
@@ -859,6 +877,38 @@ def _validate_bundle_semantics(
     )
 
     return tuple(diagnostics)
+
+
+def _validate_model_assignment_adoption(
+    bundle: Bundle,
+    path: Path,
+) -> tuple[Diagnostic, ...]:
+    assigned = tuple(
+        instance.id
+        for instance in bundle.agent_instances
+        if instance.model_assignment is not None
+    )
+    if not assigned or len(assigned) == len(bundle.agent_instances):
+        return ()
+
+    missing = tuple(
+        instance.id
+        for instance in bundle.agent_instances
+        if instance.model_assignment is None
+    )
+    return (
+        _diagnostic(
+            MODEL_ASSIGNMENT_ADOPTION_DIAGNOSTIC,
+            (
+                "modelAssignment must be declared by every agent instance "
+                "or omitted by every agent instance in one bundle"
+            ),
+            path,
+            "agentInstances",
+            *assigned,
+            *missing,
+        ),
+    )
 
 
 def _validate_bundle_references(
